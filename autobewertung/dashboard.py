@@ -130,6 +130,7 @@ def real_metrics(model_id):
         "depr": one("SELECT depr_pct_year FROM vehicle_spec WHERE model_id=?", (model_id,)),
         "features": avail,
         "has_matrix": one("SELECT has_matrix FROM vehicle_spec WHERE model_id=?", (model_id,)) or 0,
+        "insurance": one("SELECT insurance_eur FROM vehicle_spec WHERE model_id=?", (model_id,)),
     }
 
 
@@ -446,9 +447,9 @@ with left:
                "Antrieb ⚡Elektro/🔋Hybrid/⛽Verbrenner · Wertst = Wertverlust %/J · "
                "Ausst = Wunsch-Assistenz von 4 (⚠️ = oft teure Matrix-LED) · "
                "Mängel = TÜV % · Pannen /1000 · Teile = Verfügbarkeit %.")
-    WIDTHS = [3.0, 1.3] + [1.0] * len(CATCOLS)
+    WIDTHS = [3.0, 1.2, 1.2] + [1.0] * len(CATCOLS)
     head = st.columns(WIDTHS)
-    for c, t in zip(head, ["Modell", "Preis"] + [lbl for _, lbl in CATCOLS]):
+    for c, t in zip(head, ["Modell", "Preis", "Versich/J"] + [lbl for _, lbl in CATCOLS]):
         c.markdown(f"<small><b>{t}</b></small>", unsafe_allow_html=True)
 
     for i, m in enumerate(top, 1):
@@ -462,9 +463,11 @@ with left:
             st.rerun()
         c[1].markdown(f"<small>{m.purchase_price:,.0f} €</small>".replace(",", ".")
                       if m.purchase_price else "–", unsafe_allow_html=True)
+        c[2].markdown(f"<small>{mt['insurance']:,.0f} €</small>".replace(",", ".")
+                      if mt["insurance"] is not None else "–", unsafe_allow_html=True)
         for j, (cat_key, _) in enumerate(CATCOLS):
             active = sel_model and st.session_state.cat == cat_key
-            if c[2 + j].button(cell_value(cat_key, m, mt), key=f"cell_{m.model_id}_{cat_key}",
+            if c[3 + j].button(cell_value(cat_key, m, mt), key=f"cell_{m.model_id}_{cat_key}",
                                width="stretch", type="primary" if active else "secondary"):
                 st.session_state.model_id = m.model_id
                 st.session_state.cat = cat_key
