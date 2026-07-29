@@ -64,6 +64,13 @@ TCO_EXPLAIN = {
 AS24_MAKE_SLUG = {"VW": "volkswagen", "Mercedes": "mercedes-benz"}
 
 
+def pkw_trend_url(make: str, model: str) -> str:
+    """pkw.de-Preistrend-Seite fuer dieses Modell, z.B. .../tesla/model-3."""
+    mk = make.lower().replace(" ", "-")
+    md = model.lower().replace(" ", "-").replace(".", "-")
+    return f"https://www.pkw.de/preistrends/{mk}/{md}"
+
+
 def portal_links(make: str, model: str) -> list[tuple[str, str]]:
     """Direkt-Links zu den Gebrauchtwagen-Portalen fuer genau dieses Modell."""
     as24_make = AS24_MAKE_SLUG.get(make, make.lower().replace(" ", "-"))
@@ -98,6 +105,21 @@ conn = get_conn()
 def _make_of(model_id):
     r = conn.execute("SELECT make FROM car_model WHERE id=?", (model_id,)).fetchone()
     return r["make"] if r else None
+
+
+def real_metrics(model_id):
+    """Echte, interpretierbare Kennzahlen je Modell (nicht die 0..100-Scores)."""
+    def one(sql, params):
+        r = conn.execute(sql, params).fetchone()
+        return r[0] if r and r[0] is not None else None
+    make = _make_of(model_id)
+    return {
+        "maengel_pct": one("SELECT value FROM reliability_stat WHERE model_id=? AND metric='maengelquote_pct'", (model_id,)),
+        "pannen": one("SELECT value FROM reliability_stat WHERE model_id=? AND metric='pannen_pro_1000'", (model_id,)),
+        "parts": one("SELECT score FROM parts_availability WHERE model_id=?", (model_id,)),
+        "workshops": one("SELECT COUNT(*) FROM workshop WHERE make=? OR make IS NULL", (make,)) or 0,
+        "n_weak": one("SELECT COUNT(*) FROM weak_point WHERE model_id=?", (model_id,)) or 0,
+    }
 
 
 def render_category(model, cat: str) -> None:
@@ -205,6 +227,18 @@ def render_category(model, cat: str) -> None:
         for label, url in portal_links(make, model_name):
             st.markdown(f"- [{label}]({url})")
 
+        # pkw.de-Preistrend fuer dieses Modell direkt eingebettet
+        pkw_url = pkw_trend_url(make, model_name)
+        st.markdown(f"**📈 Preistrend & Baujahre (pkw.de)** – [Seite öffnen]({pkw_url})")
+        try:
+            if hasattr(st, "iframe"):
+                st.iframe(pkw_url, height=520, scrolling=True)
+            else:
+                import streamlit.components.v1 as components
+                components.iframe(pkw_url, height=520, scrolling=True)
+        except Exception:
+            st.caption("Einbettung durch die Seite blockiert – nutze den Link oben.")
+
         st.divider()
         st.markdown("**➕ Konkretes Angebot verfolgen** (URL einfügen – Preis wird ab jetzt mitgeschrieben)")
         with st.form(key=f"watch_{mid}", clear_on_submit=True):
@@ -213,14 +247,26 @@ def render_category(model, cat: str) -> None:
         if submitted and watch_url.strip():
             from autobewertung.db import add_watch
             from autobewertung.sources.watchlist import WatchlistSource
-            add_watch(conn, watch_url.strip())
+            add_watch(conn, watch_url.strip(), model_id=mid)   # fest an DIESES Modell binden
             with st.spinner("Angebot wird abgerufen …"):
                 res = WatchlistSource().collect(conn)
-            st.success(f"Aufgenommen. {res.notes}")
+            st.success(f"Aufgenommen & {model_name} zugeordnet. {res.notes}")
             st.rerun()
 
+        # Marktpreis-Verlauf des Modells (aus den Snapshots je Lauf)
+        snaps = pd.read_sql_query(
+            "SELECT ts AS Zeit, median_price AS Median, min_price AS Minimum "
+            "FROM model_price_snapshot WHERE model_id=? ORDER BY ts", conn, params=(mid,))
         st.divider()
-        st.markdown("**Erfasste Angebote & Preisverlauf**")
+        st.markdown("**📉 Markt-Preisverlauf (Modell)**")
+        if len(snaps) >= 2:
+            st.line_chart(snaps.set_index("Zeit"))
+        else:
+            st.caption("Entsteht ab dem 2. Datenlauf – je öfter `run` läuft (mit neuen "
+                       "Angeboten), desto aussagekräftiger.")
+
+        st.divider()
+        st.markdown("**Erfasste Angebote & Preisverlauf (je Angebot)**")
         rows = conn.execute(
             "SELECT id,title,price,mileage_km,first_reg,location,plz,url,source "
             "FROM listing WHERE model_id=? AND active=1 ORDER BY price", (mid,)).fetchall()
@@ -304,9 +350,7 @@ if not ranked and not result.excluded:
     st.stop()
 
 # ---------------------------------------------------------------------------
-# Klickbare Tabelle: Modellname UND jede Kategorie-Zelle sind Buttons.
-# Klick auf einen Modellnamen  -> Auto wählen
-# Klick auf eine Kategorie-Zahl -> Auto + Kategorie wählen (Detail-Liste unten)
+# Layout: Tabelle links (jede Zelle klickbar) · Detail rechts (sofort sichtbar)
 # ---------------------------------------------------------------------------
 top = ranked[:15]
 if st.session_state.get("model_id") not in {m.model_id for m in top}:
@@ -314,66 +358,78 @@ if st.session_state.get("model_id") not in {m.model_id for m in top}:
 if "cat" not in st.session_state:
     st.session_state.cat = "price"
 
-# Kategorie-Spalten: (cat-key, dim-key, Kurzlabel)
+# Kategorie-Spalten mit ECHTEN Zahlen (nicht 0..100-Score): (cat-key, Header)
 CATCOLS = [
-    ("price", "price_value", "💰 Angeb."),
-    ("weak_points", "weak_points", "🔧 Mängel"),
-    ("reliability", "reliability", "📊 Zuverl."),
-    ("tco", "tco", "💶 TCO"),
-    ("parts", "parts_availability", "🧩 Teile"),
-    ("workshop", "workshop_access", "🛠️ Werkst."),
+    ("price", "💰 Angeb."),
+    ("weak_points", "🔧 Mängel %"),
+    ("reliability", "📊 Pannen"),
+    ("tco", "💶 TCO €/J"),
+    ("parts", "🧩 Teile %"),
+    ("workshop", "🛠️ Werkst."),
 ]
-WIDTHS = [0.5, 3.0, 1.1, 1.1] + [1.0] * len(CATCOLS)
 
-st.subheader(f"Ranking · {len(ranked)} qualifizierte Modelle")
-st.caption("👉 Klicke direkt in die Tabelle: **Modellname** = Auto wählen · "
-           "**Zahl in einer Kategorie-Spalte** = Detail-Liste dazu (unten).")
 
-# Kopfzeile
-head = st.columns(WIDTHS)
-for c, t in zip(head, ["#", "Modell", "Kaufpreis", "TCO/J"] + [lbl for *_, lbl in CATCOLS]):
-    c.markdown(f"**{t}**")
+def cell_value(cat_key, m, mt) -> str:
+    if cat_key == "price":
+        return f"{m.n_listings}"
+    if cat_key == "weak_points":
+        return f"{mt['maengel_pct']:.1f}%" if mt["maengel_pct"] is not None else "–"
+    if cat_key == "reliability":
+        return f"{mt['pannen']:.1f}" if mt["pannen"] is not None else "–"
+    if cat_key == "tco":
+        return f"{m.annual_tco:.0f}" if m.annual_tco else "–"
+    if cat_key == "parts":
+        return f"{mt['parts']:.0f}%" if mt["parts"] is not None else "–"
+    if cat_key == "workshop":
+        return f"{mt['workshops']}"
+    return "–"
 
-# Datenzeilen
-for i, m in enumerate(top, 1):
-    c = st.columns(WIDTHS)
-    sel_model = st.session_state.model_id == m.model_id
-    c[0].markdown(f"**{i}**")
-    if c[1].button(f"{'▶ ' if sel_model else ''}{m.label}", key=f"mdl_{m.model_id}",
-                   width="stretch", type="primary" if sel_model else "secondary"):
-        st.session_state.model_id = m.model_id
-        st.rerun()
-    c[2].write(f"{m.purchase_price:,.0f} €".replace(",", ".") if m.purchase_price else "-")
-    c[3].write(f"{m.annual_tco:,.0f} €".replace(",", ".") if m.annual_tco else "-")
-    for j, (cat_key, dim_key, _) in enumerate(CATCOLS):
-        active = sel_model and st.session_state.cat == cat_key
-        score = m.dims.get(dim_key, 0)
-        if c[4 + j].button(f"{score:.0f}", key=f"cell_{m.model_id}_{cat_key}",
-                           width="stretch", type="primary" if active else "secondary"):
+
+left, right = st.columns([2.15, 1.35])
+
+with left:
+    st.subheader(f"Ranking · {len(ranked)} Modelle")
+    st.caption("👉 **Modellname** oder eine **Zahl** anklicken – Detail erscheint rechts. "
+               "Mängel = TÜV-Quote %, Pannen = pro 1000, Teile = Verfügbarkeit %.")
+    WIDTHS = [3.0, 1.3] + [1.0] * len(CATCOLS)
+    head = st.columns(WIDTHS)
+    for c, t in zip(head, ["Modell", "Preis"] + [lbl for _, lbl in CATCOLS]):
+        c.markdown(f"<small><b>{t}</b></small>", unsafe_allow_html=True)
+
+    for i, m in enumerate(top, 1):
+        mt = real_metrics(m.model_id)
+        c = st.columns(WIDTHS)
+        sel_model = st.session_state.model_id == m.model_id
+        if c[0].button(f"{'▶ ' if sel_model else ''}{i}. {m.label}", key=f"mdl_{m.model_id}",
+                       width="stretch", type="primary" if sel_model else "secondary"):
             st.session_state.model_id = m.model_id
-            st.session_state.cat = cat_key
             st.rerun()
+        c[1].markdown(f"<small>{m.purchase_price:,.0f} €</small>".replace(",", ".")
+                      if m.purchase_price else "–", unsafe_allow_html=True)
+        for j, (cat_key, _) in enumerate(CATCOLS):
+            active = sel_model and st.session_state.cat == cat_key
+            if c[2 + j].button(cell_value(cat_key, m, mt), key=f"cell_{m.model_id}_{cat_key}",
+                               width="stretch", type="primary" if active else "secondary"):
+                st.session_state.model_id = m.model_id
+                st.session_state.cat = cat_key
+                st.rerun()
 
-if result.excluded:
-    with st.expander(f"❌ Ausgeschlossen ({len(result.excluded)}) – harte Kriterien"):
-        st.dataframe(pd.DataFrame([{"Modell": e.label, "Grund": e.reason}
-                                   for e in result.excluded]),
-                     hide_index=True, width="stretch")
+    if result.excluded:
+        with st.expander(f"❌ Ausgeschlossen ({len(result.excluded)}) – harte Kriterien"):
+            st.dataframe(pd.DataFrame([{"Modell": e.label, "Grund": e.reason}
+                                       for e in result.excluded]),
+                         hide_index=True, width="stretch")
 
-# ---------------------------------------------------------------------------
-# Detail des gewählten Modells + der gewählten Kategorie
-# ---------------------------------------------------------------------------
-model = next(m for m in ranked if m.model_id == st.session_state.model_id)
-st.divider()
-st.markdown(f"## {model.label}")
-
-k1, k2, k3, k4 = st.columns(4)
-k1.metric("Score", f"{model.total:.1f}")
-k2.metric("Kaufpreis", f"{model.purchase_price:,.0f} €".replace(",", "."))
-k3.metric("TCO/Jahr", f"{model.annual_tco:,.0f} €".replace(",", "."))
-if model.drivetrain == "elektro":
-    k4.metric("Laden 30 min", f"{model.km_per_30min:.0f} km" if model.km_per_30min else "-")
-else:
-    k4.metric("Antrieb", model.drivetrain or "-")
-
-render_category(model, st.session_state.cat)
+with right:
+    model = next(m for m in ranked if m.model_id == st.session_state.model_id)
+    st.markdown(f"### {model.label}")
+    a, b = st.columns(2)
+    a.metric("Score", f"{model.total:.1f}")
+    b.metric("Kaufpreis", f"{model.purchase_price:,.0f} €".replace(",", "."))
+    a.metric("TCO/Jahr", f"{model.annual_tco:,.0f} €".replace(",", "."))
+    if model.drivetrain == "elektro":
+        b.metric("Laden 30 min", f"{model.km_per_30min:.0f} km" if model.km_per_30min else "-")
+    else:
+        b.metric("Antrieb", model.drivetrain or "-")
+    st.divider()
+    render_category(model, st.session_state.cat)

@@ -36,6 +36,30 @@ def cmd_run(args) -> None:
         res = s.collect(conn)
         flag = "" if s.live or res.inserted or res.updated else "  [Geruest]"
         print(f"[{res.source:14}] +{res.inserted} ~{res.updated}{flag}  {res.notes}")
+    # Marktpreis-Snapshot je Modell -> Preisverlauf fuer ALLE Modelle
+    from .tracking import snapshot_model_prices
+    n = snapshot_model_prices(conn)
+    print(f"[{'preis-snapshot':14}] {n} Modell-Preispunkte geschrieben")
+    conn.close()
+
+
+def cmd_assignments(args) -> None:
+    """Verifikation: welchem Modell ist jedes Angebot zugeordnet?"""
+    from .tracking import assignment_report
+    conn = init_db(args.db)
+    rows = assignment_report(conn)
+    if not rows:
+        print("Keine Angebote in der DB.")
+        return
+    print(f"{'Quelle':10} {'Preis':>9}  {'OK':2}  Modell  <-  Angebot")
+    print("-" * 78)
+    for r in rows:
+        mark = "✓" if r["ok"] else "!!"
+        price = f"{r['price']:,.0f}€".replace(",", ".") if r["price"] else "-"
+        print(f"{r['source']:10} {price:>9}  {mark:2}  {r['assigned']:32}  <-  {r['title'] or ''}")
+    bad = [r for r in rows if not r["ok"]]
+    print(f"\n{len(rows)-len(bad)}/{len(rows)} korrekt zugeordnet"
+          + (f", {len(bad)} unklar" if bad else ""))
     conn.close()
 
 
@@ -97,6 +121,9 @@ def main(argv=None) -> None:
     w.add_argument("url")
     w.add_argument("--note", default=None)
     w.set_defaults(func=cmd_watch)
+
+    sub.add_parser("assignments", help="Angebots-Modell-Zuordnung verifizieren"
+                   ).set_defaults(func=cmd_assignments)
 
     rk = sub.add_parser("rank", help="Ranking ausgeben")
     rk.add_argument("--top", type=int, default=10)

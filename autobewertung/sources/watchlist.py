@@ -139,16 +139,30 @@ def parse_listing(html: str, url: str = "") -> dict:
 # Source
 # ---------------------------------------------------------------------------
 
+def _model_line(make: str, model: str) -> str:
+    """Motorisierung -> Baureihe (reduziert Phantom-Modelle).
+
+    BMW '320d' -> '3er', '118i' -> '1er'. Andere Marken bleiben unveraendert.
+    """
+    if make.lower() == "bmw":
+        m = re.match(r"^([1-8])\d\d", model)
+        if m:
+            return m.group(1) + "er"
+    return model
+
+
 def _match_or_create_model(conn, make: str | None, model: str | None) -> int | None:
     """Ordnet ein Angebot einem vorhandenen Modell zu oder legt eins an."""
     if not make and not model:
         return None
     if make and model:
-        # bestes vorhandenes Modell per Marke + Modell-Praefix
+        line = _model_line(make, model)
         row = conn.execute(
-            "SELECT id FROM car_model WHERE lower(make)=lower(?) "
-            "AND lower(?) LIKE lower(model)||'%' ORDER BY length(model) DESC LIMIT 1",
-            (make, model)).fetchone()
+            "SELECT id FROM car_model WHERE lower(make)=lower(?) AND ("
+            "  lower(?) LIKE lower(model)||'%'"          # Angebot beginnt mit Modellname
+            "  OR lower(model)=lower(?)"                 # exakte Baureihe (z.B. '3er')
+            ") ORDER BY length(model) DESC LIMIT 1",
+            (make, model, line)).fetchone()
         if row:
             return row["id"]
     from ..db import upsert_model
@@ -165,12 +179,13 @@ class WatchlistSource(Source):
 
     def collect(self, conn: sqlite3.Connection) -> CollectResult:
         res = CollectResult(source=self.name)
-        urls = [r["url"] for r in conn.execute("SELECT url FROM watch")]
-        if not urls:
+        watched = conn.execute("SELECT url, model_id FROM watch").fetchall()
+        if not watched:
             res.notes = "keine verfolgten URLs (per `collect watch <url>` oder Dashboard hinzufuegen)"
             return res
         ok = fail = 0
-        for url in urls:
+        for w in watched:
+            url = w["url"]
             try:
                 resp = self._fetch(url)
             except Exception as e:  # Netzfehler soll den Lauf nicht abbrechen
@@ -184,7 +199,8 @@ class WatchlistSource(Source):
             if not data.get("price"):
                 fail += 1
                 continue
-            mid = _match_or_create_model(conn, data.get("make"), data.get("model"))
+            # feste Zuordnung aus der Watchlist bevorzugen (sicher), sonst per Name
+            mid = w["model_id"] or _match_or_create_model(conn, data.get("make"), data.get("model"))
             action = _record_listing(
                 conn, model_id=mid, source="watch", source_ref=url,
                 title=data.get("title") or url, price=data["price"],

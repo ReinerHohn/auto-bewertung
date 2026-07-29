@@ -88,6 +88,42 @@ def test_watchlist_model_matching():
     assert row["make"] == "VW" and row["model"] == "Golf"
 
 
+def test_bmw_trim_maps_to_series():
+    from autobewertung.sources.seed import SeedSource
+    from autobewertung.sources.watchlist import _match_or_create_model
+    conn = init_db(":memory:")
+    SeedSource().collect(conn)
+    mid = _match_or_create_model(conn, "BMW", "320d")
+    row = conn.execute("SELECT make, model FROM car_model WHERE id=?", (mid,)).fetchone()
+    assert (row["make"], row["model"]) == ("BMW", "3er")
+
+
+def test_watch_model_binding_overrides_parser():
+    """Feste model_id in der Watchlist hat Vorrang vor der Namens-Zuordnung."""
+    from autobewertung.sources.seed import SeedSource
+    conn = init_db(":memory:")
+    SeedSource().collect(conn)
+    focus_id = conn.execute("SELECT id FROM car_model WHERE model='Focus'").fetchone()["id"]
+    url = "https://example.com/x"
+    add_watch(conn, url, model_id=focus_id)          # obwohl HTML einen VW Golf beschreibt
+    WatchlistSource(fetch=lambda u: _resp(_fixture())).collect(conn)
+    mid = conn.execute("SELECT model_id FROM listing WHERE source_ref=?", (url,)).fetchone()["model_id"]
+    assert mid == focus_id
+
+
+def test_snapshot_model_prices():
+    from autobewertung.sources.seed import SeedSource
+    from autobewertung.tracking import snapshot_model_prices
+    conn = init_db(":memory:")
+    SeedSource().collect(conn)
+    n = snapshot_model_prices(conn)
+    assert n > 0
+    total = conn.execute("SELECT COUNT(*) c FROM model_price_snapshot").fetchone()["c"]
+    assert total == n
+    # zweiter Lauf ohne Preisaenderung -> keine neuen Punkte
+    assert snapshot_model_prices(conn) == 0
+
+
 if __name__ == "__main__":
     import traceback
     fns = [v for k, v in sorted(globals().items()) if k.startswith("test_")]

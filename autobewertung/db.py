@@ -139,11 +139,23 @@ CREATE TABLE IF NOT EXISTS vehicle_spec (
 );
 
 CREATE TABLE IF NOT EXISTS watch (
-    id     INTEGER PRIMARY KEY,
-    url    TEXT UNIQUE NOT NULL,       -- verfolgte Inserats-URL
-    note   TEXT,
-    added  TEXT
+    id       INTEGER PRIMARY KEY,
+    url      TEXT UNIQUE NOT NULL,     -- verfolgte Inserats-URL
+    model_id INTEGER REFERENCES car_model(id) ON DELETE SET NULL,  -- feste Zuordnung (optional)
+    note     TEXT,
+    added    TEXT
 );
+
+CREATE TABLE IF NOT EXISTS model_price_snapshot (
+    id           INTEGER PRIMARY KEY,
+    model_id     INTEGER REFERENCES car_model(id) ON DELETE CASCADE,
+    ts           TEXT NOT NULL,          -- ISO-Zeitstempel (UTC)
+    median_price REAL,
+    min_price    REAL,
+    max_price    REAL,
+    n            INTEGER
+);
+CREATE INDEX IF NOT EXISTS idx_snap_model ON model_price_snapshot(model_id);
 
 CREATE INDEX IF NOT EXISTS idx_listing_model ON listing(model_id);
 CREATE INDEX IF NOT EXISTS idx_price_listing ON price_point(listing_id);
@@ -187,12 +199,18 @@ def upsert_model(conn: sqlite3.Connection, make: str, model: str,
     return cur.lastrowid
 
 
-def add_watch(conn: sqlite3.Connection, url: str, note: str | None = None) -> None:
-    """Nimmt eine Inserats-URL in die Beobachtungsliste auf (idempotent)."""
+def add_watch(conn: sqlite3.Connection, url: str, model_id: int | None = None,
+              note: str | None = None) -> None:
+    """Nimmt eine Inserats-URL in die Beobachtungsliste auf (idempotent).
+
+    model_id bindet das Angebot fest an ein Modell (empfohlen, wenn bekannt) -
+    dann ist keine unsichere Namens-Zuordnung noetig.
+    """
     from datetime import datetime, timezone
     conn.execute(
-        "INSERT OR IGNORE INTO watch(url, note, added) VALUES (?,?,?)",
-        (url.strip(), note, datetime.now(timezone.utc).isoformat(timespec="seconds")))
+        "INSERT INTO watch(url, model_id, note, added) VALUES (?,?,?,?) "
+        "ON CONFLICT(url) DO UPDATE SET model_id=COALESCE(excluded.model_id, watch.model_id)",
+        (url.strip(), model_id, note, datetime.now(timezone.utc).isoformat(timespec="seconds")))
     conn.commit()
 
 
