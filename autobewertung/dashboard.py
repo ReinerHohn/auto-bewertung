@@ -5,6 +5,13 @@ Starten:
 """
 from __future__ import annotations
 
+import os
+import sys
+
+# Streamlit legt beim Start nur das Skriptverzeichnis auf sys.path, nicht das
+# Projekt-Root -> Paket-Import sicherstellen, bevor autobewertung importiert wird.
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
 import pandas as pd
 import streamlit as st
 
