@@ -138,6 +138,13 @@ CREATE TABLE IF NOT EXISTS vehicle_spec (
     depr_pct_year  REAL                  -- jaehrlicher Wertverlust-Anteil (0..1)
 );
 
+CREATE TABLE IF NOT EXISTS watch (
+    id     INTEGER PRIMARY KEY,
+    url    TEXT UNIQUE NOT NULL,       -- verfolgte Inserats-URL
+    note   TEXT,
+    added  TEXT
+);
+
 CREATE INDEX IF NOT EXISTS idx_listing_model ON listing(model_id);
 CREATE INDEX IF NOT EXISTS idx_price_listing ON price_point(listing_id);
 CREATE INDEX IF NOT EXISTS idx_weak_model    ON weak_point(model_id);
@@ -178,6 +185,15 @@ def upsert_model(conn: sqlite3.Connection, make: str, model: str,
     cur = conn.execute(f"INSERT INTO car_model ({keys}) VALUES ({ph})", tuple(cols.values()))
     conn.commit()
     return cur.lastrowid
+
+
+def add_watch(conn: sqlite3.Connection, url: str, note: str | None = None) -> None:
+    """Nimmt eine Inserats-URL in die Beobachtungsliste auf (idempotent)."""
+    from datetime import datetime, timezone
+    conn.execute(
+        "INSERT OR IGNORE INTO watch(url, note, added) VALUES (?,?,?)",
+        (url.strip(), note, datetime.now(timezone.utc).isoformat(timespec="seconds")))
+    conn.commit()
 
 
 def upsert_spec(conn: sqlite3.Connection, model_id: int, **fields) -> None:

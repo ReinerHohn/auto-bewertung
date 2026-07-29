@@ -43,6 +43,15 @@ def _eur(v) -> str:
     return f"{v:,.0f}".replace(",", ".") + "€" if v is not None else "  -"
 
 
+def cmd_watch(args) -> None:
+    from .db import add_watch
+    conn = init_db(args.db)
+    add_watch(conn, args.url, args.note)
+    n = conn.execute("SELECT COUNT(*) c FROM watch").fetchone()["c"]
+    print(f"Verfolgt: {args.url}\n{n} URL(s) in der Watchlist. Preis wird bei `run` erfasst.")
+    conn.close()
+
+
 def cmd_rank(args) -> None:
     conn = init_db(args.db)
     crit = load_criteria()
@@ -83,6 +92,11 @@ def main(argv=None) -> None:
     r.add_argument("--only", nargs="*", help="nur diese Quellen (Name)")
     r.add_argument("--inserate-csv", help="CSV mit Angeboten importieren")
     r.set_defaults(func=cmd_run)
+
+    w = sub.add_parser("watch", help="Inserats-URL verfolgen (Preisverlauf)")
+    w.add_argument("url")
+    w.add_argument("--note", default=None)
+    w.set_defaults(func=cmd_watch)
 
     rk = sub.add_parser("rank", help="Ranking ausgeben")
     rk.add_argument("--top", type=int, default=10)

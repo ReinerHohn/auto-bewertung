@@ -48,10 +48,18 @@ def _record_listing(conn, *, model_id, source, source_ref, title, price,
              power_kw, location, plz, url, now, now))
         lid = cur.lastrowid
         action = "inserted"
+    # Preispunkt nur bei Aenderung schreiben (kein Zuspammen gleicher Preise);
+    # mikrosekunden-genauer Zeitstempel, damit aufeinanderfolgende Punkte eindeutig sind.
     if price is not None:
-        conn.execute(
-            "INSERT OR REPLACE INTO price_point(listing_id,ts,price) VALUES (?,?,?)",
-            (lid, now, price))
+        last = conn.execute(
+            "SELECT price FROM price_point WHERE listing_id=? ORDER BY ts DESC LIMIT 1",
+            (lid,)).fetchone()
+        if last is None or last["price"] != price:
+            from datetime import datetime, timezone
+            ts = datetime.now(timezone.utc).isoformat()   # inkl. Mikrosekunden
+            conn.execute(
+                "INSERT OR REPLACE INTO price_point(listing_id,ts,price) VALUES (?,?,?)",
+                (lid, ts, price))
     return action
 
 

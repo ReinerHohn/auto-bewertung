@@ -105,6 +105,8 @@ def render_category(model, cat: str) -> None:
 
     if cat == "weak_points":
         st.markdown("#### 🔧 Schwachstellen & Rückrufe")
+        mk = _make_of(mid)
+        mdl = conn.execute("SELECT model FROM car_model WHERE id=?", (mid,)).fetchone()["model"]
         wp = conn.execute(
             "SELECT component,description,severity,source,url FROM weak_point "
             "WHERE model_id=? ORDER BY severity DESC", (mid,)).fetchall()
@@ -114,11 +116,24 @@ def render_category(model, cat: str) -> None:
             st.info("Keine erfasst."); return
         for w in wp:
             sev = SEV.get(w["severity"], "?")
-            with st.expander(f"⚠️ {w['component']} · Schwere: {sev}"):
-                st.write(w["description"])
-                st.caption(f"Schweregrad {w['severity']} ({sev}) · Quelle: {w['source'] or '-'}")
+            bar = {1: "🟡", 2: "🟠", 3: "🔴"}.get(w["severity"], "⚪")
+            with st.expander(f"{bar} {w['component']} · Schwere: {sev}"):
+                st.markdown(f"**{w['component']}** — {w['description']}")
+                st.caption(f"Schweregrad {w['severity']}/3 ({sev}) · Quelle: {w['source'] or '-'}")
+                # Recherche-Links speziell zu diesem Defekt
+                q = quote_plus(f"{mk} {mdl} {w['component']} Problem")
+                links = [
+                    ("🔎 Motor-Talk (Forum durchsuchen)",
+                     f"https://www.google.com/search?q=site:motor-talk.de+{q}"),
+                    ("🔎 Google-Suche zum Defekt",
+                     f"https://www.google.com/search?q={q}"),
+                    ("🔎 YouTube (Reparatur/Diagnose)",
+                     f"https://www.youtube.com/results?search_query={q}"),
+                ]
                 if w["url"]:
-                    st.markdown(f"[Mehr Details]({w['url']})")
+                    links.insert(0, ("📄 Hinterlegte Quelle", w["url"]))
+                for label, url in links:
+                    st.markdown(f"- [{label}]({url})")
         for r in rc:
             with st.expander(f"📢 Rückruf {r['kba_code'] or ''} · {r['date'] or ''}"):
                 st.write(r["description"])
@@ -189,6 +204,21 @@ def render_category(model, cat: str) -> None:
         st.markdown("**Direkt zu den Portalen (Suche nach diesem Modell):**")
         for label, url in portal_links(make, model_name):
             st.markdown(f"- [{label}]({url})")
+
+        st.divider()
+        st.markdown("**➕ Konkretes Angebot verfolgen** (URL einfügen – Preis wird ab jetzt mitgeschrieben)")
+        with st.form(key=f"watch_{mid}", clear_on_submit=True):
+            watch_url = st.text_input("Inserats-URL (mobile.de / AutoScout24 / kleinanzeigen …)")
+            submitted = st.form_submit_button("Verfolgen & Preis holen")
+        if submitted and watch_url.strip():
+            from autobewertung.db import add_watch
+            from autobewertung.sources.watchlist import WatchlistSource
+            add_watch(conn, watch_url.strip())
+            with st.spinner("Angebot wird abgerufen …"):
+                res = WatchlistSource().collect(conn)
+            st.success(f"Aufgenommen. {res.notes}")
+            st.rerun()
+
         st.divider()
         st.markdown("**Erfasste Angebote & Preisverlauf**")
         rows = conn.execute(
@@ -243,16 +273,28 @@ annual_km = st.sidebar.number_input("km / Jahr", 1000, 60000, 15000, step=1000)
 years = st.sidebar.number_input("Haltedauer (Jahre)", 1, 15, 5)
 p_benzin = st.sidebar.number_input("Benzin €/l", 0.0, 4.0, 1.80, step=0.05)
 p_diesel = st.sidebar.number_input("Diesel €/l", 0.0, 4.0, 1.70, step=0.05)
+
+st.sidebar.markdown("**Lade-Mix E-Auto** – Anteile in %")
+sh_work = st.sidebar.slider("… Firma (kostenlos)", 0, 100, 95)
+sh_home = st.sidebar.slider("… zuhause", 0, 100, 3)
+sh_solar = st.sidebar.slider("… eigener Solarstrom", 0, 100, 0)
+sh_public = st.sidebar.slider("… öffentl. Schnelllader", 0, 100, 2)
 p_strom_home = st.sidebar.number_input("Strom Heim €/kWh", 0.0, 2.0, 0.30, step=0.01)
 p_strom_pub = st.sidebar.number_input("Strom Schnelllader €/kWh", 0.0, 2.0, 0.55, step=0.01)
+p_strom_work = st.sidebar.number_input("Strom Firma €/kWh", 0.0, 2.0, 0.0, step=0.01)
+p_strom_solar = st.sidebar.number_input("Strom Solar €/kWh", 0.0, 2.0, 0.10, step=0.01)
+
+_tco = TcoAssumptions(
+    annual_km=annual_km, holding_years=years, price_benzin=p_benzin, price_diesel=p_diesel,
+    price_strom_home=p_strom_home, price_strom_public=p_strom_pub,
+    price_strom_work=p_strom_work, price_strom_solar=p_strom_solar,
+    share_work=sh_work, share_home=sh_home, share_solar=sh_solar, share_public=sh_public)
+st.sidebar.caption(f"→ Strom-Mischpreis: {_tco.price_strom_blend:.3f} €/kWh")
 
 crit = Criteria(
     weights=weights, max_price=max_price or None, max_mileage_km=max_km or None,
     min_vehicle_class=min_class, home_plz=home_plz or None,
-    ev_price_exception=ev_exc, ev_min_charge_km_30min=ev_km30 or None,
-    tco=TcoAssumptions(annual_km=annual_km, holding_years=years,
-                       price_benzin=p_benzin, price_diesel=p_diesel,
-                       price_strom_home=p_strom_home, price_strom_public=p_strom_pub),
+    ev_price_exception=ev_exc, ev_min_charge_km_30min=ev_km30 or None, tco=_tco,
 )
 
 result = score_models(conn, crit)
@@ -262,30 +304,55 @@ if not ranked and not result.excluded:
     st.stop()
 
 # ---------------------------------------------------------------------------
-# Haupttabelle (klickbar: Zeile = Auto, Spalte = Kategorie)
+# Klickbare Tabelle: Modellname UND jede Kategorie-Zelle sind Buttons.
+# Klick auf einen Modellnamen  -> Auto wählen
+# Klick auf eine Kategorie-Zahl -> Auto + Kategorie wählen (Detail-Liste unten)
 # ---------------------------------------------------------------------------
-rows = []
-for i, m in enumerate(ranked, 1):
-    row = {"#": i, "Modell": m.label, "Antrieb": m.drivetrain, "Klasse": m.vehicle_class,
-           "Score": m.total, "Kaufpreis": m.purchase_price, "TCO/Jahr": m.annual_tco,
-           "Angebote": m.n_listings, "Rabatt %": m.best_deal_discount_pct}
-    for d in DIMENSIONS:
-        row[DIM_LABELS[d]] = m.dims[d]
-    rows.append(row)
-df = pd.DataFrame(rows)
+top = ranked[:15]
+if st.session_state.get("model_id") not in {m.model_id for m in top}:
+    st.session_state.model_id = top[0].model_id
+if "cat" not in st.session_state:
+    st.session_state.cat = "price"
+
+# Kategorie-Spalten: (cat-key, dim-key, Kurzlabel)
+CATCOLS = [
+    ("price", "price_value", "💰 Angeb."),
+    ("weak_points", "weak_points", "🔧 Mängel"),
+    ("reliability", "reliability", "📊 Zuverl."),
+    ("tco", "tco", "💶 TCO"),
+    ("parts", "parts_availability", "🧩 Teile"),
+    ("workshop", "workshop_access", "🛠️ Werkst."),
+]
+WIDTHS = [0.5, 3.0, 1.1, 1.1] + [1.0] * len(CATCOLS)
 
 st.subheader(f"Ranking · {len(ranked)} qualifizierte Modelle")
-st.dataframe(
-    df, width="stretch", hide_index=True,
-    column_config={
-        "Score": st.column_config.ProgressColumn("Score", min_value=0, max_value=100, format="%.1f"),
-        "Kaufpreis": st.column_config.NumberColumn(format="%.0f €"),
-        "TCO/Jahr": st.column_config.NumberColumn("TCO/Jahr", format="%.0f €"),
-        "Rabatt %": st.column_config.NumberColumn(format="%.0f %%"),
-        **{DIM_LABELS[d]: st.column_config.ProgressColumn(
-            DIM_LABELS[d], min_value=0, max_value=100, format="%.0f") for d in DIMENSIONS},
-    },
-)
+st.caption("👉 Klicke direkt in die Tabelle: **Modellname** = Auto wählen · "
+           "**Zahl in einer Kategorie-Spalte** = Detail-Liste dazu (unten).")
+
+# Kopfzeile
+head = st.columns(WIDTHS)
+for c, t in zip(head, ["#", "Modell", "Kaufpreis", "TCO/J"] + [lbl for *_, lbl in CATCOLS]):
+    c.markdown(f"**{t}**")
+
+# Datenzeilen
+for i, m in enumerate(top, 1):
+    c = st.columns(WIDTHS)
+    sel_model = st.session_state.model_id == m.model_id
+    c[0].markdown(f"**{i}**")
+    if c[1].button(f"{'▶ ' if sel_model else ''}{m.label}", key=f"mdl_{m.model_id}",
+                   width="stretch", type="primary" if sel_model else "secondary"):
+        st.session_state.model_id = m.model_id
+        st.rerun()
+    c[2].write(f"{m.purchase_price:,.0f} €".replace(",", ".") if m.purchase_price else "-")
+    c[3].write(f"{m.annual_tco:,.0f} €".replace(",", ".") if m.annual_tco else "-")
+    for j, (cat_key, dim_key, _) in enumerate(CATCOLS):
+        active = sel_model and st.session_state.cat == cat_key
+        score = m.dims.get(dim_key, 0)
+        if c[4 + j].button(f"{score:.0f}", key=f"cell_{m.model_id}_{cat_key}",
+                           width="stretch", type="primary" if active else "secondary"):
+            st.session_state.model_id = m.model_id
+            st.session_state.cat = cat_key
+            st.rerun()
 
 if result.excluded:
     with st.expander(f"❌ Ausgeschlossen ({len(result.excluded)}) – harte Kriterien"):
@@ -293,29 +360,12 @@ if result.excluded:
                                    for e in result.excluded]),
                      hide_index=True, width="stretch")
 
-if not ranked:
-    st.stop()
-
 # ---------------------------------------------------------------------------
-# Drill-down: Modell anklicken (Buttons) -> Kategorie anklicken -> Detail-Liste
+# Detail des gewählten Modells + der gewählten Kategorie
 # ---------------------------------------------------------------------------
-st.divider()
-st.markdown("### 🔎 1) Modell anklicken")
-
-top = ranked[:15]
-valid_ids = {m.model_id for m in top}
-if st.session_state.get("model_id") not in valid_ids:
-    st.session_state.model_id = top[0].model_id
-
-grid = st.columns(3)
-for i, m in enumerate(top):
-    active = st.session_state.model_id == m.model_id
-    label = f"#{i+1}  {m.label}  ·  {m.total:.0f} Pkt · {m.annual_tco:.0f} €/J"
-    if grid[i % 3].button(label, key=f"mdl_{m.model_id}", width="stretch",
-                          type="primary" if active else "secondary"):
-        st.session_state.model_id = m.model_id
-
 model = next(m for m in ranked if m.model_id == st.session_state.model_id)
+st.divider()
+st.markdown(f"## {model.label}")
 
 k1, k2, k3, k4 = st.columns(4)
 k1.metric("Score", f"{model.total:.1f}")
@@ -326,18 +376,4 @@ if model.drivetrain == "elektro":
 else:
     k4.metric("Antrieb", model.drivetrain or "-")
 
-st.markdown(f"### 🔎 2) Kategorie anklicken – *{model.label}*")
-CATS = [("price", "💰 Angebote/Portale"), ("weak_points", "🔧 Schwachstellen"),
-        ("reliability", "📊 Zuverlässigkeit"), ("tco", "💶 TCO"),
-        ("parts", "🧩 Ersatzteile"), ("workshop", "🛠️ Werkstätten")]
-if "cat" not in st.session_state:
-    st.session_state.cat = "price"
-cols = st.columns(len(CATS))
-for (key, label), c in zip(CATS, cols):
-    is_active = st.session_state.cat == key
-    if c.button(label, key=f"btn_{key}", width="stretch",
-                type="primary" if is_active else "secondary"):
-        st.session_state.cat = key
-
-st.divider()
 render_category(model, st.session_state.cat)

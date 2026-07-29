@@ -39,17 +39,31 @@ class TcoAssumptions:
     holding_years: int = 5
     price_benzin: float = 1.80        # EUR/l
     price_diesel: float = 1.70        # EUR/l
-    price_strom_home: float = 0.30    # EUR/kWh
-    price_strom_public: float = 0.55  # EUR/kWh (Schnelllader)
-    home_charge_share: float = 0.7    # Anteil Heimladen bei EV
+    # Lade-Mix beim E-Auto: Preise je Quelle ...
+    price_strom_home: float = 0.30    # EUR/kWh zuhause
+    price_strom_public: float = 0.55  # EUR/kWh Schnelllader
+    price_strom_work: float = 0.0     # EUR/kWh Firma (kostenlos)
+    price_strom_solar: float = 0.10   # EUR/kWh eigener Solarstrom (Opportunitaet)
+    # ... und ihre Anteile (werden normalisiert)
+    share_home: float = 0.45
+    share_public: float = 0.10
+    share_work: float = 0.25          # kostenloses Laden in der Firma
+    share_solar: float = 0.20         # Solarstrom bei Sonne
     # Verschleiss/Sonstiges (Reifen, HU/AU, Kleinkram) pauschal pro Jahr
     misc_per_year: float = 250.0
     default_depr_pct_year: float = 0.13
 
     @property
     def price_strom_blend(self) -> float:
-        s = self.home_charge_share
-        return s * self.price_strom_home + (1 - s) * self.price_strom_public
+        """Mischpreis EUR/kWh gewichtet ueber alle Ladequellen."""
+        pairs = [
+            (self.share_home, self.price_strom_home),
+            (self.share_public, self.price_strom_public),
+            (self.share_work, self.price_strom_work),
+            (self.share_solar, self.price_strom_solar),
+        ]
+        total = sum(s for s, _ in pairs) or 1.0
+        return sum(s * p for s, p in pairs) / total
 
 
 @dataclass

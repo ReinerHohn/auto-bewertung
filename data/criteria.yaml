@@ -27,7 +27,14 @@ tco:
   holding_years: 5
   price_benzin: 1.80       # EUR/l
   price_diesel: 1.70       # EUR/l
-  price_strom_home: 0.30   # EUR/kWh
-  price_strom_public: 0.55 # EUR/kWh (Schnelllader)
-  home_charge_share: 0.7   # Anteil Heimladen bei E-Auto
+  # Lade-Mix beim E-Auto: Preise je Quelle ...
+  price_strom_home: 0.30   # EUR/kWh zuhause
+  price_strom_public: 0.55 # EUR/kWh Schnelllader
+  price_strom_work: 0.0    # EUR/kWh Firma (kostenlos)
+  price_strom_solar: 0.10  # EUR/kWh eigener Solarstrom
+  # ... und deine Anteile (95% kostenlos in der Firma)
+  share_work: 0.95
+  share_home: 0.03
+  share_public: 0.02
+  share_solar: 0.0
   misc_per_year: 250       # Reifen, HU/AU, Kleinkram pauschal/Jahr

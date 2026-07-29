@@ -28,8 +28,27 @@ Wertverlust + Energie (Sprit/Strom) + Versicherung + Kfz-Steuer
 + Wartung/Reparatur + Sonstiges (Reifen, HU, Kleinkram)
 ```
 
-Alle Annahmen (km/Jahr, Haltedauer, Sprit-/Strompreise, Heimlade-Anteil) stehen
-in `data/criteria.yaml` und sind im Dashboard live einstellbar.
+Alle Annahmen (km/Jahr, Haltedauer, Sprit-/Strompreise) stehen in
+`data/criteria.yaml` und sind im Dashboard live einstellbar.
+
+**Lade-Mix beim E-Auto:** die Stromkosten mischen sich aus mehreren Quellen mit
+eigenen Preisen und Anteilen – z. B. *95 % kostenlos in der Firma*, etwas
+Solarstrom, Rest zuhause/Schnelllader. Das senkt die EV-Energiekosten drastisch
+(Beispiel: Tesla Model 3 fällt damit auf den besten TCO-Wert im Feld).
+
+### Angebote verfolgen (Preisverlauf)
+
+Einzelne Inserate lassen sich per URL beobachten – bei jedem Lauf wird der Preis
+mitgeschrieben, so entsteht ein Preisverlauf je Angebot:
+
+```bash
+python -m autobewertung.collect watch "https://www.autoscout24.de/angebote/..."
+python -m autobewertung.collect run     # holt Preise der beobachteten URLs
+```
+
+Oder direkt im Dashboard unter **Angebote/Portale → „Angebot verfolgen"**. Der
+Preis wird robots-konform aus schema.org-Daten der Seite gelesen; ein Preispunkt
+entsteht nur bei Änderung.
 
 ### Harte Kriterien & E-Auto-Ausnahme
 
@@ -95,6 +114,7 @@ autobewertung/
   sources/
     base.py        Adapter-Interface (robots-Check, höfliches Rate-Limit)
     seed.py        Beispieldaten (sofort lauffähig)
+    watchlist.py   Einzel-Angebote per URL verfolgen (JSON-LD-Parser, Preisverlauf)
     inserate.py    mobile.de / AutoScout24 – Gerüst (+ CSV-Import)
     kba_recalls.py KBA-Rückrufe – Gerüst
 ```
