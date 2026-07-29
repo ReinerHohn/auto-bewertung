@@ -95,7 +95,7 @@ def portal_links(make: str, model: str) -> list[tuple[str, str]]:
     ]
 
 
-st.set_page_config(page_title="Auto-Bewertung", layout="wide")
+st.set_page_config(page_title="Auto-Bewertung", layout="wide", initial_sidebar_state="collapsed")
 st.title("🚗 Auto-Bewertung – Gebrauchtwagen mit Total Cost of Ownership")
 
 
@@ -134,6 +134,7 @@ def real_metrics(model_id):
         "features": avail,
         "has_matrix": one("SELECT has_matrix FROM vehicle_spec WHERE model_id=?", (model_id,)) or 0,
         "insurance": one("SELECT insurance_eur FROM vehicle_spec WHERE model_id=?", (model_id,)),
+        "recalls": one("SELECT COUNT(*) FROM recall WHERE model_id=?", (model_id,)) or 0,
     }
 
 
@@ -623,7 +624,7 @@ SORTS = {
     "📉 TCO/Jahr (niedrigste)": lambda m: m.annual_tco or 10**9,
     "📈 Wertstabilität (beste)": lambda m: m.dims.get("value_stability", 0) * -1,
 }
-sort_choice = st.radio("Sortieren nach", list(SORTS), horizontal=True, key="sortby")
+sort_choice = st.radio("Sortieren nach", list(SORTS), index=1, horizontal=True, key="sortby")
 ranked = sorted(ranked, key=SORTS[sort_choice])
 
 # ---------------------------------------------------------------------------
@@ -675,39 +676,50 @@ def cell_value(cat_key, m, mt) -> str:
     return "–"
 
 
-left, right = st.columns([2.15, 1.35])
+left, right = st.columns([2.9, 1.1])
 
 with left:
     st.subheader(f"Ranking · {len(ranked)} Modelle")
     st.caption("👉 **Modellname** oder eine **Zahl** anklicken – Detail rechts. "
-               "Antrieb ⚡Elektro/🔋Hybrid/⛽Verbrenner · Wertst = Wertverlust %/J · "
-               "Ausst = Wunsch-Assistenz von 4 (⚠️ = oft teure Matrix-LED) · "
+               "Antrieb ⚡Elektro/🔋Hybrid/⛽Verbrenner · **📉 = hoher Wertverlust (≥15 %/J)** · "
+               "Wertst = Wertverlust %/J · Ausst = Wunsch-Assistenz von 4 (⚠️ oft teure Matrix-LED) · "
                "Mängel = TÜV % · Pannen /1000 · Teile = Verfügbarkeit %.")
-    WIDTHS = [2.8, 1.1, 1.0, 1.35] + [1.0] * len(CATCOLS)
+    HEADERS = ["Modell", "Baujahr", "Preis", "Vers/J", f"GESAMT {years}J", "Wertverl/J", "🚨"]
+    WIDTHS = [2.6, 1.0, 1.0, 0.9, 1.25, 1.1, 0.55] + [0.95] * len(CATCOLS)
     head = st.columns(WIDTHS)
-    for c, t in zip(head, ["Modell", "Preis", "Vers/J", f"GESAMT {years}J"] + [lbl for _, lbl in CATCOLS]):
+    for c, t in zip(head, HEADERS + [lbl for _, lbl in CATCOLS]):
         c.markdown(f"<small><b>{t}</b></small>", unsafe_allow_html=True)
+
+    def _s(txt):
+        return f"<small>{txt}</small>"
 
     for i, m in enumerate(top, 1):
         mt = real_metrics(m.model_id)
         c = st.columns(WIDTHS)
         sel_model = st.session_state.model_id == m.model_id
         mark = {"elektro": "⚡", "hybrid": "🔋"}.get(m.drivetrain, "⛽")
-        if c[0].button(f"{'▶ ' if sel_model else ''}{mark} {i}. {m.label}", key=f"mdl_{m.model_id}",
-                       width="stretch", type="primary" if sel_model else "secondary"):
+        depr = mt.get("depr") or 0
+        warn = " 📉" if depr >= 0.15 else ""      # hoher Wertverlust
+        if c[0].button(f"{'▶ ' if sel_model else ''}{mark} {i}. {m.label}{warn}", key=f"mdl_{m.model_id}",
+                       width="stretch", type="primary" if sel_model else "secondary",
+                       help=(f"📉 Hoher Wertverlust: ~{depr*100:.0f} %/Jahr" if warn else None)):
             st.session_state.model_id = m.model_id
             st.rerun()
-        c[1].markdown(f"<small>{m.purchase_price:,.0f} €</small>".replace(",", ".")
-                      if m.purchase_price else "–", unsafe_allow_html=True)
-        c[2].markdown(f"<small>{mt['insurance']:,.0f} €</small>".replace(",", ".")
-                      if mt["insurance"] is not None else "–", unsafe_allow_html=True)
-        # Gesamtkosten ueber die Haltedauer = TCO/Jahr * Jahre (inkl. Wertverlust!)
+        yf, yt = m.details.get("year_from"), m.details.get("year_to")
+        c[1].markdown(_s(f"{yf}–{yt}" if yf else "–"), unsafe_allow_html=True)
+        c[2].markdown(_s(f"{m.purchase_price:,.0f} €".replace(",", ".")) if m.purchase_price else "–",
+                      unsafe_allow_html=True)
+        c[3].markdown(_s(f"{mt['insurance']:,.0f} €".replace(",", ".")) if mt["insurance"] else "–",
+                      unsafe_allow_html=True)
         gesamt = (m.annual_tco * years) if m.annual_tco else None
-        c[3].markdown(f"<small><b>{gesamt:,.0f} €</b></small>".replace(",", ".")
-                      if gesamt else "–", unsafe_allow_html=True)
+        c[4].markdown(f"<small><b>{gesamt:,.0f} €</b></small>".replace(",", ".") if gesamt else "–",
+                      unsafe_allow_html=True)
+        wv = m.tco_breakdown.get("wertverlust")
+        c[5].markdown(_s(f"{wv:,.0f} €{warn}".replace(",", ".")) if wv else "–", unsafe_allow_html=True)
+        c[6].markdown(_s(f"🚨{mt['recalls']}" if mt["recalls"] else "–"), unsafe_allow_html=True)
         for j, (cat_key, _) in enumerate(CATCOLS):
             active = sel_model and st.session_state.cat == cat_key
-            if c[4 + j].button(cell_value(cat_key, m, mt), key=f"cell_{m.model_id}_{cat_key}",
+            if c[7 + j].button(cell_value(cat_key, m, mt), key=f"cell_{m.model_id}_{cat_key}",
                                width="stretch", type="primary" if active else "secondary"):
                 st.session_state.model_id = m.model_id
                 st.session_state.cat = cat_key
