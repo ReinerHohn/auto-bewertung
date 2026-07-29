@@ -56,24 +56,31 @@ MAENGEL = {
     "VW ID.3 Pro": 4.5, "VW ID.3 Pro S": 4.5, "Renault Zoe": 4.0,
 }
 
+# Eintraege: (Bauteil, Beschreibung, Schwere 1-3, typ. Reparaturkosten EUR).
+# Kosten = Werkstatt-Groessenordnung des typischen Defekts (fliesst in die TCO).
 WEAK = {
-    "VW Golf": [("DSG", "DSG-Mechatronik/Kupplung Verschleiss", 3),
-                ("Steuerkette", "Steuerkettenlaengung bei fruehen 1.4 TSI", 3)],
-    "Toyota Corolla": [("Hybrid", "12V-Zusatzbatterie schwach im Winter", 1)],
-    "BMW 3er": [("Steuerkette", "Steuerkette N47-Diesel", 3),
-                ("Kettenspanner", "Kettenspanner N20 Benziner", 2)],
-    "Skoda Octavia": [("DSG", "DQ200 Trockenkupplung", 2),
-                      ("Wasserpumpe", "Wasserpumpe undicht 1.8/2.0 TSI", 2)],
-    "Ford Focus": [("Doppelkupplung", "Powershift-Getriebe ruckelt", 3),
-                   ("Zuendspule", "Zuendspulen 1.0 EcoBoost", 2),
-                   ("Kuehlung", "Kuehlmittelverlust 1.0 EcoBoost", 3)],
-    "Mazda 3": [("Rost", "Radlaeufe/Unterboden Rost", 2)],
-    "Tesla Model 3": [("Verarbeitung", "Spaltmasse/Lack Fruehserien", 1),
-                      ("MCU", "eMMC-Speicher Verschleiss aeltere Baujahre", 2)],
-    "Hyundai Ioniq 5": [("ICCU", "ICCU/12V-Ladewandler kann ausfallen", 3)],
-    "VW ID.3 Pro": [("Software", "Infotainment-Bugs Fruehserien", 2)],
-    "VW ID.3 Pro S": [("Software", "Infotainment-Bugs Fruehserien", 2)],
-    "Renault Zoe": [("Akku", "Akkumiete/Degradation bei aelteren", 2)],
+    "VW Golf": [("DSG", "DSG-Mechatronik/Kupplung (DQ200)", 3, 1500),
+                ("Steuerkette", "Steuerkettenlaengung fruehe 1.4 TSI", 3, 1500)],
+    "Toyota Corolla": [("Hybrid-12V", "12V-Zusatzbatterie schwach im Winter", 1, 200)],
+    "BMW 3er": [("Steuerkette", "Steuerkette N47-Diesel", 3, 1800),
+                ("Kettenspanner", "Kettenspanner N20 Benziner", 2, 900),
+                ("Achse", "Querlenker/Traggelenke (TÜV: Achsaufhaengung)", 2, 700)],
+    "Skoda Octavia": [("DSG", "DQ200 Trockenkupplung", 2, 1500),
+                      ("Wasserpumpe", "Wasserpumpe undicht 1.8/2.0 TSI", 2, 500)],
+    "Ford Focus": [("Doppelkupplung", "Powershift-Getriebe ruckelt", 3, 1800),
+                   ("Zuendspule", "Zuendspulen 1.0 EcoBoost", 2, 300),
+                   ("Kuehlung", "Kuehlmittelverlust 1.0 EcoBoost (Motorschaden-Risiko)", 3, 900)],
+    "Mazda 3": [("Rost", "Radlaeufe/Unterboden Rost", 2, 600)],
+    "Tesla Model 3": [("Querlenker/Achse", "Vordere Querlenker/Buchsen Verschleiss "
+                       "(TÜV bemaengelt Achsaufhaengung)", 2, 750),
+                      ("Bremsen", "Bremsscheiben-Korrosion (Rekuperation, wenig genutzt)", 2, 400),
+                      ("Beleuchtung", "Licht-/Elektronik-Beanstandungen bei HU", 1, 200),
+                      ("MCU", "eMMC-Speicher Verschleiss aeltere Baujahre", 2, 1500)],
+    "Hyundai Ioniq 5": [("ICCU", "ICCU/12V-Ladewandler-Ausfall (oft Garantie)", 3, 1200)],
+    "VW ID.3 Pro": [("Software", "Infotainment-Bugs Fruehserien (Update)", 2, 0)],
+    "VW ID.3 Pro S": [("Software", "Infotainment-Bugs Fruehserien (Update)", 2, 0)],
+    "Renault Zoe": [("Akku", "Akkumiete/Degradation bei aelteren", 2, 0),
+                    ("12V-Batterie", "Starterbatterie/12V auffaellig (ADAC)", 2, 150)],
 }
 
 RECALLS = {
@@ -125,6 +132,50 @@ LISTINGS = {
     "VW ID.3 Pro": [(18900, 60000, "2021-05", "79100", "Freiburg")],
     "VW ID.3 Pro S": [(22900, 45000, "2022-03", "79104", "Freiburg")],
     "Renault Zoe": [(10500, 40000, "2020-08", "79098", "Freiburg")],
+}
+
+# Verschleiss/Teile: (Bauteil, at_km erste Faelligkeit, interval_km 0=einmalig, Kosten EUR)
+# Generische Teile je Antriebsart (gelten fuer JEDES Modell dieser Art):
+WEAR_TEMPLATE = {
+    "benzin": [
+        ("Bremsbelaege", 50000, 60000, 250), ("Bremsscheiben", 90000, 90000, 400),
+        ("Reifen (Satz)", 45000, 45000, 520), ("12V-Batterie", 70000, 80000, 150),
+        ("Stossdaempfer", 140000, 0, 600), ("Auspuff/Abgas", 160000, 0, 500),
+    ],
+    "diesel": [
+        ("Bremsbelaege", 50000, 60000, 250), ("Bremsscheiben", 90000, 90000, 400),
+        ("Reifen (Satz)", 45000, 45000, 520), ("12V-Batterie", 70000, 80000, 150),
+        ("Stossdaempfer", 140000, 0, 600), ("AGR/DPF", 150000, 0, 900),
+    ],
+    "hybrid": [
+        ("Bremsbelaege", 80000, 90000, 250), ("Bremsscheiben", 120000, 0, 400),
+        ("Reifen (Satz)", 45000, 45000, 520), ("12V-Batterie", 70000, 80000, 150),
+        ("Stossdaempfer", 150000, 0, 600),
+    ],
+    "elektro": [
+        ("Bremsbelaege", 100000, 100000, 250), ("Bremsscheiben", 120000, 0, 450),
+        ("Reifen (Satz)", 35000, 35000, 560), ("12V-Batterie", 70000, 80000, 150),
+        ("Fahrwerk/Lenker", 120000, 0, 700),
+    ],
+}
+# Modellspezifische Teile (bekannte Schwachstellen mit typischer km-Faelligkeit):
+WEAR_SPECIFIC = {
+    "VW Golf": [("Zahnriemen", 120000, 120000, 600), ("DSG-Kupplung", 130000, 0, 1500),
+                ("Steuerkette 1.4 TSI", 150000, 0, 1500)],
+    "Skoda Octavia": [("Zahnriemen", 120000, 120000, 550), ("DSG-Kupplung", 130000, 0, 1500),
+                      ("Wasserpumpe", 120000, 0, 500)],
+    "Seat Leon": [("Zahnriemen", 120000, 120000, 550), ("DSG-Kupplung", 130000, 0, 1500)],
+    "Audi A3": [("Zahnriemen", 120000, 120000, 600), ("Oelverbrauch/Kolbenringe", 130000, 0, 2500)],
+    "BMW 3er": [("Steuerkette N47", 150000, 0, 1800), ("Querlenker/Achse", 110000, 0, 700)],
+    "Ford Focus": [("Powershift-Kupplung", 120000, 0, 1800), ("Kuehlung EcoBoost", 90000, 0, 900)],
+    "Opel Astra": [("Steuerkette", 140000, 0, 1200), ("Wasserpumpe", 120000, 0, 500)],
+    "Peugeot 308": [("Steuerkette 1.2 PureTech", 100000, 0, 1400)],
+    "Renault Megane": [("Zahnriemen", 120000, 120000, 520)],
+    "Hyundai i30": [("Zahnriemen", 120000, 120000, 500)],
+    "Kia Ceed": [("Zahnriemen", 120000, 120000, 480)],
+    "Tesla Model 3": [("Querlenker/Achse", 80000, 0, 750), ("MCU-eMMC", 150000, 0, 1500)],
+    "Hyundai Ioniq 5": [("ICCU/12V-Wandler", 60000, 0, 1200)],
+    "Kia EV6": [("ICCU/12V-Wandler", 60000, 0, 1200)],
 }
 
 WORKSHOPS = [
@@ -355,10 +406,20 @@ class SeedSource(Source):
                 (mid, "TUEV", "maengelquote_pct", 4, MAENGEL[key], 2024))
 
             conn.execute("DELETE FROM weak_point WHERE model_id=?", (mid,))
-            for comp, desc, sev in WEAK.get(key, []):
+            for entry in WEAK.get(key, []):
+                comp, desc, sev = entry[0], entry[1], entry[2]
+                cost = entry[3] if len(entry) > 3 else None
                 conn.execute(
-                    "INSERT INTO weak_point(model_id,component,description,severity,source)"
-                    " VALUES (?,?,?,?,?)", (mid, comp, desc, sev, "seed"))
+                    "INSERT INTO weak_point(model_id,component,description,severity,cost_eur,source)"
+                    " VALUES (?,?,?,?,?,?)", (mid, comp, desc, sev, cost, "seed"))
+
+            # Verschleiss-Teile: generisch je Antrieb + modellspezifisch
+            conn.execute("DELETE FROM wear_item WHERE model_id=?", (mid,))
+            wear = list(WEAR_TEMPLATE.get(dt, [])) + list(WEAR_SPECIFIC.get(key, []))
+            for comp, at_km, interval, cost in wear:
+                conn.execute(
+                    "INSERT INTO wear_item(model_id,component,at_km,interval_km,cost_eur,source)"
+                    " VALUES (?,?,?,?,?,?)", (mid, comp, at_km, interval, cost, "seed"))
 
             for code, date, desc in RECALLS.get(key, []):
                 conn.execute(

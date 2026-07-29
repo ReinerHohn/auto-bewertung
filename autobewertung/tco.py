@@ -49,8 +49,8 @@ class TcoAssumptions:
     share_public: float = 0.10
     share_work: float = 0.25          # kostenloses Laden in der Firma
     share_solar: float = 0.20         # Solarstrom bei Sonne
-    # Verschleiss/Sonstiges (Reifen, HU/AU, Kleinkram) pauschal pro Jahr
-    misc_per_year: float = 250.0
+    # Sonstiges (HU/AU, Kleinkram) pauschal pro Jahr (Reifen/Bremsen extra ueber wear)
+    misc_per_year: float = 150.0
     default_depr_pct_year: float = 0.13
 
     @property
@@ -96,8 +96,8 @@ def _energy_cost_year(spec, a: TcoAssumptions) -> float:
 
 
 def compute_tco(spec, purchase_price: float, maintenance_year: float,
-                a: TcoAssumptions) -> TcoResult:
-    """Berechnet TCO aus Fahrzeug-Spec, Kaufpreis und Wartungskosten/Jahr."""
+                a: TcoAssumptions, wear_year: float = 0.0) -> TcoResult:
+    """Berechnet TCO aus Fahrzeug-Spec, Kaufpreis, Wartung/Jahr und Verschleiss/Jahr."""
     dt = (spec["drivetrain"] or "").lower()
     is_ev = dt == "elektro"
 
@@ -115,10 +115,11 @@ def compute_tco(spec, purchase_price: float, maintenance_year: float,
         "energie": energy,
         "versicherung": insurance,
         "steuer": tax,
-        "wartung_reparatur": maintenance_year,
+        "wartung": maintenance_year,
+        "verschleiss_reparatur": wear_year,
         "sonstiges": misc,
     }
-    running = energy + insurance + tax + maintenance_year + misc
+    running = energy + insurance + tax + maintenance_year + wear_year + misc
     annual = depreciation_year + running
     return TcoResult(
         annual_total=annual,

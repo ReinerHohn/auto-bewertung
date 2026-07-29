@@ -115,17 +115,20 @@ def _equipment_raw(spec, crit: Criteria) -> float:
     return have - penalty
 
 
+#: Routine-Service (jaehrlich). Verschleissteile (Bremsen/Zahnriemen/...) laufen
+#: separat ueber das wear_item-Modell -> kein Doppelzaehlen.
+ROUTINE_CATEGORIES = {"inspektion", "bremsfluessigkeit"}
+
+
 def _maintenance_year(conn) -> dict[int, float]:
-    """Jaehrliche Wartungs-/Reparaturkosten je Modell (fuer TCO wiederverwendet)."""
+    """Jaehrliche Routine-Wartungskosten je Modell (nur Service, kein Verschleiss)."""
     out: dict[int, float] = {}
     for r in conn.execute("SELECT model_id, category, typical_eur, period FROM repair_cost"):
-        if (r["category"] or "").lower().startswith("versicherung"):
-            continue  # Versicherung kommt aus vehicle_spec.insurance_eur (kein Doppelzaehlen)
+        if (r["category"] or "").lower() not in ROUTINE_CATEGORIES:
+            continue
         eur = r["typical_eur"] or 0.0
         if r["period"] == "pro_intervall":
             eur = eur / 2.0
-        elif r["period"] == "einmalig":
-            eur = eur / 8.0
         out[r["model_id"]] = out.get(r["model_id"], 0.0) + eur
     return out
 
@@ -206,22 +209,27 @@ def score_models(conn: sqlite3.Connection, crit: Criteria) -> RankResult:
             price_meta[mid] = {
                 "purchase": best["price"], "median": median, "n": len(rows),
                 "discount": discount, "deal_score": discount + max(0.0, -trend) * 2.0,
-                "best_id": best["id"],
+                "best_id": best["id"], "start_km": best["mileage_km"] or 80000,
             }
         elif typical:
             price_meta[mid] = {"purchase": typical, "median": typical, "n": 0,
-                               "discount": 0.0, "deal_score": 0.0, "best_id": None}
+                               "discount": 0.0, "deal_score": 0.0, "best_id": None,
+                               "start_km": 80000}
         else:
             price_meta[mid] = {"purchase": None, "median": None, "n": 0,
-                               "discount": None, "deal_score": 0.0, "best_id": None}
+                               "discount": None, "deal_score": 0.0, "best_id": None,
+                               "start_km": 80000}
 
-    # --- TCO je Modell -------------------------------------------------------
+    # --- TCO je Modell (inkl. erwartetem Verschleiss ueber die km-Kurve) ------
+    from .wear import expected_repair_per_year
     tco: dict[int, TcoResult] = {}
     for mid, spec in specs.items():
         purchase = price_meta.get(mid, {}).get("purchase")
         if purchase is None:
             continue
-        tco[mid] = compute_tco(spec, purchase, maint.get(mid, 500.0), crit.tco)
+        wear_year = expected_repair_per_year(
+            conn, mid, price_meta[mid]["start_km"], crit.tco.annual_km, crit.tco.holding_years)
+        tco[mid] = compute_tco(spec, purchase, maint.get(mid, 300.0), crit.tco, wear_year=wear_year)
     ice_ref = ice_reference_running(tco)
 
     # --- Qualifikation (harte Kriterien) ------------------------------------

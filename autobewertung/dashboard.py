@@ -55,15 +55,18 @@ COLUMN_TO_CATEGORY = {
 SEV = {1: "gering", 2: "mittel", 3: "schwer"}
 TCO_LABELS = {
     "wertverlust": "Wertverlust", "energie": "Energie", "versicherung": "Versicherung",
-    "steuer": "Kfz-Steuer", "wartung_reparatur": "Wartung/Reparatur", "sonstiges": "Sonstiges",
+    "steuer": "Kfz-Steuer", "wartung": "Wartung (Service)",
+    "verschleiss_reparatur": "Verschleiß/Reparaturen", "sonstiges": "Sonstiges",
 }
 TCO_EXPLAIN = {
     "wertverlust": "Kaufpreis minus geschaetzter Restwert nach der Haltedauer, auf ein Jahr umgelegt.",
-    "energie": "Verbrauch x Jahreskilometer x Energiepreis (Sprit bzw. Strom-Mischpreis Heim/Schnelllader).",
+    "energie": "Verbrauch x Jahreskilometer x Energiepreis (Sprit bzw. Strom-Mischpreis).",
     "versicherung": "Angesetzte Versicherungspraemie pro Jahr (Teilkasko-Groessenordnung).",
     "steuer": "Kfz-Steuer pro Jahr (E-Autos meist befreit).",
-    "wartung_reparatur": "Inspektionen und typische Reparaturen, auf ein Jahr umgelegt.",
-    "sonstiges": "Pauschale fuer Reifen, HU/AU und Kleinkram.",
+    "wartung": "Regelmaessige Inspektion/Service pro Jahr.",
+    "verschleiss_reparatur": "Erwartete Teile-/Reparaturkosten im eigenen km-Fenster "
+                             "(Bremsen, Reifen, Zahnriemen, modellspezifische Defekte – siehe Tab Verschleiß).",
+    "sonstiges": "Pauschale fuer HU/AU und Kleinkram.",
 }
 
 # AutoScout24 nutzt Marken-Slugs (z.B. VW -> volkswagen)
@@ -142,7 +145,7 @@ def render_category(model, cat: str) -> None:
         mk = _make_of(mid)
         mdl = conn.execute("SELECT model FROM car_model WHERE id=?", (mid,)).fetchone()["model"]
         wp = conn.execute(
-            "SELECT component,description,severity,source,url FROM weak_point "
+            "SELECT component,description,severity,cost_eur,source,url FROM weak_point "
             "WHERE model_id=? ORDER BY severity DESC", (mid,)).fetchall()
         rc = conn.execute(
             "SELECT kba_code,date,description,url FROM recall WHERE model_id=?", (mid,)).fetchall()
@@ -151,8 +154,11 @@ def render_category(model, cat: str) -> None:
         for w in wp:
             sev = SEV.get(w["severity"], "?")
             bar = {1: "🟡", 2: "🟠", 3: "🔴"}.get(w["severity"], "⚪")
-            with st.expander(f"{bar} {w['component']} · Schwere: {sev}"):
+            cost = f" · ~{w['cost_eur']:,.0f} €".replace(",", ".") if w["cost_eur"] else ""
+            with st.expander(f"{bar} {w['component']} · Schwere: {sev}{cost}"):
                 st.markdown(f"**{w['component']}** — {w['description']}")
+                if w["cost_eur"]:
+                    st.markdown(f"**Typische Reparaturkosten: ~{w['cost_eur']:,.0f} €**".replace(",", "."))
                 st.caption(f"Schweregrad {w['severity']}/3 ({sev}) · Quelle: {w['source'] or '-'}")
                 # Recherche-Links speziell zu diesem Defekt
                 q = quote_plus(f"{mk} {mdl} {w['component']} Problem")
@@ -341,8 +347,46 @@ def render_category(model, cat: str) -> None:
         else:
             st.success("Meist ohne teure Matrix-Scheinwerfer.")
 
+    elif cat == "wear":
+        from autobewertung.wear import cost_curve, upcoming_items, load_items
+        st.markdown("#### 🔩 Verschleiß – welche Teile bei wie viel km + Kosten")
+        items = load_items(conn, mid)
+        if not items:
+            st.info("Keine Verschleißdaten."); return
+        # Kostenkurve über die Laufleistung
+        curve = cost_curve(conn, mid, max_km=250000, step=5000)
+        cdf = pd.DataFrame(curve, columns=["km", "Kumulierte Reparaturkosten €"]).set_index("km")
+        st.markdown("**Kostenkurve: kumulierte Reparaturkosten über die Laufleistung**")
+        st.line_chart(cdf)
+        # Was fällt in DEINEM Halte-Fenster an?
+        start = st.session_state.get("_start_km", 80000)
+        span = st.session_state.get("_span_km", 75000)
+        up = upcoming_items(conn, mid, start, span)
+        st.markdown(f"**Fällig in deinem Fenster (ca. {start:,.0f}–{start+span:,.0f} km):**"
+                    .replace(",", "."))
+        if up:
+            updf = pd.DataFrame([{
+                "Teil": u["component"], "typ. bei km": f"{u['at_km']:,}".replace(",", "."),
+                "Intervall km": (f"{u['interval_km']:,}".replace(",", ".") if u["interval_km"] else "einmalig"),
+                "Einzelkosten €": f"{u['cost_eur']:,.0f}".replace(",", "."),
+                "× fällig": u["faellig_im_fenster"],
+                "Kosten Fenster €": f"{u['kosten_im_fenster']:,.0f}".replace(",", "."),
+            } for u in up])
+            st.dataframe(updf, hide_index=True, width="stretch")
+            st.metric("Summe erwartete Reparaturen im Fenster",
+                      f"{sum(u['kosten_im_fenster'] for u in up):,.0f} €".replace(",", "."))
+        else:
+            st.caption("In diesem km-Fenster fällt nichts Größeres an.")
+        st.caption("Alle Teile (Referenz):")
+        alldf = pd.DataFrame([{
+            "Teil": it["component"], "typ. bei km": f"{it['at_km']:,}".replace(",", "."),
+            "Intervall": (f"alle {it['interval_km']:,} km".replace(",", ".") if it["interval_km"] else "einmalig"),
+            "Kosten €": f"{it['cost_eur']:,.0f}".replace(",", "."),
+        } for it in items])
+        st.dataframe(alldf, hide_index=True, width="stretch")
+
     else:
-        st.info("Klicke z. B. Ausstattung, Wertstabilität, Schwachstellen, "
+        st.info("Klicke z. B. Verschleiß, Ausstattung, Wertstabilität, Schwachstellen, "
                 "Zuverlässigkeit, TCO, Angebote, Ersatzteile oder Werkstätten.")
 
 
@@ -422,8 +466,8 @@ CATCOLS = [
 ]
 # Alle Kategorien (auch die ohne Tabellen-Spalte) fuer die Detail-Leiste
 ALL_CATS = [
-    ("price", "💰 Angebote"), ("tco", "💶 TCO"), ("value", "📉 Wertstab."),
-    ("equipment", "⭐ Ausstattung"), ("weak_points", "🔧 Mängel"),
+    ("price", "💰 Angebote"), ("tco", "💶 TCO"), ("wear", "🔩 Verschleiß"),
+    ("value", "📉 Wertstab."), ("equipment", "⭐ Ausstattung"), ("weak_points", "🔧 Mängel"),
     ("reliability", "📊 Zuverl."), ("parts", "🧩 Teile"), ("workshop", "🛠️ Werkst."),
 ]
 WANT4 = ["einparkhilfe", "rueckfahrkamera", "notbremsassistent", "spurhalteassistent"]
@@ -505,6 +549,13 @@ with right:
     if model.drivetrain == "elektro" and model.range_km:
         st.caption(f"🔋 Reichweite ~{model.range_km:.0f} km (voll) · davon lädt der "
                    f"Schnelllader ~{model.km_per_30min:.0f} km in 30 min nach.")
+
+    # km-Fenster fuer die Verschleiss-Ansicht (Laufleistung des guenstigsten Angebots)
+    _sk = conn.execute("SELECT mileage_km FROM listing WHERE model_id=? AND active=1 "
+                       "AND mileage_km IS NOT NULL ORDER BY price LIMIT 1",
+                       (model.model_id,)).fetchone()
+    st.session_state._start_km = _sk[0] if _sk else 80000
+    st.session_state._span_km = annual_km * years
 
     # Kategorie-Leiste (auch Angebote/Werkstätten, die keine Tabellenspalte haben)
     st.caption("Kategorie:")

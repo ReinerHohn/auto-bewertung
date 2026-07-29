@@ -82,6 +82,7 @@ CREATE TABLE IF NOT EXISTS weak_point (
     component    TEXT,                   -- z.B. 'Steuerkette', 'DSG', 'Turbolader'
     description  TEXT NOT NULL,
     severity     INTEGER NOT NULL DEFAULT 2,  -- 1=gering 2=mittel 3=schwer
+    cost_eur     REAL,                   -- typische Reparaturkosten dieses Defekts
     source       TEXT,
     url          TEXT
 );
@@ -142,6 +143,18 @@ CREATE TABLE IF NOT EXISTS vehicle_spec (
     features       TEXT,                 -- verfuegbare Assistenz/Komfort (kommagetrennt)
     has_matrix     INTEGER DEFAULT 0     -- 1 = Modell oft mit (teuren) Matrix-/Voll-LED
 );
+
+CREATE TABLE IF NOT EXISTS wear_item (
+    id           INTEGER PRIMARY KEY,
+    model_id     INTEGER REFERENCES car_model(id) ON DELETE CASCADE,
+    component    TEXT NOT NULL,          -- z.B. 'Bremsscheiben', 'Zahnriemen', 'Querlenker'
+    at_km        INTEGER NOT NULL,       -- typische Laufleistung fuer (erste) Faelligkeit
+    interval_km  INTEGER DEFAULT 0,      -- Wiederholung (0 = einmalig)
+    cost_eur     REAL NOT NULL,          -- typische Reparatur-/Teilekosten
+    note         TEXT,
+    source       TEXT
+);
+CREATE INDEX IF NOT EXISTS idx_wear_model ON wear_item(model_id);
 
 CREATE TABLE IF NOT EXISTS watch (
     id       INTEGER PRIMARY KEY,
