@@ -177,17 +177,23 @@ def render_category(model, cat: str) -> None:
     elif cat == "reliability":
         st.markdown("#### 📊 Zuverlässigkeit (Pannen & Mängel)")
         rows = conn.execute(
-            "SELECT source,metric,value,vehicle_age,year FROM reliability_stat "
-            "WHERE model_id=? ORDER BY source", (mid,)).fetchall()
+            "SELECT source,metric,value,vehicle_age,year,is_estimate,source_url,note "
+            "FROM reliability_stat WHERE model_id=? ORDER BY source", (mid,)).fetchall()
         if not rows:
             st.info("Keine erfasst."); return
         for r in rows:
-            unit = "Pannen/1000 Fzg" if r["metric"].startswith("pannen") else "% Mängel (HU)"
-            with st.expander(f"{r['source']}: {r['value']:.1f} {unit}"):
-                st.write(f"**Metrik:** {r['metric']}")
-                st.write(f"**Wert:** {r['value']:.2f} ({unit})")
-                st.caption(f"Fahrzeugalter: {r['vehicle_age'] or 'n/a'} · Berichtsjahr: {r['year'] or 'n/a'} "
-                           f"· Quelle: {r['source']}")
+            unit = "Pannen/1000 Fzg (ADAC)" if r["metric"].startswith("pannen") else "% Mängel HU (TÜV)"
+            badge = "🟢 echte Quelle" if not r["is_estimate"] else "🟡 Schätzung"
+            with st.expander(f"{badge} · {r['source']}: {r['value']:.1f}  ({unit})"):
+                st.write(f"**Wert:** {r['value']:.1f} — {unit}")
+                age = f"{r['vehicle_age']}–{r['vehicle_age']+1} J" if r["vehicle_age"] else "n/a"
+                st.caption(f"Altersklasse: {age} · Berichtsjahr: {r['year'] or 'n/a'}"
+                           + (f" · {r['note']}" if r["note"] else ""))
+                if r["source_url"]:
+                    st.markdown(f"[📄 Quelle]({r['source_url']})")
+                elif r["is_estimate"]:
+                    st.caption("⚠️ Platzhalter – keine öffentliche Zahl gefunden (z. B. ADAC druckt "
+                               "für diese Klasse keine absoluten Werte, oder Modell zu jung).")
 
     elif cat == "parts":
         st.markdown("#### 🧩 Ersatzteil-Verfügbarkeit")

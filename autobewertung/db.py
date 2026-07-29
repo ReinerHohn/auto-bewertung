@@ -70,6 +70,9 @@ CREATE TABLE IF NOT EXISTS reliability_stat (
     vehicle_age   INTEGER,               -- Fahrzeugalter in Jahren (falls quellenspezifisch)
     value         REAL NOT NULL,
     year          INTEGER,               -- Berichtsjahr
+    is_estimate   INTEGER DEFAULT 1,     -- 1 = Seed-Schaetzung, 0 = echte Quelle
+    source_url    TEXT,                  -- Beleg-URL (bei echten Daten)
+    note          TEXT,                  -- z.B. Altersklasse
     UNIQUE(model_id, source, metric, vehicle_age, year)
 );
 

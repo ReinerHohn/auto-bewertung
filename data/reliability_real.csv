@@ -1,0 +1,25 @@
+# Echte Zuverlaessigkeitsdaten aus TUEV-Report (2025) und ADAC-Pannenstatistik (2024).
+# Nur belegte Werte (mit Quelle). Fehlende/zu junge Modelle bleiben Seed-Schaetzung.
+# metric: maengelquote_pct (TUEV "erhebliche Maengel" bei der HU) | pannen_pro_1000 (ADAC)
+# vehicle_age: Altersklasse in Jahren (Mittelwert), fuer Vergleichbarkeit wichtig.
+make,model,source,metric,value,report_year,vehicle_age,source_url,note
+Toyota,Auris,TUEV,maengelquote_pct,11.3,2025,4,https://www.t-online.de/mobilitaet/aktuelles/id_100543260/,Altersklasse 4-5 Jahre
+Skoda,Octavia,TUEV,maengelquote_pct,9.4,2025,2,https://www.t-online.de/mobilitaet/aktuelles/id_100543260/,Altersklasse 2-3 Jahre
+Ford,Focus,TUEV,maengelquote_pct,10.6,2025,2,https://www.t-online.de/mobilitaet/aktuelles/id_100543260/,Altersklasse 2-3 Jahre
+Mazda,3,TUEV,maengelquote_pct,4.8,2025,2,https://www.t-online.de/mobilitaet/aktuelles/id_100543260/,bester Kompakter 2-3 Jahre
+Opel,Astra,TUEV,maengelquote_pct,8.2,2025,2,https://www.t-online.de/mobilitaet/aktuelles/id_100543260/,Altersklasse 2-3 Jahre
+Seat,Leon,TUEV,maengelquote_pct,8.7,2025,2,https://www.t-online.de/mobilitaet/aktuelles/id_100543260/,Altersklasse 2-3 Jahre
+Audi,A3,TUEV,maengelquote_pct,4.9,2025,2,https://www.t-online.de/mobilitaet/aktuelles/id_100543260/,Top-Gruppe 2-3 Jahre
+Hyundai,i30,TUEV,maengelquote_pct,18.4,2025,6,https://www.t-online.de/mobilitaet/aktuelles/id_100543260/,Altersklasse 6-7 Jahre (aeltere Klasse!)
+Peugeot,308,TUEV,maengelquote_pct,12.0,2025,4,https://www.t-online.de/mobilitaet/aktuelles/id_100543260/,Altersklasse 4-5 Jahre
+Renault,Megane,TUEV,maengelquote_pct,11.2,2025,4,https://www.t-online.de/mobilitaet/aktuelles/id_100543260/,Altersklasse 4-5 Jahre
+Tesla,Model 3,TUEV,maengelquote_pct,14.2,2025,2,https://www.tuev-verband.de/pressemitteilungen/tuev-report-2025-elektroautos,Letzter Platz TUEV-Report 2025 (2-3 Jahre)
+VW,ID.3 Pro,TUEV,maengelquote_pct,5.0,2025,2,https://www.goingelectric.de/2024/11/22/news/tuev-report-2025/,Altersklasse 2-3 Jahre
+VW,ID.3 Pro S,TUEV,maengelquote_pct,5.0,2025,2,https://www.goingelectric.de/2024/11/22/news/tuev-report-2025/,Altersklasse 2-3 Jahre
+Renault,Zoe,TUEV,maengelquote_pct,8.9,2025,2,https://www.goingelectric.de/2024/11/22/news/tuev-report-2025/,Altersklasse 2-3 Jahre
+Hyundai,Kona Elektro,TUEV,maengelquote_pct,4.0,2025,2,https://www.goingelectric.de/2024/11/22/news/tuev-report-2025/,Rang 2 der E-Autos 2-3 Jahre
+Tesla,Model 3,ADAC,pannen_pro_1000,0.5,2024,3,https://www.autobild.de/artikel/elektroautos-in-der-adac-pannenstatistik-21223871.html,bestes E-Auto Pannenstatistik
+VW,ID.3 Pro,ADAC,pannen_pro_1000,0.7,2024,3,https://www.autobild.de/artikel/elektroautos-in-der-adac-pannenstatistik-21223871.html,niedrige Pannenrate
+VW,ID.3 Pro S,ADAC,pannen_pro_1000,0.7,2024,3,https://www.autobild.de/artikel/elektroautos-in-der-adac-pannenstatistik-21223871.html,niedrige Pannenrate
+Renault,Zoe,ADAC,pannen_pro_1000,2.4,2024,3,https://www.autobild.de/artikel/elektroautos-in-der-adac-pannenstatistik-21223871.html,12V-Starterbatterie auffaellig
+Hyundai,Ioniq 5,ADAC,pannen_pro_1000,22.4,2024,3,https://www.autofachmann-autokaufmann.de/,hohe Pannenrate ICCU/12V-Batterie

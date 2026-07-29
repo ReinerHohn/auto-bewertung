@@ -85,13 +85,15 @@ def _minmax(values: dict[int, float], invert: bool = False) -> dict[int, float]:
 # Roh-Aggregationen je Modell aus der DB
 # ---------------------------------------------------------------------------
 
-def _reliability_raw(conn) -> dict[int, float]:
-    tmp: dict[int, list[float]] = {}
+def _metric_raw(conn, metric: str) -> dict[int, float]:
+    """Durchschnittswert einer Zuverlaessigkeits-Metrik je Modell."""
+    out: dict[int, float] = {}
     for r in conn.execute(
-        "SELECT model_id, metric, AVG(value) v FROM reliability_stat GROUP BY model_id, metric"
+        "SELECT model_id, AVG(value) v FROM reliability_stat WHERE metric=? GROUP BY model_id",
+        (metric,),
     ):
-        tmp.setdefault(r["model_id"], []).append(r["v"])
-    return {mid: statistics.mean(vs) for mid, vs in tmp.items()}
+        out[r["model_id"]] = r["v"]
+    return out
 
 
 def _weakpoint_raw(conn) -> dict[int, float]:
@@ -292,12 +294,22 @@ def score_models(conn: sqlite3.Connection, crit: Criteria) -> RankResult:
                                if specs.get(mid) and specs[mid]["depr_pct_year"] is not None}, True),
         "equipment":         ({mid: _equipment_raw(specs.get(mid), crit) for mid in q}, False),
         "price_value":       ({mid: price_meta[mid]["deal_score"] for mid in q}, False),
-        "reliability":       ({mid: v for mid, v in _reliability_raw(conn).items() if mid in q}, True),
         "weak_points":       ({mid: v for mid, v in _weakpoint_raw(conn).items() if mid in q}, True),
         "parts_availability":({mid: v for mid, v in _parts_raw(conn).items() if mid in q}, False),
         "workshop_access":   ({mid: v for mid, v in _workshop_raw(conn, crit.home_plz).items() if mid in q}, False),
     }
     dim_scaled = {d: _minmax(raw, invert=inv) for d, (raw, inv) in dim_raw.items()}
+
+    # Zuverlaessigkeit: Pannen und TUEV-Maengel getrennt normalisieren (versch.
+    # Skalen: ~0.5-30 Pannen/1000 vs. ~4-24 % Maengel), dann mitteln.
+    ps = _minmax({mid: v for mid, v in _metric_raw(conn, "pannen_pro_1000").items() if mid in q}, invert=True)
+    ms = _minmax({mid: v for mid, v in _metric_raw(conn, "maengelquote_pct").items() if mid in q}, invert=True)
+    rel: dict[int, float] = {}
+    for mid in q:
+        sub = [s[mid] for s in (ps, ms) if mid in s]
+        if sub:
+            rel[mid] = sum(sub) / len(sub)
+    dim_scaled["reliability"] = rel
 
     results: list[ModelScore] = []
     for mid in qualified:
