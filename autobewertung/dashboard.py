@@ -653,6 +653,23 @@ SORTS = {
 sort_choice = st.radio("Sortieren nach", list(SORTS), index=1, horizontal=True, key="sortby")
 ranked = sorted(ranked, key=SORTS[sort_choice])
 
+with st.expander("🔄 Echte AutoScout24-Angebote für ALLE Modelle laden (~1–2 min)"):
+    st.caption("Holt reale Preise/km/Bewertung je Modell. Bei Modellen mit wenigen "
+               "Treffern kann ein Ausreißer den Preis verzerren – Bewertung (🟢/🟡) beachten.")
+    if st.button("Jetzt alle laden"):
+        from autobewertung.sources.autoscout24 import AutoScout24Source
+        src = AutoScout24Source()
+        models = conn.execute("SELECT id, make, model FROM car_model").fetchall()
+        prog = st.progress(0.0)
+        for i, mm in enumerate(models, 1):
+            try:
+                src.fetch_model(conn, mm["id"], mm["make"], mm["model"])
+            except Exception:
+                pass
+            prog.progress(i / len(models), text=f"{mm['make']} {mm['model']}")
+        st.success("Fertig – echte Angebote geladen.")
+        st.rerun()
+
 # ---------------------------------------------------------------------------
 # Layout: Tabelle links (jede Zelle klickbar) · Detail rechts (sofort sichtbar)
 # ---------------------------------------------------------------------------
