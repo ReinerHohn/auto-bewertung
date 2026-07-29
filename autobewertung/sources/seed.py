@@ -412,6 +412,56 @@ LISTINGS.update({
 DEPR.update({"Kia e-Niro": 0.15, "Renault Megane E-Tech": 0.16, "Nissan Leaf e+": 0.16,
              "VW e-Golf": 0.15, "BMW i3": 0.14})
 
+# --- Noch mehr guenstige E-Autos (2. Welle) ---------------------------------
+MODELS += [
+    ("MG", "ZS EV", "72 kWh LR (2022-)", 2022, 2025, "SUV", "Elektro"),
+    ("MG", "5 EV", "61 kWh Kombi (2021-)", 2021, 2025, "Kombi", "Elektro"),
+    ("Fiat", "600e", "54 kWh (2023-)", 2023, 2025, "SUV", "Elektro"),
+    ("Peugeot", "e-2008", "50 kWh (2020-)", 2020, 2025, "SUV", "Elektro"),
+    ("Citroen", "e-C4", "50 kWh (2021-)", 2021, 2025, "Kompakt", "Elektro"),
+    ("Mazda", "MX-30", "35 kWh (2020-2024)", 2020, 2024, "SUV", "Elektro"),
+    ("Opel", "Corsa-e", "50 kWh (2020-)", 2020, 2025, "Kleinwagen", "Elektro"),
+]
+SPECS.update({
+    "MG ZS EV":      ("elektro", "suv",        None, 17.5, 72.0, 440,  92, 200, 500, 0, 24500),
+    "MG 5 EV":       ("elektro", "kombi",      None, 17.0, 61.0, 400,  87, 190, 480, 0, 23000),
+    "Fiat 600e":     ("elektro", "suv",        None, 16.5, 54.0, 400, 100, 230, 520, 0, 26500),
+    "Peugeot e-2008":("elektro", "suv",        None, 16.5, 50.0, 320, 100, 230, 500, 0, 21000),
+    "Citroen e-C4":  ("elektro", "kompakt",    None, 16.5, 50.0, 300, 100, 230, 500, 0, 21000),
+    "Mazda MX-30":   ("elektro", "suv",        None, 17.0, 35.5, 200,  50, 150, 500, 0, 18000),
+    "Opel Corsa-e":  ("elektro", "kleinwagen", None, 16.0, 50.0, 330, 100, 230, 470, 0, 17000),
+})
+RELIABILITY.update({"MG ZS EV": 6.5, "MG 5 EV": 6.5, "Fiat 600e": 6.0, "Peugeot e-2008": 7.0,
+                    "Citroen e-C4": 7.0, "Mazda MX-30": 4.5, "Opel Corsa-e": 6.5})
+MAENGEL.update({"MG ZS EV": 5.0, "MG 5 EV": 5.0, "Fiat 600e": 4.5, "Peugeot e-2008": 5.5,
+                "Citroen e-C4": 5.5, "Mazda MX-30": 3.8, "Opel Corsa-e": 5.0})
+WEAK.update({
+    "MG ZS EV": [("Software", "Assistenz/Software unausgereift", 1, 0)],
+    "MG 5 EV": [("Software", "Assistenz/Software unausgereift", 1, 0)],
+    "Fiat 600e": [("Software", "Infotainment Fruehserien", 1, 300)],
+    "Peugeot e-2008": [("Reichweite", "nur ~320 km, langsamer Lader", 1, 0)],
+    "Citroen e-C4": [("Reichweite", "nur ~300 km", 1, 0)],
+    "Mazda MX-30": [("Reichweite", "Mini-Akku ~200 km", 2, 0)],
+    "Opel Corsa-e": [("Klasse", "Kleinwagen", 1, 0)],
+})
+REPAIR.update({k: [("inspektion", 200, "pro_jahr"), ("bremsfluessigkeit", 120, "pro_intervall")]
+               for k in ["MG ZS EV", "MG 5 EV", "Fiat 600e", "Peugeot e-2008", "Citroen e-C4",
+                         "Mazda MX-30", "Opel Corsa-e"]})
+PARTS.update({"MG ZS EV": (62, 100), "MG 5 EV": (62, 100), "Fiat 600e": (70, 100),
+              "Peugeot e-2008": (82, 92), "Citroen e-C4": (80, 92), "Mazda MX-30": (72, 105),
+              "Opel Corsa-e": (85, 90)})
+LISTINGS.update({
+    "MG ZS EV": [(24500, 35000, "2022-05", "79100", "Freiburg")],
+    "MG 5 EV": [(23000, 40000, "2022-03", "79106", "Freiburg")],
+    "Fiat 600e": [(26500, 20000, "2023-06", "79111", "Freiburg")],
+    "Peugeot e-2008": [(21000, 45000, "2021-04", "79098", "Freiburg")],
+    "Citroen e-C4": [(21000, 40000, "2021-09", "79100", "Freiburg")],
+    "Mazda MX-30": [(18000, 30000, "2021-05", "79104", "Freiburg")],
+    "Opel Corsa-e": [(17000, 45000, "2021-03", "79100", "Freiburg")],
+})
+DEPR.update({"MG ZS EV": 0.17, "MG 5 EV": 0.17, "Fiat 600e": 0.16, "Peugeot e-2008": 0.16,
+             "Citroen e-C4": 0.17, "Mazda MX-30": 0.18, "Opel Corsa-e": 0.16})
+
 
 class SeedSource(Source):
     name = "seed"
