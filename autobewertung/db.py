@@ -1,0 +1,172 @@
+"""SQLite-Datenhaltung fuer das Auto-Bewertungstool.
+
+Ein schlankes Schema ohne ORM (Stil wie in den anderen Projekten):
+- car_model         : Baureihe/Generation (Marke, Modell, Generation, Baujahre)
+- listing           : konkretes Gebrauchtwagen-Angebot
+- price_point       : Preisverlauf je Angebot (fuer Schnaeppchen-Erkennung)
+- reliability_stat  : Pannen-/Maengelquoten je Modell (ADAC, TUEV)
+- weak_point        : bekannte Schwachstellen je Modell
+- recall            : Rueckrufe (KBA)
+- repair_cost       : typische Reparatur-/Unterhaltskosten je Modell
+- parts_availability: Ersatzteil-Verfuegbarkeit/Preisindex je Modell
+- workshop          : Werkstaetten (markenspezifisch/frei) mit Standort
+
+Alle Quellen schreiben normalisiert hier hinein; das Scoring liest nur.
+"""
+from __future__ import annotations
+
+import sqlite3
+from pathlib import Path
+
+DEFAULT_DB = Path(__file__).resolve().parent.parent / "data" / "autobewertung.db"
+
+SCHEMA = """
+PRAGMA foreign_keys = ON;
+
+CREATE TABLE IF NOT EXISTS car_model (
+    id          INTEGER PRIMARY KEY,
+    make        TEXT NOT NULL,           -- Marke, z.B. 'VW'
+    model       TEXT NOT NULL,           -- Modell, z.B. 'Golf'
+    generation  TEXT,                    -- Generation/Baureihe, z.B. 'VII (2012-2019)'
+    year_from   INTEGER,
+    year_to     INTEGER,
+    body        TEXT,                    -- Karosserie
+    fuel        TEXT,                    -- Kraftstoff (grob)
+    UNIQUE(make, model, generation)
+);
+
+CREATE TABLE IF NOT EXISTS listing (
+    id            INTEGER PRIMARY KEY,
+    model_id      INTEGER REFERENCES car_model(id) ON DELETE CASCADE,
+    source        TEXT NOT NULL,         -- 'mobile.de', 'autoscout24', 'manual', ...
+    source_ref    TEXT,                  -- eindeutige ID/URL im Quellportal
+    title         TEXT,
+    price         REAL,                  -- aktueller Preis in EUR
+    mileage_km    INTEGER,
+    first_reg     TEXT,                  -- Erstzulassung 'YYYY-MM'
+    power_kw      INTEGER,
+    location      TEXT,
+    plz           TEXT,
+    url           TEXT,
+    first_seen    TEXT NOT NULL,         -- ISO-Zeitstempel (UTC)
+    last_seen     TEXT NOT NULL,
+    active        INTEGER NOT NULL DEFAULT 1,
+    UNIQUE(source, source_ref)
+);
+
+CREATE TABLE IF NOT EXISTS price_point (
+    id          INTEGER PRIMARY KEY,
+    listing_id  INTEGER REFERENCES listing(id) ON DELETE CASCADE,
+    ts          TEXT NOT NULL,           -- ISO-Zeitstempel (UTC)
+    price       REAL NOT NULL,
+    UNIQUE(listing_id, ts)
+);
+
+CREATE TABLE IF NOT EXISTS reliability_stat (
+    id            INTEGER PRIMARY KEY,
+    model_id      INTEGER REFERENCES car_model(id) ON DELETE CASCADE,
+    source        TEXT NOT NULL,         -- 'ADAC', 'TUEV'
+    metric        TEXT NOT NULL,         -- 'pannen_pro_1000' | 'maengelquote_pct'
+    vehicle_age   INTEGER,               -- Fahrzeugalter in Jahren (falls quellenspezifisch)
+    value         REAL NOT NULL,
+    year          INTEGER,               -- Berichtsjahr
+    UNIQUE(model_id, source, metric, vehicle_age, year)
+);
+
+CREATE TABLE IF NOT EXISTS weak_point (
+    id           INTEGER PRIMARY KEY,
+    model_id     INTEGER REFERENCES car_model(id) ON DELETE CASCADE,
+    component    TEXT,                   -- z.B. 'Steuerkette', 'DSG', 'Turbolader'
+    description  TEXT NOT NULL,
+    severity     INTEGER NOT NULL DEFAULT 2,  -- 1=gering 2=mittel 3=schwer
+    source       TEXT,
+    url          TEXT
+);
+
+CREATE TABLE IF NOT EXISTS recall (
+    id           INTEGER PRIMARY KEY,
+    model_id     INTEGER REFERENCES car_model(id) ON DELETE CASCADE,
+    kba_code     TEXT,                   -- KBA-Referenznummer
+    date         TEXT,                   -- 'YYYY-MM-DD'
+    description  TEXT NOT NULL,
+    url          TEXT,
+    UNIQUE(model_id, kba_code)
+);
+
+CREATE TABLE IF NOT EXISTS repair_cost (
+    id           INTEGER PRIMARY KEY,
+    model_id     INTEGER REFERENCES car_model(id) ON DELETE CASCADE,
+    category     TEXT NOT NULL,          -- 'inspektion' | 'zahnriemen' | 'bremsen' | 'versicherung_tk'...
+    typical_eur  REAL NOT NULL,
+    period       TEXT,                   -- 'pro_jahr' | 'einmalig' | 'pro_intervall'
+    source       TEXT
+);
+
+CREATE TABLE IF NOT EXISTS parts_availability (
+    id            INTEGER PRIMARY KEY,
+    model_id      INTEGER REFERENCES car_model(id) ON DELETE CASCADE,
+    score         REAL,                  -- 0..100 (100 = beste Verfuegbarkeit)
+    avg_price_idx REAL,                  -- 100 = Marktdurchschnitt, <100 guenstiger
+    notes         TEXT,
+    source        TEXT
+);
+
+CREATE TABLE IF NOT EXISTS workshop (
+    id            INTEGER PRIMARY KEY,
+    make          TEXT,                  -- markenbezogen (NULL = frei/allgemein)
+    name          TEXT NOT NULL,
+    plz           TEXT,
+    location      TEXT,
+    specialized   INTEGER DEFAULT 0,     -- 1 = Spezialist fuer die Marke
+    url           TEXT,
+    UNIQUE(name, plz)
+);
+
+CREATE INDEX IF NOT EXISTS idx_listing_model ON listing(model_id);
+CREATE INDEX IF NOT EXISTS idx_price_listing ON price_point(listing_id);
+CREATE INDEX IF NOT EXISTS idx_weak_model    ON weak_point(model_id);
+"""
+
+
+def connect(db_path: Path | str = DEFAULT_DB) -> sqlite3.Connection:
+    """Oeffnet die DB (legt sie inkl. Schema an, falls noetig)."""
+    path = Path(db_path)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    conn = sqlite3.connect(path)
+    conn.row_factory = sqlite3.Row
+    conn.execute("PRAGMA foreign_keys = ON")
+    return conn
+
+
+def init_db(db_path: Path | str = DEFAULT_DB) -> sqlite3.Connection:
+    """Erstellt das komplette Schema (idempotent)."""
+    conn = connect(db_path)
+    conn.executescript(SCHEMA)
+    conn.commit()
+    return conn
+
+
+def upsert_model(conn: sqlite3.Connection, make: str, model: str,
+                 generation: str | None = None, **extra) -> int:
+    """Legt ein Modell an oder gibt die bestehende id zurueck."""
+    cur = conn.execute(
+        "SELECT id FROM car_model WHERE make=? AND model=? AND IFNULL(generation,'')=IFNULL(?, '')",
+        (make, model, generation),
+    )
+    row = cur.fetchone()
+    if row:
+        return row["id"]
+    cols = {"make": make, "model": model, "generation": generation, **extra}
+    keys = ",".join(cols)
+    ph = ",".join("?" for _ in cols)
+    cur = conn.execute(f"INSERT INTO car_model ({keys}) VALUES ({ph})", tuple(cols.values()))
+    conn.commit()
+    return cur.lastrowid
+
+
+if __name__ == "__main__":
+    conn = init_db()
+    print(f"DB initialisiert: {DEFAULT_DB}")
+    tables = [r[0] for r in conn.execute(
+        "SELECT name FROM sqlite_master WHERE type='table' ORDER BY name")]
+    print("Tabellen:", ", ".join(tables))

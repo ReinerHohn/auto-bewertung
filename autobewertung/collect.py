@@ -1,0 +1,85 @@
+"""CLI-Orchestrierung: DB initialisieren, Quellen einsammeln, Ranking ausgeben.
+
+Beispiele:
+    python -m autobewertung.collect init
+    python -m autobewertung.collect run                 # alle default-Quellen
+    python -m autobewertung.collect run --only seed
+    python -m autobewertung.collect rank --top 10
+    python -m autobewertung.collect run --inserate-csv meine_merkliste.csv
+"""
+from __future__ import annotations
+
+import argparse
+
+from .config import DIMENSIONS, load_criteria
+from .db import DEFAULT_DB, init_db
+from .scoring import score_models
+from .sources import default_sources
+from .sources.inserate import InserateSource
+
+
+def cmd_init(args) -> None:
+    init_db(args.db)
+    print(f"DB initialisiert: {args.db}")
+
+
+def cmd_run(args) -> None:
+    conn = init_db(args.db)
+    sources = default_sources()
+    if args.inserate_csv:
+        # Inserate-Quelle mit CSV-Pfad ersetzen
+        sources = [s for s in sources if not isinstance(s, InserateSource)]
+        sources.append(InserateSource(csv_path=args.inserate_csv))
+    if args.only:
+        sources = [s for s in sources if s.name in args.only]
+    for s in sources:
+        res = s.collect(conn)
+        flag = "" if s.live or res.inserted or res.updated else "  [Geruest]"
+        print(f"[{res.source:14}] +{res.inserted} ~{res.updated}{flag}  {res.notes}")
+    conn.close()
+
+
+def cmd_rank(args) -> None:
+    conn = init_db(args.db)
+    crit = load_criteria()
+    ranked = score_models(conn, crit)[: args.top]
+    if not ranked:
+        print("Keine Modelle in der DB. Erst `run` ausfuehren.")
+        return
+    w = crit.normalized_weights()
+    print("Gewichte:", ", ".join(f"{d}={w[d]:.0%}" for d in DIMENSIONS))
+    print()
+    header = f"{'#':>2}  {'Modell':32} {'Score':>6} {'Deal':>9} {'Rabatt':>7}  Dimensionen"
+    print(header)
+    print("-" * len(header))
+    for i, m in enumerate(ranked, 1):
+        deal = f"{m.best_deal_eur:,.0f}€".replace(",", ".") if m.best_deal_eur else "  -"
+        disc = f"{m.best_deal_discount_pct:.0f}%" if m.best_deal_discount_pct else "  -"
+        dims = " ".join(f"{d[:4]}:{m.dims[d]:.0f}" for d in DIMENSIONS)
+        print(f"{i:>2}  {m.label:32} {m.total:>6.1f} {deal:>9} {disc:>7}  {dims}")
+    conn.close()
+
+
+def main(argv=None) -> None:
+    p = argparse.ArgumentParser(prog="autobewertung", description=__doc__,
+                                formatter_class=argparse.RawDescriptionHelpFormatter)
+    p.add_argument("--db", default=str(DEFAULT_DB), help="Pfad zur SQLite-DB")
+    sub = p.add_subparsers(dest="cmd", required=True)
+
+    sub.add_parser("init", help="DB-Schema anlegen").set_defaults(func=cmd_init)
+
+    r = sub.add_parser("run", help="Datenquellen einsammeln")
+    r.add_argument("--only", nargs="*", help="nur diese Quellen (Name)")
+    r.add_argument("--inserate-csv", help="CSV mit Angeboten importieren")
+    r.set_defaults(func=cmd_run)
+
+    rk = sub.add_parser("rank", help="Ranking ausgeben")
+    rk.add_argument("--top", type=int, default=10)
+    rk.set_defaults(func=cmd_rank)
+
+    args = p.parse_args(argv)
+    args.func(args)
+
+
+if __name__ == "__main__":
+    main()

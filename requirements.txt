@@ -1,0 +1,8 @@
+# Kern (Scoring/DB/CLI) laeuft mit Standardbibliothek allein.
+# Diese Pakete werden fuer Dashboard, Config und Live-Adapter gebraucht:
+streamlit>=1.30
+pandas>=2.0
+pyyaml>=6.0
+requests>=2.31
+# optional fuer HTML-Parser in Live-Adaptern:
+beautifulsoup4>=4.12

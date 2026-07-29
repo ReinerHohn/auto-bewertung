@@ -1,0 +1,15 @@
+# Deine Bewertungskriterien. Gewichte muessen sich nicht auf 1 summieren
+# (werden automatisch normalisiert). Anpassen und `rank`/Dashboard neu laden.
+weights:
+  price_value: 0.30        # Schnaeppchen: Preis unter Marktwert + fallender Trend
+  reliability: 0.25        # Pannen-/Maengelquote (wenig Pannen = gut)
+  weak_points: 0.15        # bekannte Schwachstellen + Rueckrufe
+  repair_cost: 0.15        # Reparatur-/Unterhaltskosten
+  parts_availability: 0.08 # Ersatzteil-Verfuegbarkeit
+  workshop_access: 0.07    # Werkstattdichte/Spezialisten in der Naehe
+
+# Optionale harte Filter (leer/auskommentiert = kein Filter)
+# max_price: 20000
+# max_mileage_km: 120000
+# min_year: 2015
+home_plz: "79100"          # fuer Werkstattnaehe (Freiburg)
