@@ -397,6 +397,12 @@ def render_category(model, cat: str) -> None:
             a.metric("Länge", f"{lm/1000:.2f} m".replace(".", ","))
             b.metric("Breite (o. Spiegel)", f"{wm/1000:.2f} m".replace(".", ","))
             c.metric("mit Spiegeln ~", f"{(wm+380)/1000:.2f} m".replace(".", ","))
+            if ref_w and ref_l and ref_choice and ref_choice not in model.label:
+                dw, dl = (wm - ref_w) / 10, (lm - ref_l) / 10
+                wtxt = (f"**{dw:+.0f} cm** {'breiter' if dw >= 0 else 'schmaler'}").replace("+", "")
+                ltxt = (f"**{dl:+.0f} cm** {'länger' if dl >= 0 else 'kürzer'}").replace("+", "")
+                verdict = "🟢 leichter zu parken" if dw <= 0 else ("🟠 etwas breiter" if dw <= 6 else "🔴 deutlich breiter")
+                st.info(f"📐 Vs. dein **{ref_choice}**: {wtxt}, {ltxt} → {verdict}")
             if park_cm:
                 if (wm + 380) > park_cm * 10:
                     st.error(f"📏 Passt schlecht: {(wm+380)/10:.0f} cm (mit Spiegeln) > dein Parkplatz {park_cm} cm.")
@@ -625,6 +631,16 @@ ev_km30_lr = st.sidebar.number_input("EV: min. km/30 min bei Langstrecke", 0, 50
 max_km = st.sidebar.number_input("Max. km (0 = egal)", 0, 400000, 0, step=10000)
 park_cm = st.sidebar.number_input("🅿️ Parkplatz-Breite (cm, 0 = egal)", 0, 400, 0, step=5,
                                   help="Autos, die mit Spiegeln nicht bequem reinpassen, werden mit 📏 markiert.")
+# Referenzauto fuer den Groessen-Vergleich ("so viel breiter/laenger als …")
+_refrows = conn.execute("SELECT cm.make||' '||cm.model AS label, vs.length_mm, vs.width_mm "
+                        "FROM car_model cm JOIN vehicle_spec vs ON vs.model_id=cm.id "
+                        "WHERE vs.width_mm IS NOT NULL ORDER BY cm.make, cm.model").fetchall()
+_ropts = [r["label"] for r in _refrows]
+_rdims = {r["label"]: (r["length_mm"], r["width_mm"]) for r in _refrows}
+_rdef = "Toyota Auris" if "Toyota Auris" in _ropts else (_ropts[0] if _ropts else None)
+ref_choice = st.sidebar.selectbox("Dein aktuelles Auto (Größen-Vergleich)", _ropts,
+                                  index=_ropts.index(_rdef) if _rdef else 0) if _ropts else None
+ref_l, ref_w = _rdims.get(ref_choice, (None, None))
 home_plz = st.sidebar.text_input("Deine PLZ (Werkstattnaehe)", "79100")
 
 st.sidebar.header("TCO-Annahmen")
@@ -795,7 +811,12 @@ with left:
                       unsafe_allow_html=True)
         lm, wm = mt.get("length_mm"), mt.get("width_mm")
         lxb = f"{lm/1000:.2f}×{wm/1000:.2f}".replace(".", ",") if lm and wm else "–"
-        c[3].markdown(_s(f"{lxb}{pk}"), unsafe_allow_html=True)
+        # Breiten-Delta zum Referenzauto
+        d = ""
+        if ref_w and wm:
+            dw = round((wm - ref_w) / 10)
+            d = f" <b>▲{dw}</b>" if dw >= 2 else (f" ▼{abs(dw)}" if dw <= -2 else " ≈")
+        c[3].markdown(_s(f"{lxb}{d}{pk}"), unsafe_allow_html=True)
         t5, t10 = T5.get(m.model_id), T10.get(m.model_id)
         c[4].markdown(f"<small><b>{t5:,.0f} €</b></small>".replace(",", ".") if t5 else "–",
                       unsafe_allow_html=True)
