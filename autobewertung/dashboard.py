@@ -403,9 +403,72 @@ def render_category(model, cat: str) -> None:
             "Quelle": "echt" if it.get("source") == "real" else "Schätzung",
         } for it in items]), hide_index=True, width="stretch")
 
+    elif cat == "check":
+        from autobewertung.checks import (CHECKLIST, carvertical_url,
+                                          mileage_plausibility, wear_status)
+        from autobewertung.wear import load_items
+        st.markdown("#### 🕵️ Kauf-Check – Tacho-Betrug & Plausibilität")
+
+        lst = conn.execute("SELECT mileage_km, first_reg FROM listing WHERE model_id=? "
+                           "AND active=1 ORDER BY price LIMIT 1", (mid,)).fetchone()
+        c1, c2 = st.columns(2)
+        km = c1.number_input("Laufleistung des Kandidaten (km)", 0, 400000,
+                             int(lst["mileage_km"]) if lst and lst["mileage_km"] else 100000,
+                             5000, key=f"chk_km_{mid}")
+        reg = c2.text_input("Erstzulassung (YYYY-MM)", value=(lst["first_reg"] if lst else "") or "",
+                            key=f"chk_reg_{mid}")
+
+        pl = mileage_plausibility(km, reg)
+        if pl:
+            msg = f"**{pl['km_per_year']:.0f} km/Jahr** ({pl['age_years']:.1f} J) → {pl['verdict']}"
+            {"warn": st.error, "info": st.info, "ok": st.success}[pl["level"]](msg)
+
+        # Untermodell wählen (VIN-Variante vorgewählt)
+        variants = sorted({i["variant"] for i in load_items(conn, mid) if i["variant"] != "alle"})
+        vopts = ["— alle —"] + variants
+        vv = st.session_state.get("_vin_variant")
+        variant = st.selectbox("Untermodell / Motor", vopts,
+                               index=vopts.index(vv) if vv in variants else 0, key=f"chk_var_{mid}")
+        variant = None if variant == "— alle —" else variant
+
+        done, upcoming = wear_status(conn, mid, variant, km)
+        cc1, cc2 = st.columns(2)
+        with cc1:
+            st.markdown("**Sollte bei dieser km schon erledigt sein → Belege verlangen!**")
+            if done:
+                st.dataframe(pd.DataFrame([{"Teil": d["component"], "fällig ab km": f"{d['at_km']:,}".replace(",", "."),
+                                            "Kosten €": f"{d['cost_eur']:,.0f}".replace(",", ".")} for d in done]),
+                             hide_index=True, width="stretch")
+            else:
+                st.caption("nichts Größeres")
+        with cc2:
+            st.markdown("**Steht als Nächstes an → einplanen/Budget**")
+            if upcoming:
+                st.dataframe(pd.DataFrame([{"Teil": u["component"], "nächste bei km": f"{u['next_km']:,}".replace(",", "."),
+                                            "Kosten €": f"{u['cost_eur']:,.0f}".replace(",", ".")} for u in upcoming[:8]]),
+                             hide_index=True, width="stretch")
+            else:
+                st.caption("nichts absehbar")
+
+        vin = st.session_state.get("_vin_raw")
+        st.markdown(f"🔗 [VIN-Historie prüfen (carVertical – Unfälle/Tacho/km)]({carvertical_url(vin)}) "
+                    "· 🔗 [AutoDNA](https://www.autodna.de/)")
+
+        st.divider()
+        st.markdown("### ✅ Profi-Prüf-Checkliste")
+        total = checked = 0
+        for section, entries in CHECKLIST:
+            st.markdown(f"**{section}**")
+            for i, (q, expl) in enumerate(entries):
+                total += 1
+                if st.checkbox(q, key=f"chk_{mid}_{section[:4]}_{i}"):
+                    checked += 1
+                st.caption(expl)
+        st.progress(checked / total, text=f"{checked}/{total} Punkte geprüft")
+
     else:
-        st.info("Klicke z. B. Verschleiß, Ausstattung, Wertstabilität, Schwachstellen, "
-                "Zuverlässigkeit, TCO, Angebote, Ersatzteile oder Werkstätten.")
+        st.info("Klicke z. B. Kauf-Check, Verschleiß, Ausstattung, Wertstabilität, "
+                "Schwachstellen, Zuverlässigkeit, TCO, Angebote, Ersatzteile oder Werkstätten.")
 
 
 # ---------------------------------------------------------------------------
@@ -423,6 +486,7 @@ if st.sidebar.button("VIN dekodieren", width="stretch"):
             with st.spinner("Dekodiere über NHTSA …"):
                 dec = decode_vin(vin_in)
             st.session_state._vin_decoded = dec
+            st.session_state._vin_raw = vin_in.strip().upper()
             mid = match_model(conn, dec)
             st.session_state._vin_matched = mid
             if mid:
@@ -519,8 +583,9 @@ CATCOLS = [
 # Alle Kategorien (auch die ohne Tabellen-Spalte) fuer die Detail-Leiste
 ALL_CATS = [
     ("price", "💰 Angebote"), ("tco", "💶 TCO"), ("wear", "🔩 Verschleiß"),
-    ("value", "📉 Wertstab."), ("equipment", "⭐ Ausstattung"), ("weak_points", "🔧 Mängel"),
-    ("reliability", "📊 Zuverl."), ("parts", "🧩 Teile"), ("workshop", "🛠️ Werkst."),
+    ("check", "🕵️ Kauf-Check"), ("value", "📉 Wertstab."), ("equipment", "⭐ Ausstattung"),
+    ("weak_points", "🔧 Mängel"), ("reliability", "📊 Zuverl."), ("parts", "🧩 Teile"),
+    ("workshop", "🛠️ Werkst."),
 ]
 WANT4 = ["einparkhilfe", "rueckfahrkamera", "notbremsassistent", "spurhalteassistent"]
 
