@@ -2,12 +2,18 @@
 # (werden automatisch normalisiert). Anpassen und `rank`/Dashboard neu laden.
 
 weights:
-  tco: 0.35                # komplette Haltekosten pro Jahr (guenstig = gut)
-  price_value: 0.15        # Schnaeppchen: Preis unter Marktwert + fallender Trend
-  reliability: 0.22        # Pannen-/Maengelquote (wenig Pannen = gut)
-  weak_points: 0.12        # bekannte Schwachstellen + Rueckrufe
-  parts_availability: 0.08 # Ersatzteil-Verfuegbarkeit
-  workshop_access: 0.08    # Werkstattdichte/Spezialisten in der Naehe
+  tco: 0.26                # komplette Haltekosten pro Jahr (guenstig = gut)
+  value_stability: 0.12    # Wertstabilitaet (geringer Wertverlust = gut)
+  equipment: 0.14          # gewuenschte Assistenz vorhanden, keine teure Matrix-LED
+  reliability: 0.18        # Pannen-/Maengelquote (wenig Pannen = gut)
+  weak_points: 0.10        # bekannte Schwachstellen + Rueckrufe
+  price_value: 0.08        # Schnaeppchen: Preis unter Marktwert + fallender Trend
+  parts_availability: 0.06 # Ersatzteil-Verfuegbarkeit
+  workshop_access: 0.06    # Werkstattdichte/Spezialisten in der Naehe
+
+# Gewuenschte Ausstattung (Pflicht-/Wunsch) und teure Extras vermeiden
+want_features: [einparkhilfe, rueckfahrkamera, notbremsassistent, spurhalteassistent]
+avoid_matrix: true         # teure Matrix-/Voll-LED-Scheinwerfer meiden
 
 # --- Harte Kriterien --------------------------------------------------------
 max_price: 15000           # Budget fuer Verbrenner (E-Autos siehe Ausnahme)

@@ -103,6 +103,16 @@ def _weakpoint_raw(conn) -> dict[int, float]:
     return out
 
 
+def _equipment_raw(spec, crit: Criteria) -> float:
+    """Ausstattungs-Rohwert: vorhandene Wunsch-Features minus Matrix-Malus."""
+    if spec is None:
+        return 0.0
+    avail = set((spec["features"] or "").split(",")) if spec["features"] else set()
+    have = sum(1 for f in crit.want_features if f in avail)
+    penalty = 1.5 if (crit.avoid_matrix and spec["has_matrix"]) else 0.0
+    return have - penalty
+
+
 def _maintenance_year(conn) -> dict[int, float]:
     """Jaehrliche Wartungs-/Reparaturkosten je Modell (fuer TCO wiederverwendet)."""
     out: dict[int, float] = {}
@@ -267,6 +277,9 @@ def score_models(conn: sqlite3.Connection, crit: Criteria) -> RankResult:
     q = set(qualified)
     dim_raw = {
         "tco":               ({mid: tco[mid].annual_total for mid in q if mid in tco}, True),
+        "value_stability":   ({mid: specs[mid]["depr_pct_year"] for mid in q
+                               if specs.get(mid) and specs[mid]["depr_pct_year"] is not None}, True),
+        "equipment":         ({mid: _equipment_raw(specs.get(mid), crit) for mid in q}, False),
         "price_value":       ({mid: price_meta[mid]["deal_score"] for mid in q}, False),
         "reliability":       ({mid: v for mid, v in _reliability_raw(conn).items() if mid in q}, True),
         "weak_points":       ({mid: v for mid, v in _weakpoint_raw(conn).items() if mid in q}, True),

@@ -17,21 +17,28 @@ CRITERIA_FILE = Path(__file__).resolve().parent.parent / "data" / "criteria.yaml
 # (100 = bestes Fahrzeug in dieser Dimension), dann gewichtet summiert.
 DIMENSIONS = [
     "tco",               # komplette Haltekosten pro Jahr (invertiert -> guenstig = hoch)
-    "price_value",       # Schnaeppchen: Preis unter Marktwert + fallender Trend
+    "value_stability",   # Wertstabilitaet: geringer Wertverlust/Jahr = hoch
+    "equipment",         # gewuenschte Assistenz/Komfort vorhanden, Matrix vermieden
     "reliability",       # Pannen-/Maengelquote (invertiert)
     "weak_points",       # bekannte Schwachstellen + Rueckrufe (invertiert)
+    "price_value",       # Schnaeppchen: Preis unter Marktwert + fallender Trend
     "parts_availability",# Ersatzteil-Verfuegbarkeit
     "workshop_access",   # Werkstattdichte/Spezialisten in der Naehe
 ]
 
 DEFAULT_WEIGHTS = {
-    "tco": 0.35,
-    "price_value": 0.15,
-    "reliability": 0.22,
-    "weak_points": 0.12,
-    "parts_availability": 0.08,
-    "workshop_access": 0.08,
+    "tco": 0.26,
+    "value_stability": 0.12,
+    "equipment": 0.14,
+    "reliability": 0.18,
+    "weak_points": 0.10,
+    "price_value": 0.08,
+    "parts_availability": 0.06,
+    "workshop_access": 0.06,
 }
+
+# Gewuenschte Ausstattung (Pflicht-/Wunschfeatures) und zu vermeidende Extras.
+DEFAULT_WANT_FEATURES = ["einparkhilfe", "rueckfahrkamera", "notbremsassistent", "spurhalteassistent"]
 
 
 @dataclass
@@ -47,6 +54,9 @@ class Criteria:
     # jaehrliche Ersparnis vs. Verbrenner es ueber die Haltedauer rechtfertigt.
     ev_price_exception: bool = True
     ev_min_charge_km_30min: float | None = None  # Pflicht: km nachladbar in 30 min
+    # Ausstattung
+    want_features: list[str] = field(default_factory=lambda: list(DEFAULT_WANT_FEATURES))
+    avoid_matrix: bool = True            # teure Matrix-/Voll-LED meiden
     # TCO-Annahmen
     tco: TcoAssumptions = field(default_factory=TcoAssumptions)
 
@@ -81,5 +91,7 @@ def load_criteria(path: Path | str = CRITERIA_FILE) -> Criteria:
         home_plz=raw.get("home_plz"),
         ev_price_exception=raw.get("ev_price_exception", True),
         ev_min_charge_km_30min=raw.get("ev_min_charge_km_30min"),
+        want_features=raw.get("want_features", list(DEFAULT_WANT_FEATURES)),
+        avoid_matrix=raw.get("avoid_matrix", True),
         tco=tco,
     )

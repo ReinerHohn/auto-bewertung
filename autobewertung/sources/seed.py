@@ -251,6 +251,73 @@ LISTINGS.update({"Hyundai Kona Elektro": [
     (23900, 55000, "2020-06", "79106", "Freiburg"),
     (21900, 72000, "2019-09", "79100", "Freiburg")]})
 
+# --- Weitere gute E-Autos in der Klasse (Kompakt/Mittelklasse) ---------------
+# Realistisch warm. Nur schnelle Lader (800V bzw. gute Kurve) schaffen 300 km/30min.
+MODELS += [
+    ("Kia", "EV6", "77 kWh 800V (2021-)", 2021, 2025, "SUV", "Elektro"),
+    ("Cupra", "Born", "77 kWh (2021-)", 2021, 2025, "Kompakt", "Elektro"),
+    ("MG", "MG4", "64 kWh (2022-)", 2022, 2025, "Kompakt", "Elektro"),
+    ("Polestar", "2", "78 kWh (2020-)", 2020, 2025, "Mittelklasse", "Elektro"),
+]
+SPECS.update({
+    "Kia EV6":    ("elektro", "suv",          None, 16.5, 77.0, 420, 240, 360, 560, 0, 32000),
+    "Cupra Born": ("elektro", "kompakt",      None, 16.0, 77.0, 400, 170, 300, 520, 0, 24500),
+    "MG MG4":     ("elektro", "kompakt",      None, 16.5, 64.0, 350, 140, 250, 480, 0, 21000),
+    "Polestar 2": ("elektro", "mittelklasse", None, 18.0, 78.0, 400, 150, 260, 560, 0, 28000),
+})
+RELIABILITY.update({"Kia EV6": 4.5, "Cupra Born": 6.5, "MG MG4": 6.0, "Polestar 2": 5.5})
+MAENGEL.update({"Kia EV6": 3.8, "Cupra Born": 4.5, "MG MG4": 5.0, "Polestar 2": 4.2})
+WEAK.update({
+    "Kia EV6": [("ICCU", "ICCU/12V-Ladewandler kann ausfallen", 3)],
+    "Cupra Born": [("Software", "MEB-Infotainment-Bugs Fruehserien", 2)],
+    "MG MG4": [("Software", "Assistenz/Software unausgereift", 1),
+               ("Langzeit", "wenig Langzeiterfahrung", 1)],
+    "Polestar 2": [("12V", "12V-Batterie-Entladung Fruehserien", 2),
+                   ("Software", "OTA-Kinderkrankheiten frueh", 1)],
+})
+REPAIR.update({
+    "Kia EV6": [("inspektion", 230, "pro_jahr"), ("bremsfluessigkeit", 120, "pro_intervall")],
+    "Cupra Born": [("inspektion", 220, "pro_jahr"), ("bremsfluessigkeit", 120, "pro_intervall")],
+    "MG MG4": [("inspektion", 200, "pro_jahr"), ("bremsfluessigkeit", 120, "pro_intervall")],
+    "Polestar 2": [("inspektion", 260, "pro_jahr"), ("bremsfluessigkeit", 120, "pro_intervall")],
+})
+PARTS.update({"Kia EV6": (76, 105), "Cupra Born": (88, 95), "MG MG4": (62, 100), "Polestar 2": (70, 110)})
+LISTINGS.update({
+    "Kia EV6": [(31900, 45000, "2022-02", "79106", "Freiburg")],
+    "Cupra Born": [(23900, 40000, "2022-05", "79100", "Freiburg"),
+                   (25900, 28000, "2023-01", "79104", "Freiburg")],
+    "MG MG4": [(20900, 30000, "2023-03", "79100", "Freiburg")],
+    "Polestar 2": [(27900, 50000, "2021-06", "79106", "Freiburg")],
+})
+WORKSHOPS += [
+    ("Cupra", "Cupra/Seat Zentrum Freiburg", "79100", "Freiburg", 1),
+    ("Polestar", "Polestar Space Freiburg", "79108", "Freiburg", 1),
+]
+
+# Jaehrlicher Wertverlust-Anteil (Wertstabilitaet). Kleiner = wertstabiler.
+# Toyota/Mazda halten gut; E-Autos verloren zuletzt stark (Marktlage 2023/24).
+DEPR = {
+    "VW Golf": 0.10, "Toyota Corolla": 0.09, "BMW 3er": 0.12, "Skoda Octavia": 0.11,
+    "Ford Focus": 0.13, "Mazda 3": 0.11, "Toyota Auris": 0.09, "Opel Astra": 0.14,
+    "Seat Leon": 0.12, "Audi A3": 0.12, "Hyundai i30": 0.12, "Kia Ceed": 0.12,
+    "Honda Civic": 0.11, "Peugeot 308": 0.14, "Renault Megane": 0.14,
+    "Tesla Model 3": 0.16, "Hyundai Ioniq 5": 0.16, "VW ID.3 Pro": 0.17,
+    "VW ID.3 Pro S": 0.17, "Renault Zoe": 0.16, "Hyundai Kona Elektro": 0.15,
+    "Kia EV6": 0.15, "Cupra Born": 0.17, "MG MG4": 0.18, "Polestar 2": 0.17,
+}
+
+# Ausstattung je Modell: verfuegbare Assistenz/Komfort-Features (Serie oder Option)
+# + ob das Modell haeufig teure Matrix-/adaptive-LED-Scheinwerfer hat.
+WANTED_FEATURES = ["einparkhilfe", "rueckfahrkamera", "notbremsassistent", "spurhalteassistent"]
+ALL_COMMON = set(WANTED_FEATURES)          # moderne Kompakte bieten i.d.R. alle vier
+EQUIP = {k: set(ALL_COMMON) for k in DEPR}  # Standardannahme: alle vier verfuegbar
+# Ausnahmen (aeltere/einfachere Modelle ohne bestimmte Assistenz ab Werk verfuegbar):
+EQUIP["Ford Focus"] = {"einparkhilfe", "rueckfahrkamera"}          # AEB/Spur nur spaeter/selten
+EQUIP["Mazda 3"] = {"einparkhilfe", "rueckfahrkamera", "notbremsassistent"}
+EQUIP["Renault Zoe"] = {"einparkhilfe", "rueckfahrkamera"}
+# Modelle, die oft teure Matrix-/Voll-LED-Scheinwerfer tragen (teuer in Reparatur):
+MATRIX_MODELS = {"Audi A3", "BMW 3er", "VW Golf", "Kia EV6", "Polestar 2", "Hyundai Ioniq 5"}
+
 
 class SeedSource(Source):
     name = "seed"
@@ -274,7 +341,9 @@ class SeedSource(Source):
                         cons_l_100km=cl, cons_kwh_100km=ck, battery_kwh=batt,
                         range_km=rng, dc_charge_kw=dc, km_per_30min=km30,
                         insurance_eur=ins, tax_eur=tax, typical_price=tprice,
-                        depr_pct_year=None)
+                        depr_pct_year=DEPR.get(key, 0.13),
+                        features=",".join(sorted(EQUIP.get(key, ALL_COMMON))),
+                        has_matrix=1 if key in MATRIX_MODELS else 0)
 
             conn.execute(
                 "INSERT OR REPLACE INTO reliability_stat(model_id,source,metric,vehicle_age,value,year)"

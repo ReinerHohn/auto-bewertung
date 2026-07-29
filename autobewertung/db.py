@@ -135,7 +135,9 @@ CREATE TABLE IF NOT EXISTS vehicle_spec (
     insurance_eur  REAL,                 -- Versicherung pro Jahr (grob)
     tax_eur        REAL,                 -- Kfz-Steuer pro Jahr (EV meist 0)
     typical_price  REAL,                 -- typischer Marktpreis (Fallback ohne Angebot)
-    depr_pct_year  REAL                  -- jaehrlicher Wertverlust-Anteil (0..1)
+    depr_pct_year  REAL,                 -- jaehrlicher Wertverlust-Anteil (0..1)
+    features       TEXT,                 -- verfuegbare Assistenz/Komfort (kommagetrennt)
+    has_matrix     INTEGER DEFAULT 0     -- 1 = Modell oft mit (teuren) Matrix-/Voll-LED
 );
 
 CREATE TABLE IF NOT EXISTS watch (

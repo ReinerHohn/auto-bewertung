@@ -31,11 +31,17 @@ from autobewertung.tco import CLASS_RANK, TcoAssumptions
 # Spaltenlabels der sechs Score-Dimensionen (0..100)
 DIM_LABELS = {
     "tco": "Kosten-Score",
+    "value_stability": "Wertstabilität",
+    "equipment": "Ausstattung",
     "price_value": "Preis/Deal",
     "reliability": "Zuverlaessigkeit",
     "weak_points": "Schwachstellen",
     "parts_availability": "Ersatzteile",
     "workshop_access": "Werkstaetten",
+}
+FEATURE_LABELS = {
+    "einparkhilfe": "Einparkhilfe (PDC)", "rueckfahrkamera": "Rückfahrkamera",
+    "notbremsassistent": "Notbremsassistent (AEB)", "spurhalteassistent": "Spurhalteassistent",
 }
 # Klick auf DIESE Spalte -> DIESE Detail-Kategorie
 COLUMN_TO_CATEGORY = {
@@ -113,12 +119,17 @@ def real_metrics(model_id):
         r = conn.execute(sql, params).fetchone()
         return r[0] if r and r[0] is not None else None
     make = _make_of(model_id)
+    feats = one("SELECT features FROM vehicle_spec WHERE model_id=?", (model_id,)) or ""
+    avail = set(f for f in feats.split(",") if f)
     return {
         "maengel_pct": one("SELECT value FROM reliability_stat WHERE model_id=? AND metric='maengelquote_pct'", (model_id,)),
         "pannen": one("SELECT value FROM reliability_stat WHERE model_id=? AND metric='pannen_pro_1000'", (model_id,)),
         "parts": one("SELECT score FROM parts_availability WHERE model_id=?", (model_id,)),
         "workshops": one("SELECT COUNT(*) FROM workshop WHERE make=? OR make IS NULL", (make,)) or 0,
         "n_weak": one("SELECT COUNT(*) FROM weak_point WHERE model_id=?", (model_id,)) or 0,
+        "depr": one("SELECT depr_pct_year FROM vehicle_spec WHERE model_id=?", (model_id,)),
+        "features": avail,
+        "has_matrix": one("SELECT has_matrix FROM vehicle_spec WHERE model_id=?", (model_id,)) or 0,
     }
 
 
@@ -226,18 +237,7 @@ def render_category(model, cat: str) -> None:
         st.markdown("**Direkt zu den Portalen (Suche nach diesem Modell):**")
         for label, url in portal_links(make, model_name):
             st.markdown(f"- [{label}]({url})")
-
-        # pkw.de-Preistrend fuer dieses Modell direkt eingebettet
-        pkw_url = pkw_trend_url(make, model_name)
-        st.markdown(f"**📈 Preistrend & Baujahre (pkw.de)** – [Seite öffnen]({pkw_url})")
-        try:
-            if hasattr(st, "iframe"):
-                st.iframe(pkw_url, height=520, scrolling=True)
-            else:
-                import streamlit.components.v1 as components
-                components.iframe(pkw_url, height=520, scrolling=True)
-        except Exception:
-            st.caption("Einbettung durch die Seite blockiert – nutze den Link oben.")
+        st.caption("📈 Preistrend & Restwerte findest du im Tab **Wertstabilität**.")
 
         st.divider()
         st.markdown("**➕ Konkretes Angebot verfolgen** (URL einfügen – Preis wird ab jetzt mitgeschrieben)")
@@ -293,9 +293,50 @@ def render_category(model, cat: str) -> None:
                     st.markdown("**Preisverlauf**")
                     st.line_chart(hist.set_index("Zeit"))
 
+    elif cat == "value":
+        st.markdown("#### 📉 Wertstabilität & Restwert")
+        mt = real_metrics(mid)
+        depr = mt["depr"]
+        loss = (model.purchase_price - model.resale_value) if (model.purchase_price and model.resale_value) else None
+        a, b = st.columns(2)
+        a.metric("Wertverlust / Jahr", f"{depr*100:.0f} %" if depr is not None else "–",
+                 help="Kleiner = wertstabiler.")
+        b.metric("Restwert nach Haltedauer", f"{model.resale_value:,.0f} €".replace(",", ".")
+                 if model.resale_value else "–")
+        if loss:
+            st.caption(f"Geschätzter Gesamt-Wertverlust über die Haltedauer: "
+                       f"{loss:,.0f} €".replace(",", "."))
+        make = _make_of(mid)
+        model_name = conn.execute("SELECT model FROM car_model WHERE id=?", (mid,)).fetchone()["model"]
+        pkw_url = pkw_trend_url(make, model_name)
+        st.markdown(f"**📈 Preistrend & Restwerte je Baujahr (pkw.de)** – [Seite öffnen ↗]({pkw_url})")
+        try:
+            if hasattr(st, "iframe"):
+                st.iframe(pkw_url, height=500, scrolling=True)
+            else:
+                import streamlit.components.v1 as components
+                components.iframe(pkw_url, height=500, scrolling=True)
+        except Exception:
+            st.info("Einbettung blockiert – nutze den Link oben.")
+        st.caption("Falls der Rahmen leer bleibt (Cookie-Banner/Blockade): Link oben nutzen.")
+
+    elif cat == "equipment":
+        st.markdown("#### ⭐ Ausstattung & Assistenz")
+        mt = real_metrics(mid)
+        st.caption("Verfügbarkeit je Modell (Serie/Option). **Beim konkreten Angebot prüfen** – "
+                   "Ausstattung variiert pro Fahrzeug!")
+        for f, lbl in FEATURE_LABELS.items():
+            ok = f in mt["features"]
+            st.markdown(f"- {'✅' if ok else '❌'} {lbl}")
+        if mt["has_matrix"]:
+            st.warning("⚠️ Dieses Modell gibt es oft mit **Matrix-/Voll-LED-Scheinwerfern** – "
+                       "teuer in der Reparatur. Im Inserat gezielt ein Fahrzeug **ohne** wählen.")
+        else:
+            st.success("Meist ohne teure Matrix-Scheinwerfer.")
+
     else:
-        st.info("Diese Spalte hat keine Detail-Liste. Klicke z. B. Schwachstellen, "
-                "Zuverlässigkeit, TCO/Jahr, Preis/Deal, Ersatzteile oder Werkstätten.")
+        st.info("Klicke z. B. Ausstattung, Wertstabilität, Schwachstellen, "
+                "Zuverlässigkeit, TCO, Angebote, Ersatzteile oder Werkstätten.")
 
 
 # ---------------------------------------------------------------------------
@@ -358,15 +399,22 @@ if st.session_state.get("model_id") not in {m.model_id for m in top}:
 if "cat" not in st.session_state:
     st.session_state.cat = "price"
 
-# Kategorie-Spalten mit ECHTEN Zahlen (nicht 0..100-Score): (cat-key, Header)
+# Klickbare Tabellen-Spalten mit ECHTEN Zahlen: (cat-key, Header)
 CATCOLS = [
-    ("price", "💰 Angeb."),
-    ("weak_points", "🔧 Mängel %"),
+    ("tco", "💶 TCO"),
+    ("value", "📉 Wertst"),
+    ("equipment", "⭐ Ausst"),
+    ("weak_points", "🔧 Mängel"),
     ("reliability", "📊 Pannen"),
-    ("tco", "💶 TCO €/J"),
-    ("parts", "🧩 Teile %"),
-    ("workshop", "🛠️ Werkst."),
+    ("parts", "🧩 Teile"),
 ]
+# Alle Kategorien (auch die ohne Tabellen-Spalte) fuer die Detail-Leiste
+ALL_CATS = [
+    ("price", "💰 Angebote"), ("tco", "💶 TCO"), ("value", "📉 Wertstab."),
+    ("equipment", "⭐ Ausstattung"), ("weak_points", "🔧 Mängel"),
+    ("reliability", "📊 Zuverl."), ("parts", "🧩 Teile"), ("workshop", "🛠️ Werkst."),
+]
+WANT4 = ["einparkhilfe", "rueckfahrkamera", "notbremsassistent", "spurhalteassistent"]
 
 
 def cell_value(cat_key, m, mt) -> str:
@@ -382,6 +430,11 @@ def cell_value(cat_key, m, mt) -> str:
         return f"{mt['parts']:.0f}%" if mt["parts"] is not None else "–"
     if cat_key == "workshop":
         return f"{mt['workshops']}"
+    if cat_key == "value":
+        return f"{mt['depr']*100:.0f}%" if mt["depr"] is not None else "–"
+    if cat_key == "equipment":
+        n = sum(1 for f in WANT4 if f in mt["features"])
+        return f"{n}/4" + ("⚠️" if mt["has_matrix"] else "")
     return "–"
 
 
@@ -389,9 +442,10 @@ left, right = st.columns([2.15, 1.35])
 
 with left:
     st.subheader(f"Ranking · {len(ranked)} Modelle")
-    st.caption("👉 **Modellname** oder eine **Zahl** anklicken – Detail erscheint rechts. "
-               "Antrieb: ⚡ Elektro · 🔋 Hybrid · ⛽ Verbrenner. "
-               "Mängel = TÜV-Quote %, Pannen = pro 1000, Teile = Verfügbarkeit %.")
+    st.caption("👉 **Modellname** oder eine **Zahl** anklicken – Detail rechts. "
+               "Antrieb ⚡Elektro/🔋Hybrid/⛽Verbrenner · Wertst = Wertverlust %/J · "
+               "Ausst = Wunsch-Assistenz von 4 (⚠️ = oft teure Matrix-LED) · "
+               "Mängel = TÜV % · Pannen /1000 · Teile = Verfügbarkeit %.")
     WIDTHS = [3.0, 1.3] + [1.0] * len(CATCOLS)
     head = st.columns(WIDTHS)
     for c, t in zip(head, ["Modell", "Preis"] + [lbl for _, lbl in CATCOLS]):
@@ -433,5 +487,17 @@ with right:
         b.metric("Laden 30 min", f"{model.km_per_30min:.0f} km" if model.km_per_30min else "-")
     else:
         b.metric("Antrieb", model.drivetrain or "-")
+
+    # Kategorie-Leiste (auch Angebote/Werkstätten, die keine Tabellenspalte haben)
+    st.caption("Kategorie:")
+    r1 = st.columns(4)
+    r2 = st.columns(4)
+    for idx, (key, lbl) in enumerate(ALL_CATS):
+        col = (r1 if idx < 4 else r2)[idx % 4]
+        act = st.session_state.cat == key
+        if col.button(lbl, key=f"catbar_{key}", width="stretch",
+                      type="primary" if act else "secondary"):
+            st.session_state.cat = key
+            st.rerun()
     st.divider()
     render_category(model, st.session_state.cat)
