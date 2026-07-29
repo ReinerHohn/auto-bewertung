@@ -356,8 +356,12 @@ def render_category(model, cat: str) -> None:
 
         # Untermodell / Motor / Hardware wählen – zeigt EXAKT die passenden Schäden
         variants = sorted({it["variant"] for it in items if it["variant"] and it["variant"] != "alle"})
-        choice = st.selectbox("Untermodell / Motor / Hardware", ["— alle Varianten —"] + variants,
-                              help="Schäden hängen am Motor/Getriebe/Baujahr. Wähle dein konkretes Untermodell.")
+        opts = ["— alle Varianten —"] + variants
+        vv = st.session_state.get("_vin_variant")
+        idx = opts.index(vv) if vv in variants else 0
+        choice = st.selectbox("Untermodell / Motor / Hardware", opts, index=idx,
+                              help="Schäden hängen am Motor/Getriebe/Baujahr. Wähle dein konkretes Untermodell "
+                                   "(oder VIN links dekodieren).")
         if choice != "— alle Varianten —":
             items = [it for it in items if it["variant"] in (choice, "alle")]
             st.caption(f"Zeigt: **{choice}** + für alle geltende Teile.")
@@ -407,6 +411,40 @@ def render_category(model, cat: str) -> None:
 # ---------------------------------------------------------------------------
 # Seitenleiste (Kriterien/Filter/TCO)
 # ---------------------------------------------------------------------------
+st.sidebar.header("🔎 VIN-Decoder (optional)")
+st.sidebar.caption("VIN aus Fahrzeugschein/beim Händler. In Inseraten meist nicht öffentlich.")
+vin_in = st.sidebar.text_input("VIN / FIN (17 Zeichen)", key="vin_in")
+if st.sidebar.button("VIN dekodieren", width="stretch"):
+    from autobewertung.vin import valid_vin, decode_vin, match_model, guess_variant
+    if not valid_vin(vin_in):
+        st.sidebar.error("Ungültige VIN (17 Zeichen, ohne I/O/Q).")
+    else:
+        try:
+            with st.spinner("Dekodiere über NHTSA …"):
+                dec = decode_vin(vin_in)
+            st.session_state._vin_decoded = dec
+            mid = match_model(conn, dec)
+            st.session_state._vin_matched = mid
+            if mid:
+                st.session_state.model_id = mid
+                st.session_state.cat = "wear"
+                var = guess_variant(conn, mid, dec)
+                st.session_state._vin_variant = var
+                st.rerun()
+        except Exception as e:
+            st.sidebar.error(f"Fehler beim Dekodieren: {e}")
+_dec = st.session_state.get("_vin_decoded")
+if _dec:
+    line = f"**{_dec.get('make_norm','?')} {_dec.get('Model','?')}** · {_dec.get('ModelYear','?')} · {_dec.get('FuelTypePrimary','?')}"
+    if _dec.get("DisplacementL"):
+        line += f" · {_dec['DisplacementL']} L"
+    st.sidebar.markdown(line)
+    if st.session_state.get("_vin_matched"):
+        vv = st.session_state.get("_vin_variant")
+        st.sidebar.success(f"→ erkannt{' · ' + vv if vv else ''} (Modell unten ausgewählt)")
+    else:
+        st.sidebar.warning("Modell nicht in der Liste – Eckdaten oben nutzen.")
+
 st.sidebar.header("Gewichtung der Kriterien")
 weights = {d: st.sidebar.slider(DIM_LABELS[d], 0.0, 1.0, float(DEFAULT_WEIGHTS[d]), 0.01)
            for d in DIMENSIONS}
