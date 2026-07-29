@@ -23,8 +23,20 @@ def _occurrences(at_km: int, interval_km: int, km: float) -> int:
 
 def load_items(conn: sqlite3.Connection, model_id: int) -> list[dict]:
     return [dict(r) for r in conn.execute(
-        "SELECT component, at_km, interval_km, cost_eur FROM wear_item "
-        "WHERE model_id=? ORDER BY at_km", (model_id,))]
+        "SELECT component, variant, at_km, interval_km, cost_eur, note, source "
+        "FROM wear_item WHERE model_id=? ORDER BY at_km", (model_id,))]
+
+
+def upcoming_from_items(items: list[dict], start_km: float, span_km: float) -> list[dict]:
+    """Wie upcoming_items, aber auf einer bereits (z.B. nach Variante) gefilterten Liste."""
+    out = []
+    for it in items:
+        before = _occurrences(it["at_km"], it["interval_km"], start_km)
+        after = _occurrences(it["at_km"], it["interval_km"], start_km + span_km)
+        n = after - before
+        if n > 0:
+            out.append({**it, "faellig_im_fenster": n, "kosten_im_fenster": n * it["cost_eur"]})
+    return sorted(out, key=lambda x: -x["kosten_im_fenster"])
 
 
 def cumulative_cost(items: list[dict], km: float) -> float:

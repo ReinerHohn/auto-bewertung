@@ -61,10 +61,10 @@ class WearImportSource(Source):
                         conn.execute("DELETE FROM wear_item WHERE model_id=? AND source='real'", (mid,))
                         cleared.add(mid)
                     conn.execute(
-                        "INSERT INTO wear_item(model_id,component,at_km,interval_km,cost_eur,note,source)"
-                        " VALUES (?,?,?,?,?,?, 'real')",
-                        (mid, r["component"].strip(), at_km,
-                         int(r["interval_km"] or 0), cost, r.get("note")))
+                        "INSERT INTO wear_item(model_id,component,variant,at_km,interval_km,"
+                        "cost_eur,note,source) VALUES (?,?,?,?,?,?,?, 'real')",
+                        (mid, r["component"].strip(), (r.get("variant") or "alle").strip(),
+                         at_km, int(r["interval_km"] or 0), cost, r.get("note")))
                     res.inserted += 1
         conn.commit()
         res.notes = f"{res.inserted} echte Verschleiss-Posten importiert"

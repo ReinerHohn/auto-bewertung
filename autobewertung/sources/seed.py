@@ -417,8 +417,8 @@ class SeedSource(Source):
             conn.execute("DELETE FROM wear_item WHERE model_id=? AND source='seed'", (mid,))
             for comp, at_km, interval, cost in WEAR_TEMPLATE.get(dt, []):
                 conn.execute(
-                    "INSERT INTO wear_item(model_id,component,at_km,interval_km,cost_eur,source)"
-                    " VALUES (?,?,?,?,?,?)", (mid, comp, at_km, interval, cost, "seed"))
+                    "INSERT INTO wear_item(model_id,component,variant,at_km,interval_km,cost_eur,source)"
+                    " VALUES (?,?,'alle',?,?,?,?)", (mid, comp, at_km, interval, cost, "seed"))
 
             for code, date, desc in RECALLS.get(key, []):
                 conn.execute(

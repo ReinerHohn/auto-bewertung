@@ -148,6 +148,7 @@ CREATE TABLE IF NOT EXISTS wear_item (
     id           INTEGER PRIMARY KEY,
     model_id     INTEGER REFERENCES car_model(id) ON DELETE CASCADE,
     component    TEXT NOT NULL,          -- z.B. 'Bremsscheiben', 'Zahnriemen', 'Querlenker'
+    variant      TEXT DEFAULT 'alle',    -- Untermodell/Motor/HW, z.B. '1.8 TSI', 'N47 Diesel', 'ab 2021'
     at_km        INTEGER NOT NULL,       -- typische Laufleistung fuer (erste) Faelligkeit
     interval_km  INTEGER DEFAULT 0,      -- Wiederholung (0 = einmalig)
     cost_eur     REAL NOT NULL,          -- typische Reparatur-/Teilekosten

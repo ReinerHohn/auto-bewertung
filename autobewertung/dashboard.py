@@ -348,46 +348,56 @@ def render_category(model, cat: str) -> None:
             st.success("Meist ohne teure Matrix-Scheinwerfer.")
 
     elif cat == "wear":
-        from autobewertung.wear import cost_curve, upcoming_items, load_items
+        from autobewertung.wear import cumulative_cost, upcoming_from_items, load_items
         st.markdown("#### 🔩 Verschleiß – welche Teile bei wie viel km + Kosten")
         items = load_items(conn, mid)
         if not items:
             st.info("Keine Verschleißdaten."); return
-        # Kostenkurve über die Laufleistung
-        curve = cost_curve(conn, mid, max_km=250000, step=5000)
+
+        # Untermodell / Motor / Hardware wählen – zeigt EXAKT die passenden Schäden
+        variants = sorted({it["variant"] for it in items if it["variant"] and it["variant"] != "alle"})
+        choice = st.selectbox("Untermodell / Motor / Hardware", ["— alle Varianten —"] + variants,
+                              help="Schäden hängen am Motor/Getriebe/Baujahr. Wähle dein konkretes Untermodell.")
+        if choice != "— alle Varianten —":
+            items = [it for it in items if it["variant"] in (choice, "alle")]
+            st.caption(f"Zeigt: **{choice}** + für alle geltende Teile.")
+
+        # Kostenkurve (für die gewählte Variante)
+        curve = [(km, cumulative_cost(items, km)) for km in range(0, 250001, 5000)]
         cdf = pd.DataFrame(curve, columns=["km", "Kumulierte Reparaturkosten €"]).set_index("km")
         st.markdown("**Kostenkurve: kumulierte Reparaturkosten über die Laufleistung**")
         st.line_chart(cdf)
-        # Was fällt in DEINEM Halte-Fenster an? – per Regler einstellbar
+
         st.markdown("**Dein km-Fenster** (einstellbar):")
         cS, cP = st.columns(2)
         start = cS.slider("Start-Laufleistung (km)", 0, 250000,
                           int(st.session_state.get("_start_km", 80000)), 5000, key=f"wstart_{mid}")
         span = cP.slider("Fahrleistung im Zeitraum (km)", 5000, 200000,
                          int(st.session_state.get("_span_km", 75000)), 5000, key=f"wspan_{mid}")
-        up = upcoming_items(conn, mid, start, span)
-        st.markdown(f"**Fällig zwischen ca. {start:,.0f} und {start+span:,.0f} km:**"
-                    .replace(",", "."))
+        up = upcoming_from_items(items, start, span)
+        st.markdown(f"**Fällig zwischen ca. {start:,.0f} und {start+span:,.0f} km:**".replace(",", "."))
         if up:
-            updf = pd.DataFrame([{
-                "Teil": u["component"], "typ. bei km": f"{u['at_km']:,}".replace(",", "."),
+            st.dataframe(pd.DataFrame([{
+                "Teil": u["component"], "Untermodell": u["variant"],
+                "typ. bei km": f"{u['at_km']:,}".replace(",", "."),
                 "Intervall km": (f"{u['interval_km']:,}".replace(",", ".") if u["interval_km"] else "einmalig"),
                 "Einzelkosten €": f"{u['cost_eur']:,.0f}".replace(",", "."),
                 "× fällig": u["faellig_im_fenster"],
                 "Kosten Fenster €": f"{u['kosten_im_fenster']:,.0f}".replace(",", "."),
-            } for u in up])
-            st.dataframe(updf, hide_index=True, width="stretch")
+            } for u in up]), hide_index=True, width="stretch")
             st.metric("Summe erwartete Reparaturen im Fenster",
                       f"{sum(u['kosten_im_fenster'] for u in up):,.0f} €".replace(",", "."))
         else:
             st.caption("In diesem km-Fenster fällt nichts Größeres an.")
-        st.caption("Alle Teile (Referenz):")
-        alldf = pd.DataFrame([{
-            "Teil": it["component"], "typ. bei km": f"{it['at_km']:,}".replace(",", "."),
+
+        st.caption("Alle Teile dieser Auswahl (mit Untermodell + Quelle):")
+        st.dataframe(pd.DataFrame([{
+            "Teil": it["component"], "Untermodell": it["variant"],
+            "typ. bei km": f"{it['at_km']:,}".replace(",", "."),
             "Intervall": (f"alle {it['interval_km']:,} km".replace(",", ".") if it["interval_km"] else "einmalig"),
             "Kosten €": f"{it['cost_eur']:,.0f}".replace(",", "."),
-        } for it in items])
-        st.dataframe(alldf, hide_index=True, width="stretch")
+            "Quelle": "echt" if it.get("source") == "real" else "Schätzung",
+        } for it in items]), hide_index=True, width="stretch")
 
     else:
         st.info("Klicke z. B. Verschleiß, Ausstattung, Wertstabilität, Schwachstellen, "
