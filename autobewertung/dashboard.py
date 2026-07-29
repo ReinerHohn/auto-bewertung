@@ -487,9 +487,13 @@ with right:
     b.metric("Kaufpreis", f"{model.purchase_price:,.0f} €".replace(",", "."))
     a.metric("TCO/Jahr", f"{model.annual_tco:,.0f} €".replace(",", "."))
     if model.drivetrain == "elektro":
-        b.metric("Laden 30 min", f"{model.km_per_30min:.0f} km" if model.km_per_30min else "-")
+        b.metric("Laden in 30 min", f"{model.km_per_30min:.0f} km" if model.km_per_30min else "-",
+                 help="Nachgeladene km in 30 min Schnellladen – NICHT die Reichweite!")
     else:
         b.metric("Antrieb", model.drivetrain or "-")
+    if model.drivetrain == "elektro" and model.range_km:
+        st.caption(f"🔋 Reichweite ~{model.range_km:.0f} km (voll) · davon lädt der "
+                   f"Schnelllader ~{model.km_per_30min:.0f} km in 30 min nach.")
 
     # Kategorie-Leiste (auch Angebote/Werkstätten, die keine Tabellenspalte haben)
     st.caption("Kategorie:")

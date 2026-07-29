@@ -249,8 +249,10 @@ def score_models(conn: sqlite3.Connection, crit: Criteria) -> RankResult:
         if is_ev and crit.ev_min_charge_km_30min:
             kmh = (spec["km_per_30min"] or 0) if spec else 0
             if kmh < crit.ev_min_charge_km_30min:
+                rng = (spec["range_km"] or 0) if spec else 0
                 excluded.append(ExcludedModel(
-                    label, f"nur {kmh:.0f} km/30min < {crit.ev_min_charge_km_30min:.0f} km"))
+                    label, f"laedt nur {kmh:.0f} km in 30 min nach "
+                           f"(Ziel >={crit.ev_min_charge_km_30min:.0f}); Reichweite {rng:.0f} km ok"))
                 continue
 
         # Budget (mit EV-Ausnahme)
