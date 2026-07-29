@@ -142,7 +142,10 @@ CREATE TABLE IF NOT EXISTS vehicle_spec (
     typical_price  REAL,                 -- typischer Marktpreis (Fallback ohne Angebot)
     depr_pct_year  REAL,                 -- jaehrlicher Wertverlust-Anteil (0..1)
     features       TEXT,                 -- verfuegbare Assistenz/Komfort (kommagetrennt)
-    has_matrix     INTEGER DEFAULT 0     -- 1 = Modell oft mit (teuren) Matrix-/Voll-LED
+    has_matrix     INTEGER DEFAULT 0,    -- 1 = Modell oft mit (teuren) Matrix-/Voll-LED
+    alu_body       INTEGER DEFAULT 0,    -- 1 = Alu-/CFK-Karosserie -> Dellen teuer in Reparatur
+    length_mm      INTEGER,              -- Fahrzeuglaenge in mm
+    width_mm       INTEGER               -- Breite (ohne Spiegel) in mm; Spiegel ~+40cm gesamt
 );
 
 CREATE TABLE IF NOT EXISTS wear_item (

@@ -138,6 +138,9 @@ def real_metrics(model_id):
         "has_matrix": one("SELECT has_matrix FROM vehicle_spec WHERE model_id=?", (model_id,)) or 0,
         "insurance": one("SELECT insurance_eur FROM vehicle_spec WHERE model_id=?", (model_id,)),
         "recalls": one("SELECT COUNT(*) FROM recall WHERE model_id=?", (model_id,)) or 0,
+        "length_mm": one("SELECT length_mm FROM vehicle_spec WHERE model_id=?", (model_id,)),
+        "width_mm": one("SELECT width_mm FROM vehicle_spec WHERE model_id=?", (model_id,)),
+        "alu_body": one("SELECT alu_body FROM vehicle_spec WHERE model_id=?", (model_id,)) or 0,
     }
 
 
@@ -387,6 +390,30 @@ def render_category(model, cat: str) -> None:
         else:
             st.success("Meist ohne teure Matrix-Scheinwerfer.")
 
+        st.markdown("#### 🅿️ Parken & Dellen")
+        lm, wm = mt.get("length_mm"), mt.get("width_mm")
+        if lm and wm:
+            a, b, c = st.columns(3)
+            a.metric("Länge", f"{lm/1000:.2f} m".replace(".", ","))
+            b.metric("Breite (o. Spiegel)", f"{wm/1000:.2f} m".replace(".", ","))
+            c.metric("mit Spiegeln ~", f"{(wm+380)/1000:.2f} m".replace(".", ","))
+            if park_cm:
+                if (wm + 380) > park_cm * 10:
+                    st.error(f"📏 Passt schlecht: {(wm+380)/10:.0f} cm (mit Spiegeln) > dein Parkplatz {park_cm} cm.")
+                else:
+                    rest = park_cm - (wm + 380) / 10
+                    st.success(f"✅ Passt: ~{rest:.0f} cm Luft (mit Spiegeln) in deinem {park_cm}-cm-Platz.")
+        if mt.get("alu_body"):
+            st.warning("⚠️ **Alu-/CFK-Karosserie** (z. B. Tesla, i3): Dellen sind teuer – oft Teiltausch "
+                       "statt Ausbeulen, ~2–3× normaler Preis.")
+        else:
+            st.caption("Stahlkarosserie – Parkdelle günstig: Smart-Repair ~150–250 €, "
+                       "Teil lackieren ~300–500 €.")
+        got = [f for f in ("einparkhilfe", "rueckfahrkamera") if f in mt["features"]]
+        st.caption("Park-Hilfen (senken Dellen-Risiko): "
+                   + (", ".join(FEATURE_LABELS[f] for f in got) if got else "keine erfasst")
+                   + " – beim konkreten Angebot prüfen.")
+
     elif cat == "wear":
         from autobewertung.wear import cumulative_cost, upcoming_from_items, load_items
         st.markdown("#### 🔩 Verschleiß – welche Teile bei wie viel km + Kosten")
@@ -596,6 +623,8 @@ ev_lr = st.sidebar.number_input("EV: Langstrecke ab Reichweite (km)", 0, 800, 40
                                 help="Ab dieser Reichweite reicht langsameres Laden.")
 ev_km30_lr = st.sidebar.number_input("EV: min. km/30 min bei Langstrecke", 0, 500, 180, step=10)
 max_km = st.sidebar.number_input("Max. km (0 = egal)", 0, 400000, 0, step=10000)
+park_cm = st.sidebar.number_input("🅿️ Parkplatz-Breite (cm, 0 = egal)", 0, 400, 0, step=5,
+                                  help="Autos, die mit Spiegeln nicht bequem reinpassen, werden mit 📏 markiert.")
 home_plz = st.sidebar.text_input("Deine PLZ (Werkstattnaehe)", "79100")
 
 st.sidebar.header("TCO-Annahmen")
@@ -731,8 +760,9 @@ with left:
                "Antrieb ⚡Elektro/🔋Hybrid/⛽Verbrenner · **📉 = hoher Wertverlust (≥15 %/J)** · "
                "Wertst = Wertverlust %/J · Ausst = Wunsch-Assistenz von 4 (⚠️ oft teure Matrix-LED) · "
                "Mängel = TÜV % · Pannen /1000 · Teile = Verfügbarkeit %.")
-    HEADERS = ["Modell", "Baujahr", "Preis", "GESAMT 5J", "GESAMT 10J", "Wertverl/J", "🚨"]
-    WIDTHS = [2.5, 0.9, 0.95, 1.15, 1.2, 1.05, 0.5] + [0.9] * len(CATCOLS)
+    park_mm = park_cm * 10
+    HEADERS = ["Modell", "Baujahr", "Preis", "L×B (m)", "GESAMT 5J", "GESAMT 10J", "Wertv/J", "🚨"]
+    WIDTHS = [2.4, 0.8, 0.9, 1.05, 1.1, 1.15, 0.95, 0.5] + [0.85] * len(CATCOLS)
     head = st.columns(WIDTHS)
     for c, t in zip(head, HEADERS + [lbl for _, lbl in CATCOLS]):
         c.markdown(f"<small><b>{t}</b></small>", unsafe_allow_html=True)
@@ -747,26 +777,36 @@ with left:
         mark = {"elektro": "⚡", "hybrid": "🔋"}.get(m.drivetrain, "⛽")
         depr = mt.get("depr") or 0
         warn = " 📉" if depr >= 0.15 else ""      # hoher Wertverlust
-        if c[0].button(f"{'▶ ' if sel_model else ''}{mark} {i}. {m.label}{warn}", key=f"mdl_{m.model_id}",
+        # passt in den Parkplatz? (Breite mit Spiegeln ~ +38cm)
+        w = mt.get("width_mm")
+        too_wide = bool(park_mm and w and (w + 380) > park_mm)
+        pk = " 📏" if too_wide else ""
+        helps = []
+        if warn: helps.append(f"📉 hoher Wertverlust ~{depr*100:.0f} %/J")
+        if too_wide: helps.append(f"📏 zu breit: {w/10:.0f} cm + Spiegel > Parkplatz {park_cm} cm")
+        if c[0].button(f"{'▶ ' if sel_model else ''}{mark} {i}. {m.label}{warn}{pk}", key=f"mdl_{m.model_id}",
                        width="stretch", type="primary" if sel_model else "secondary",
-                       help=(f"📉 Hoher Wertverlust: ~{depr*100:.0f} %/Jahr" if warn else None)):
+                       help=(" · ".join(helps) or None)):
             st.session_state.model_id = m.model_id
             st.rerun()
         yf, yt = m.details.get("year_from"), m.details.get("year_to")
         c[1].markdown(_s(f"{yf}–{yt}" if yf else "–"), unsafe_allow_html=True)
         c[2].markdown(_s(f"{m.purchase_price:,.0f} €".replace(",", ".")) if m.purchase_price else "–",
                       unsafe_allow_html=True)
+        lm, wm = mt.get("length_mm"), mt.get("width_mm")
+        lxb = f"{lm/1000:.2f}×{wm/1000:.2f}".replace(".", ",") if lm and wm else "–"
+        c[3].markdown(_s(f"{lxb}{pk}"), unsafe_allow_html=True)
         t5, t10 = T5.get(m.model_id), T10.get(m.model_id)
-        c[3].markdown(f"<small><b>{t5:,.0f} €</b></small>".replace(",", ".") if t5 else "–",
+        c[4].markdown(f"<small><b>{t5:,.0f} €</b></small>".replace(",", ".") if t5 else "–",
                       unsafe_allow_html=True)
-        c[4].markdown(f"<small><b>{t10:,.0f} €</b></small>".replace(",", ".") if t10 else "–",
+        c[5].markdown(f"<small><b>{t10:,.0f} €</b></small>".replace(",", ".") if t10 else "–",
                       unsafe_allow_html=True)
         wv = m.tco_breakdown.get("wertverlust")
-        c[5].markdown(_s(f"{wv:,.0f} €{warn}".replace(",", ".")) if wv else "–", unsafe_allow_html=True)
-        c[6].markdown(_s(f"🚨{mt['recalls']}" if mt["recalls"] else "–"), unsafe_allow_html=True)
+        c[6].markdown(_s(f"{wv:,.0f} €".replace(",", ".")) if wv else "–", unsafe_allow_html=True)
+        c[7].markdown(_s(f"🚨{mt['recalls']}" if mt["recalls"] else "–"), unsafe_allow_html=True)
         for j, (cat_key, _) in enumerate(CATCOLS):
             active = sel_model and st.session_state.cat == cat_key
-            if c[7 + j].button(cell_value(cat_key, m, mt), key=f"cell_{m.model_id}_{cat_key}",
+            if c[8 + j].button(cell_value(cat_key, m, mt), key=f"cell_{m.model_id}_{cat_key}",
                                width="stretch", type="primary" if active else "secondary"):
                 st.session_state.model_id = m.model_id
                 st.session_state.cat = cat_key

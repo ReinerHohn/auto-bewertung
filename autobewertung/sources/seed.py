@@ -134,6 +134,25 @@ LISTINGS = {
     "Renault Zoe": [(10500, 40000, "2020-08", "79098", "Freiburg")],
 }
 
+# Abmessungen (Laenge_mm, Breite_mm ohne Spiegel) + Alu-/CFK-Karosserie (teure Dellen)
+DIMS = {
+    "VW Golf": (4258, 1799), "Toyota Corolla": (4370, 1790), "BMW 3er": (4633, 1811),
+    "Skoda Octavia": (4659, 1814), "Ford Focus": (4358, 1823), "Mazda 3": (4460, 1795),
+    "Tesla Model 3": (4694, 1849), "Hyundai Ioniq 5": (4635, 1890),
+    "VW ID.3 Pro": (4261, 1809), "VW ID.3 Pro S": (4261, 1809), "Renault Zoe": (4084, 1730),
+    "Toyota Auris": (4330, 1760), "Opel Astra": (4370, 1809), "Seat Leon": (4263, 1816),
+    "Audi A3": (4313, 1785), "Hyundai i30": (4340, 1795), "Kia Ceed": (4310, 1800),
+    "Honda Civic": (4518, 1799), "Peugeot 308": (4253, 1804), "Renault Megane": (4359, 1814),
+    "Hyundai Kona Elektro": (4205, 1800), "Kia EV6": (4680, 1880), "Cupra Born": (4322, 1809),
+    "MG MG4": (4287, 1836), "Polestar 2": (4606, 1859),
+    "Kia e-Niro": (4375, 1805), "Renault Megane E-Tech": (4200, 1768),
+    "Nissan Leaf e+": (4490, 1788), "VW e-Golf": (4270, 1799), "BMW i3": (4011, 1775),
+    "MG ZS EV": (4323, 1809), "MG 5 EV": (4600, 1818), "Fiat 600e": (4171, 1781),
+    "Peugeot e-2008": (4300, 1770), "Citroen e-C4": (4360, 1800), "Mazda MX-30": (4395, 1795),
+    "Opel Corsa-e": (4060, 1765),
+}
+ALU_BODY = {"Tesla Model 3", "BMW i3", "Audi A3"}   # Alu-/CFK-Anteil -> Dellen teuer
+
 # Verschleiss/Teile: (Bauteil, at_km erste Faelligkeit, interval_km 0=einmalig, Kosten EUR)
 # Generische Teile je Antriebsart (gelten fuer JEDES Modell dieser Art):
 WEAR_TEMPLATE = {
@@ -487,7 +506,10 @@ class SeedSource(Source):
                         insurance_eur=ins, tax_eur=tax, typical_price=tprice,
                         depr_pct_year=DEPR.get(key, 0.13),
                         features=",".join(sorted(EQUIP.get(key, ALL_COMMON))),
-                        has_matrix=1 if key in MATRIX_MODELS else 0)
+                        has_matrix=1 if key in MATRIX_MODELS else 0,
+                        alu_body=1 if key in ALU_BODY else 0,
+                        length_mm=DIMS.get(key, (None, None))[0],
+                        width_mm=DIMS.get(key, (None, None))[1])
 
             conn.execute(
                 "INSERT OR REPLACE INTO reliability_stat(model_id,source,metric,vehicle_age,value,year)"
