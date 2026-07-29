@@ -439,14 +439,20 @@ def render_category(model, cat: str) -> None:
                              index=_vopts.index(_vv) if _vv in _vars else 0, key=f"chk_var_{mid}")
         variant = None if _vsel == "— alle —" else _vsel
 
-        # ⚠️ Nähe-Warnungen: was steht in den nächsten km an?
-        soon = due_soon(conn, mid, variant, km, horizon_km=15000)
+        # ⚠️ Nähe-Warnungen: JEDE Reparatur, die in den nächsten km ansteht
+        horizon = st.slider("Vorwarnung – prüfe die nächsten … km", 5000, 60000, 20000, 5000,
+                            key=f"chk_hz_{mid}")
+        soon = due_soon(conn, mid, variant, km, horizon_km=horizon)
         if soon:
+            st.markdown(f"**Anstehende Reparaturen zwischen {km:,.0f} und {km+horizon:,.0f} km:**"
+                        .replace(",", "."))
             for s in soon:
-                st.warning(f"⚠️ **Achtung:** in ~{s['km_until']:,} km **{s['component']}** fällig "
-                           f"(~{s['cost_eur']:,.0f} €)".replace(",", "."))
+                st.warning(f"⚠️ **Achtung:** in ~{s['km_until']:,.0f} km (bei {s['next_km']:,.0f} km) "
+                           f"**{s['component']}** fällig – ~{s['cost_eur']:,.0f} €".replace(",", "."))
+            st.metric("Summe anstehend in diesem Fenster",
+                      f"{sum(s['cost_eur'] for s in soon):,.0f} €".replace(",", "."))
         else:
-            st.success("✅ In den nächsten 15.000 km steht nichts Größeres an.")
+            st.success(f"✅ In den nächsten {horizon:,.0f} km steht nichts Größeres an.".replace(",", "."))
 
         pl = mileage_plausibility(km, reg)
         if pl:
