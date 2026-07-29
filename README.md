@@ -20,14 +20,28 @@ Der Gesamtscore ist die **gewichtete Summe** – die Gewichte bestimmst du.
 
 ## Schnellstart
 
+Ein Skript richtet alles ein (venv, Abhängigkeiten, Datenbank, Datensammlung)
+und startet das Dashboard:
+
 ```bash
-pip install -r requirements.txt        # (Dashboard/Adapter; Kern läuft auch ohne)
-
-python -m autobewertung.collect run    # DB anlegen + Quellen einsammeln (Seed-Daten)
-python -m autobewertung.collect rank   # Ranking in der Konsole
-
-streamlit run autobewertung/dashboard.py   # interaktives Dashboard
+./start.sh                 # einrichten + Daten sammeln + Dashboard öffnen
+./start.sh --no-dashboard  # nur einrichten + Ranking in der Konsole
+./start.sh --rank          # nur Ranking neu ausgeben
+./start.sh --inserate-csv meine_liste.csv   # zusätzlich eigene Angebote importieren
 ```
+
+Das Skript ist idempotent (venv/Installation nur beim ersten Lauf) und öffnet das
+Dashboard auf <http://localhost:8501>.
+
+<details><summary>Manuell (ohne Skript)</summary>
+
+```bash
+pip install -r requirements.txt
+python -m autobewertung.collect run
+python -m autobewertung.collect rank
+streamlit run autobewertung/dashboard.py
+```
+</details>
 
 Beim ersten `run` werden **Beispieldaten** (6 populäre DE-Gebrauchtwagen) geladen,
 damit sofort etwas Sinnvolles im Dashboard steht. Diese werden von echten
