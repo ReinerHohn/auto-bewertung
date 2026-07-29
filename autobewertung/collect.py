@@ -25,7 +25,8 @@ def cmd_init(args) -> None:
 
 def cmd_run(args) -> None:
     conn = init_db(args.db)
-    sources = default_sources()
+    from .sources import all_sources
+    sources = all_sources() if args.only else default_sources()
     if args.inserate_csv:
         # Inserate-Quelle mit CSV-Pfad ersetzen
         sources = [s for s in sources if not isinstance(s, InserateSource)]

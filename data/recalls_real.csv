@@ -1,0 +1,50 @@
+# Echte, quellenbelegte Rueckrufe (KBA / rueckrufe.de / Hersteller / EU Safety Gate).
+# kba_code leer = Rueckruf belegt, aber keine exakte KBA-Nummer verifiziert (nicht geraten).
+# Modellzuordnung per Marke + Modell-Praefix (ID.3 trifft Pro & Pro S).
+make,model,kba_code,date,component,description,source_url
+VW,Golf,,2015-10,Abgas,EA189 1.6/2.0 TDI Diesel Softwareupdate unzulaessige Abschalteinrichtung (Aktionscode 23R7/23X4),https://rechtecheck.de/news/aktionscode-23x4-golf-7/
+VW,Golf,,2013,Airbag,Takata-Fahrer-/Beifahrerairbag Gasgenerator kann bersten (Baujahre 2013-2017),https://www.volkswagen.de/de/besitzer-und-service/ueber-ihr-auto/kundeninformationen/takata-recall/takata-airbag-produktsicherheitsrueckruf.html
+Skoda,Octavia,15342R,2025-10,Airbag,Takata-Fahrerairbag Gasgenerator (Herstellercode 69PB, Produktion 04.2014-06.2016),https://www.adac.de/news/auto-rueckruf-takata-airbags/
+Skoda,Octavia,,2015,Abgas,EA189 TDI Diesel Softwareupdate unzulaessige Abschalteinrichtung,https://hahn-rechtsanwaelte.de/abgasskandal/diesel-rueckrufe
+Seat,Leon,,2018,Airbag,Takata-Fahrerairbag Gasgenerator kann bersten (Produktion 2012-2017),https://www.autoservicepraxis.de/rueckrufe/artikel/seat-rueckruf-tausch-der-takata-airbags-3403349
+Seat,Leon,,2020,Elektrik,Body-Control-Module erkennt Ausfall vorderer LED-Blinker nicht (Softwareupdate),https://gebrauchtwagenberater.de/seat-leon-probleme-schwachstellen/
+Audi,A3,,2016,Abgas,EA189 1.6/2.0 TDI Diesel Softwareupdate Abschalteinrichtung (Baujahre 2008-2015),https://www.rueden.de/abgasskandal/audi/audi-rueckruf/a3/
+Audi,A3,,2018,Airbag,Takata-Airbag Gasgenerator kann bersten (Baujahre 2005-2018),https://www.audi.de/de/kundenservice/takata-airbag/
+Ford,Focus,,2018-01,Kuehlung,1.6 EcoBoost Zylinderkopf kann bei zu wenig Kuehlmittel ueberhitzen/reissen - Brandgefahr,https://www.autoservicepraxis.de/rueckrufe/artikel/ford-probleme-mit-kuehlmittel-ueberwachung-2513409
+Ford,Focus,18S07,2018,Kupplung,Kupplungsdruckplatte kann brechen (1.0/1.5/1.6 EcoBoost) - Brandgefahr,https://www.autoservicepraxis.de/rueckrufe/artikel/ford-kupplungsdruckplatte-kann-brechen-2513228
+Opel,Astra,,2019-01,Bremse,Nehmerzylinder-Dichtung reduziert Bremsleistung (1.6 Diesel, Aktionscode 18-C-120),https://www.kfz-betrieb.vogel.de/opel-rueckruf-astra-bremst-schlecht-a-789419/
+Opel,Astra,013442,,Assistenzsystem,Aufkleber am Radarsensor beeintraechtigt Sensorfunktion,https://www.auto-motor-und-sport.de/verkehr/rueckruf-opel-astra-aufkleber-radarsensor/
+Opel,Astra,16105R,,Airbag,Takata-Airbag Gasgenerator kann bersten,https://www.adac.de/news/auto-rueckruf-opel-takata-airbag/
+Peugeot,308,012434,2020,Bremse,Bremssystem (Herstellercode KGH, Produktion 2017-2020),https://www.auto-motor-und-sport.de/verkehr/citroen-peugeot-opel-rueckruf-bremsprobleme/
+Peugeot,308,,2017,Kraftstoff,Kraftstoffleitung (Aktionscode HYB/HYL) - Brandgefahr,https://peugeottalk.de/index.php?thread/21734-produktsicherheitsrueckruf-mun-kraftstoffleitung/
+Renault,Megane,,2016,Airbag,Takata-Fahrerairbag koennte bei Ausloesung nicht zuenden (Aktionscode 0CDQ),https://www.kfz-betrieb.vogel.de/rueckrufe-bei-renault-und-dacia-airbag-und-fahrwerk-a-575125/
+Renault,Megane,,2016,Bremse,Kontakt Bremsschlauch mit Felge/Reifen kann Bremswirkung beeintraechtigen,https://www.autoservicepraxis.de/rueckrufe/artikel/renault-beeintraechtigte-bremswirkung-2513880
+BMW,3er,008124,2019-11,AGR-Kuehler,Glykol aus undichtem AGR-Kuehler kann sich mit Russ entzuenden - Brandgefahr (Diesel),https://bussgeldportal.de/blog/rueckruf/bmw-agr-kuehler-rueckruf-bis-2022-ausgeweitet/
+BMW,3er,,2018,Airbag,Takata-Fahrerairbag kann unkontrolliert bersten (Baujahre 2006-2015),https://www.autoservicepraxis.de/rueckrufe/artikel/und-wieder-takata-airbag-bmw-ruft-1er-3er-und-x-modelle-zurueck-3805952
+Mazda,3,,2019,Bremse,Smart Brake Support Software loest Notbremsung ohne Hindernis aus,https://www.auto-motor-und-sport.de/verkehr/rueckruf-mazda-3-cx-30-steuersoftware-notbremse/
+Toyota,Corolla,14590R,2024-11,Bremssteuergeraet,ECB-Software regelt Bremsdruck bei Kurvenbremsung ggf. nicht wie vorgesehen - laengerer Bremsweg (24SD-146),https://www.auto-motor-und-sport.de/verkehr/rueckruf-toyota-corolla-suzuki-swace-bremssteuergeraet/
+Toyota,Corolla,,2021,Hochdruckpumpe,Fehlerhafte Schweissnaht Kraftstoffpumpe - Undichtigkeit (21SMD-041),https://www.kfz-betrieb.vogel.de/toyota-rueckrufe-hybrid-und-bremskraftverstaerker-koennen-ausfallen-a-871040/
+Toyota,Auris,,2019,Hybridsystem,Software-Fehler Power-Management - bei Volllast kompletter Ausfall statt Notlauf (20SMD-058),https://www.kfz-rueckrufe.de/toyota-erneuter-hybridrueckruf/8044/
+Toyota,Auris,,2014,Hybridelektronik,Software-Fehler - Ueberlast/Notlauf/Leistungsverlust (~19.319 Fzg DE),https://www.auto-motor-und-sport.de/news/toyota-rueckruf-von-2-4-millionen-hybridautos/
+Hyundai,i30,013459,2024-01,Oelsystem,Metallsieb Tandempumpe kann verstopfen - Ausfall Oel-/Vakuumpumpe (Motorschaden + Bremskraft), 1.6, 21DC03,https://www.auto-motor-und-sport.de/verkehr/rueckruf-hyundai-bremsen-und-motorschaeden-drohen/
+Kia,Ceed,,2024,Oelsystem,Metallsieb Tandempumpe verstopft - Oel-/Vakuumpumpenausfall (1.6 Diesel),https://www.auto-motor-und-sport.de/verkehr/rueckruf-hyundai-kia-probleme-mit-der-oelversorgung/
+Kia,Ceed,,2024,Kupplungsaktuator,Kurzschluss im hydraulischen Kupplungsaktuator (PHEV) - Brandgefahr,https://www.auto-motor-und-sport.de/verkehr/kia-niro-ceed-rueckruf-brandrisiko/
+Honda,Civic,,2020,Kraftstoffpumpe,Fehlerhaftes Pumpenmodul kann ausfallen - Motor bleibt stehen (~245.501 DE),https://www.auto-motor-und-sport.de/verkehr/honda-rueckruf-schwaechelnde-kraftstoffpumpe/
+Honda,Civic,,,Radbefestigung,Raeder koennen sich loesen (Civic/HR-V, Bauzeit 11.2014-07.2021),https://www.adac.de/news/auto-honda-rueckruf-radverlust/
+Tesla,Model 3,,2021-11,Vorderachse,Querlenker-Verschraubung (lateral link) kann sich loesen - Instabilitaet (NHTSA 21V-835),https://auto-recalls.justia.com/tesla/model-3/2021/21v835000
+Tesla,Model 3,,2021,Bremssattel,Bremssattelschrauben ggf. unzureichend angezogen - Sattel kann sich loesen (2019-2021),https://teslamag.de/news/drei-schrauben-rueckrufe-tesla-bremsen-gurte-model-3-model-y-potenziell-locker-sein-37641
+Tesla,Model 3,,2021,Sicherheitsgurt,Gurtbefestigungsschraube B-Saeule ggf. nicht korrekt montiert (2018-2020),https://teslamag.de/news/drei-schrauben-rueckrufe-tesla-bremsen-gurte-model-3-model-y-potenziell-locker-sein-37641
+Tesla,Model 3,,2023,Software/eCall,Deutscher Funk-/eCall-Rueckruf - Behebung per OTA-Update,https://teslamag.de/news/deutscher-funk-rueckruf-tesla-model-3-model-y-strom-ecall-ausfallen-50257
+Hyundai,Ioniq 5,011870,2023,Parksperre,Spannungsschwankungen 800V stoeren Parksperren-Signal - Wegrollgefahr trotz P (21D064),https://www.auto-motor-und-sport.de/verkehr/rueckruf-hyundai-ioniq-5-kia-ev6-wegroll-gefahr-spannungsschwankungen-elektroautos/
+Hyundai,Ioniq 5,13860,2024,Antriebswelle/ICCU,Antriebswelle kann brechen (Antriebsverlust) und/oder ICCU-Ladefehler - Tausch + Software,https://www.auto-motor-und-sport.de/verkehr/rueckruf-hyundai-ioniq-5-6-ladeprobleme-antriebswellen/
+Kia,EV6,011871,2023,Parksperre,Spannungsschwankungen stoeren Parksperren-Signal - Wegrollgefahr (221058),https://www.auto-motor-und-sport.de/verkehr/rueckruf-hyundai-ioniq-5-kia-ev6-wegroll-gefahr-spannungsschwankungen-elektroautos/
+Kia,EV6,,2026,ICCU,Defekte ICCU (12V-Laden) - moeglicher Ladeausfall/Antriebsverlust (Software + ggf. Hardware),https://www.kfz-betrieb.vogel.de/e-autos-koennen-stehen-bleiben-a-417c023c25d571ea85e10dd468b17746/
+Hyundai,Kona Elektro,16242R,2026-03,Hochvoltbatterie,BMS-Software erkennt thermische Instabilitaet nicht rechtzeitig - Brandgefahr (61D004),https://www.electrive.net/2026/03/20/hyundai-ruft-ueber-100-000-kona-elektro-zurueck/
+Hyundai,Kona Elektro,,2020,Hochvoltbatterie,Moeglicher Zelldefekt LG Chem - Brandgefahr (BMS-Update, teils Akkutausch),https://www.auto-motor-und-sport.de/elektroauto/hyundai-kona-ioniq-elektro-rueckruf-wegen-brandgefahr/
+Renault,Zoe,,2021,Hochvoltbatterie,Ueberhitzungsgefahr der Batterie - Brandrisiko (Bauzeit 13.01.-22.02.2021),https://www.rueckrufe.net/tag/renault-zoe/
+VW,ID.3,16271R,2026-03,Hochvoltbatterie,Nicht spezifikationskonforme HV-Batteriemodule - Reichweitenverlust, im Extremfall Brand (93MI),https://www.auto-motor-und-sport.de/verkehr/rueckruf-der-meb-modelle-von-vw-ein-fehlerhaftes-batteriemodul/
+VW,ID.3,,2021,Lenkung,Fehlendes Lenkungslager (KBA-gelisteter Rueckruf),https://gebrauchtwagenberater.de/vw-id3-probleme/
+Cupra,Born,16269R,2026-03,Hochvoltbatterie,Nicht spezifikationskonforme HV-Batteriemodule - im Extremfall Brand (93S4),https://www.anwalt.de/rechtstipps/brandgefahr-beim-cupra-born-rueckruf-unter-code-93s4-267285.html
+MG,MG4,,2023-01,Bremse/Software,MG4 kann im Betrieb "superlock" ausloesen - Softwareupdate (UK-Ref R/2022/355),https://vehicle-recall.co.uk/recalls/cars/mg-motor/mg4
+Polestar,2,R10053,2020-10,Energiekontrollmodul,Software-Abweichung - in seltenen Faellen Antriebsverlust ohne Vorwarnung (Softwareupdate),https://www.auto-motor-und-sport.de/elektroauto/rueckruf-polestar-2-energiekontrollmodul/
+Polestar,2,,2020,Batterieheizer,Defekter Hochspannungs-Kuehlmittelheizer (HVCH),https://ecomento.de/2020/10/05/polestar-rueckruf-software-update-batterie-energiekontrollmodul/

@@ -459,6 +459,18 @@ def render_category(model, cat: str) -> None:
             msg = f"**{pl['km_per_year']:.0f} km/Jahr** ({pl['age_years']:.1f} J) → {pl['verdict']}"
             {"warn": st.error, "info": st.info, "ok": st.success}[pl["level"]](msg)
 
+        # 🚨 Offizielle Rückrufe (sicherheitskritisch – prüfen ob erledigt!)
+        rc = conn.execute("SELECT kba_code, date, description, url FROM recall "
+                          "WHERE model_id=? ORDER BY date DESC", (mid,)).fetchall()
+        if rc:
+            st.error(f"🚨 **{len(rc)} offizielle(r) Rückruf(e)** – am Inserat per FIN prüfen, ob erledigt!")
+            for r in rc:
+                code = f" · KBA {r['kba_code']}" if r["kba_code"] else ""
+                link = f" · [Quelle]({r['url']})" if r["url"] else ""
+                st.markdown(f"- **{r['date'] or ''}**{code}: {r['description']}{link}")
+        else:
+            st.success("✅ Keine Rückrufe erfasst.")
+
         done, upcoming = wear_status(conn, mid, variant, km)
         cc1, cc2 = st.columns(2)
         with cc1:
