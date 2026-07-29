@@ -14,6 +14,7 @@ from __future__ import annotations
 
 import os
 import sys
+from urllib.parse import quote_plus
 
 # Streamlit legt beim Start nur das Skriptverzeichnis auf sys.path, nicht das
 # Projekt-Root -> Paket-Import sicherstellen, bevor autobewertung importiert wird.
@@ -58,6 +59,25 @@ TCO_EXPLAIN = {
     "wartung_reparatur": "Inspektionen und typische Reparaturen, auf ein Jahr umgelegt.",
     "sonstiges": "Pauschale fuer Reifen, HU/AU und Kleinkram.",
 }
+
+# AutoScout24 nutzt Marken-Slugs (z.B. VW -> volkswagen)
+AS24_MAKE_SLUG = {"VW": "volkswagen", "Mercedes": "mercedes-benz"}
+
+
+def portal_links(make: str, model: str) -> list[tuple[str, str]]:
+    """Direkt-Links zu den Gebrauchtwagen-Portalen fuer genau dieses Modell."""
+    as24_make = AS24_MAKE_SLUG.get(make, make.lower().replace(" ", "-"))
+    as24_model = model.lower().replace(" ", "-").replace(".", "")
+    q = quote_plus(f"{make} {model}")
+    return [
+        ("🔗 AutoScout24 – Angebote für dieses Modell",
+         f"https://www.autoscout24.de/lst/{as24_make}/{as24_model}?sort=price&desc=0&ustate=N%2CU"),
+        ("🔗 mobile.de – Angebote suchen",
+         f"https://suchen.mobile.de/fahrzeuge/search.html?dam=false&isSearchRequest=true&s=Car&vc=Car&q={q}"),
+        ("🔗 kleinanzeigen.de – Angebote suchen",
+         f"https://www.kleinanzeigen.de/s-autos/{q}/k0c216"),
+    ]
+
 
 st.set_page_config(page_title="Auto-Bewertung", layout="wide")
 st.title("🚗 Auto-Bewertung – Gebrauchtwagen mit Total Cost of Ownership")
@@ -163,12 +183,20 @@ def render_category(model, cat: str) -> None:
                 st.metric(f"{TCO_LABELS.get(k, k)} pro Jahr", f"{v:,.0f} €".replace(",", "."))
 
     elif cat == "price":
-        st.markdown("#### 💰 Angebote & Preisverlauf")
+        st.markdown("#### 💰 Angebote in Portalen")
+        make = _make_of(mid)
+        model_name = conn.execute("SELECT model FROM car_model WHERE id=?", (mid,)).fetchone()["model"]
+        st.markdown("**Direkt zu den Portalen (Suche nach diesem Modell):**")
+        for label, url in portal_links(make, model_name):
+            st.markdown(f"- [{label}]({url})")
+        st.divider()
+        st.markdown("**Erfasste Angebote & Preisverlauf**")
         rows = conn.execute(
             "SELECT id,title,price,mileage_km,first_reg,location,plz,url,source "
             "FROM listing WHERE model_id=? AND active=1 ORDER BY price", (mid,)).fetchall()
         if not rows:
-            st.info("Keine Angebote – Marktpreis geschätzt.")
+            st.info("Noch keine Angebote in der DB – Marktpreis geschätzt. "
+                    "Nutze die Portal-Links oben oder importiere Angebote per CSV.")
             if model.purchase_price:
                 st.metric("Geschätzter Marktpreis", f"{model.purchase_price:,.0f} €".replace(",", "."))
             return
@@ -247,10 +275,8 @@ for i, m in enumerate(ranked, 1):
 df = pd.DataFrame(rows)
 
 st.subheader(f"Ranking · {len(ranked)} qualifizierte Modelle")
-st.caption("👉 Zeile anklicken (Auto) und Spalte anklicken (Kategorie) für die Detail-Liste darunter.")
-event = st.dataframe(
+st.dataframe(
     df, width="stretch", hide_index=True,
-    on_select="rerun", selection_mode=["single-row", "single-column"], key="rank",
     column_config={
         "Score": st.column_config.ProgressColumn("Score", min_value=0, max_value=100, format="%.1f"),
         "Kaufpreis": st.column_config.NumberColumn(format="%.0f €"),
@@ -270,19 +296,26 @@ if result.excluded:
 if not ranked:
     st.stop()
 
-# --- Auswahl auswerten ------------------------------------------------------
-sel = event.selection if event else None
-sel_rows = list(sel.get("rows", [])) if sel else []
-sel_cols = list(sel.get("columns", [])) if sel else []
-
-model = ranked[sel_rows[0]] if sel_rows else ranked[0]
-picked_col = sel_cols[0] if sel_cols else None
-
+# ---------------------------------------------------------------------------
+# Drill-down: Modell anklicken (Buttons) -> Kategorie anklicken -> Detail-Liste
+# ---------------------------------------------------------------------------
 st.divider()
-head = f"### {model.label}"
-if not sel_rows:
-    head += "  \n*(oben eine Zeile anklicken, um ein anderes Auto zu wählen)*"
-st.markdown(head)
+st.markdown("### 🔎 1) Modell anklicken")
+
+top = ranked[:15]
+valid_ids = {m.model_id for m in top}
+if st.session_state.get("model_id") not in valid_ids:
+    st.session_state.model_id = top[0].model_id
+
+grid = st.columns(3)
+for i, m in enumerate(top):
+    active = st.session_state.model_id == m.model_id
+    label = f"#{i+1}  {m.label}  ·  {m.total:.0f} Pkt · {m.annual_tco:.0f} €/J"
+    if grid[i % 3].button(label, key=f"mdl_{m.model_id}", width="stretch",
+                          type="primary" if active else "secondary"):
+        st.session_state.model_id = m.model_id
+
+model = next(m for m in ranked if m.model_id == st.session_state.model_id)
 
 k1, k2, k3, k4 = st.columns(4)
 k1.metric("Score", f"{model.total:.1f}")
@@ -293,18 +326,18 @@ if model.drivetrain == "elektro":
 else:
     k4.metric("Antrieb", model.drivetrain or "-")
 
-# --- Level 2/3: Detail-Liste ------------------------------------------------
-if picked_col and picked_col in COLUMN_TO_CATEGORY:
-    st.caption(f"Kategorie: **{picked_col}** — klicke einen Eintrag für Details.")
-    render_category(model, COLUMN_TO_CATEGORY[picked_col])
-elif picked_col:
-    st.info(f"Spalte „{picked_col}“ hat keine Detail-Liste. Klicke z. B. Schwachstellen, "
-            "Zuverlässigkeit, TCO/Jahr, Preis/Deal, Ersatzteile oder Werkstätten.")
-else:
-    st.caption("Keine Spalte gewählt – alle Kategorien als Reiter:")
-    tab_keys = ["tco", "price", "reliability", "weak_points", "parts", "workshop"]
-    tab_names = ["💶 TCO", "💰 Preis", "📊 Zuverlässigkeit", "🔧 Schwachstellen",
-                 "🧩 Ersatzteile", "🛠️ Werkstätten"]
-    for tab, key in zip(st.tabs(tab_names), tab_keys):
-        with tab:
-            render_category(model, key)
+st.markdown(f"### 🔎 2) Kategorie anklicken – *{model.label}*")
+CATS = [("price", "💰 Angebote/Portale"), ("weak_points", "🔧 Schwachstellen"),
+        ("reliability", "📊 Zuverlässigkeit"), ("tco", "💶 TCO"),
+        ("parts", "🧩 Ersatzteile"), ("workshop", "🛠️ Werkstätten")]
+if "cat" not in st.session_state:
+    st.session_state.cat = "price"
+cols = st.columns(len(CATS))
+for (key, label), c in zip(CATS, cols):
+    is_active = st.session_state.cat == key
+    if c.button(label, key=f"btn_{key}", width="stretch",
+                type="primary" if is_active else "secondary"):
+        st.session_state.cat = key
+
+st.divider()
+render_category(model, st.session_state.cat)

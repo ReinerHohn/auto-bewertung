@@ -135,6 +135,95 @@ WORKSHOPS = [
     (None, "Freie Werkstatt Bosch Service", "79114", "Freiburg", 0),
 ]
 
+# --- Weitere gaengige Kompaktmodelle (fuer ein groesseres Top-15-Ranking) ----
+MODELS += [
+    ("Toyota", "Auris", "E180 (2012-2018)", 2012, 2018, "Kompakt", "Hybrid"),
+    ("Opel", "Astra", "K (2015-2021)", 2015, 2021, "Kompakt", "Benzin"),
+    ("Seat", "Leon", "III (2012-2020)", 2012, 2020, "Kompakt", "Benzin"),
+    ("Audi", "A3", "8V (2012-2020)", 2012, 2020, "Kompakt", "Benzin"),
+    ("Hyundai", "i30", "III (2016-)", 2016, 2025, "Kompakt", "Benzin"),
+    ("Kia", "Ceed", "III (2018-)", 2018, 2025, "Kompakt", "Benzin"),
+    ("Honda", "Civic", "X (2017-2021)", 2017, 2021, "Kompakt", "Benzin"),
+    ("Peugeot", "308", "II (2013-2021)", 2013, 2021, "Kompakt", "Benzin"),
+    ("Renault", "Megane", "IV (2016-)", 2016, 2025, "Kompakt", "Benzin"),
+]
+SPECS.update({
+    "Toyota Auris":   ("hybrid", "kompakt", 4.2, None, None, None, None, None, 400,  40, 13500),
+    "Opel Astra":     ("benzin", "kompakt", 6.2, None, None, None, None, None, 440, 120, 11500),
+    "Seat Leon":      ("benzin", "kompakt", 6.0, None, None, None, None, None, 450, 120, 12900),
+    "Audi A3":        ("benzin", "kompakt", 6.1, None, None, None, None, None, 520, 130, 14500),
+    "Hyundai i30":    ("benzin", "kompakt", 6.0, None, None, None, None, None, 420, 120, 12500),
+    "Kia Ceed":       ("benzin", "kompakt", 6.1, None, None, None, None, None, 420, 120, 13500),
+    "Honda Civic":    ("benzin", "kompakt", 5.8, None, None, None, None, None, 460, 120, 14500),
+    "Peugeot 308":    ("benzin", "kompakt", 6.0, None, None, None, None, None, 440, 120, 10900),
+    "Renault Megane": ("benzin", "kompakt", 6.1, None, None, None, None, None, 430, 120, 11500),
+})
+RELIABILITY.update({
+    "Toyota Auris": 4.0, "Opel Astra": 9.0, "Seat Leon": 7.5, "Audi A3": 6.5,
+    "Hyundai i30": 4.5, "Kia Ceed": 4.2, "Honda Civic": 5.0, "Peugeot 308": 9.5,
+    "Renault Megane": 8.5,
+})
+MAENGEL.update({
+    "Toyota Auris": 3.2, "Opel Astra": 6.8, "Seat Leon": 6.0, "Audi A3": 5.2,
+    "Hyundai i30": 3.8, "Kia Ceed": 3.5, "Honda Civic": 4.0, "Peugeot 308": 7.0,
+    "Renault Megane": 6.5,
+})
+WEAK.update({
+    "Toyota Auris": [("Hybridakku", "selten Zellalterung bei hoher Laufleistung", 1)],
+    "Opel Astra": [("Steuerkette", "1.4 Turbo Kettenlaengung", 2),
+                   ("Wasserpumpe", "undicht", 2)],
+    "Seat Leon": [("DSG", "DQ200 Trockenkupplung", 2),
+                  ("Steuerkette", "1.2/1.4 TSI Kettenlaengung", 2)],
+    "Audi A3": [("Oelverbrauch", "1.8 TFSI Kolbenringe", 3), ("DSG", "Mechatronik", 2)],
+    "Hyundai i30": [("Kupplung", "leichtes Rupfen Handschalter", 1)],
+    "Kia Ceed": [("Zahnriemen", "Wechselintervall strikt beachten", 1)],
+    "Honda Civic": [("Klimakompressor", "selten Ausfall", 1)],
+    "Peugeot 308": [("Steuerkette", "1.2 PureTech Kettenverschleiss", 3),
+                    ("Turbo", "1.2 PureTech", 2)],
+    "Renault Megane": [("Elektrik", "Steuergeraet-/Sensorfehler", 2)],
+})
+REPAIR.update({
+    "Toyota Auris": [("inspektion", 280, "pro_jahr")],
+    "Opel Astra": [("inspektion", 320, "pro_jahr"), ("zahnriemen", 500, "pro_intervall")],
+    "Seat Leon": [("inspektion", 330, "pro_jahr"), ("zahnriemen", 550, "pro_intervall")],
+    "Audi A3": [("inspektion", 420, "pro_jahr"), ("zahnriemen", 600, "pro_intervall")],
+    "Hyundai i30": [("inspektion", 300, "pro_jahr")],
+    "Kia Ceed": [("inspektion", 300, "pro_jahr"), ("zahnriemen", 480, "pro_intervall")],
+    "Honda Civic": [("inspektion", 340, "pro_jahr")],
+    "Peugeot 308": [("inspektion", 330, "pro_jahr"), ("steuerkette", 1400, "einmalig")],
+    "Renault Megane": [("inspektion", 320, "pro_jahr"), ("zahnriemen", 520, "pro_intervall")],
+})
+PARTS.update({
+    "Toyota Auris": (82, 100), "Opel Astra": (88, 90), "Seat Leon": (92, 88),
+    "Audi A3": (94, 110), "Hyundai i30": (80, 95), "Kia Ceed": (78, 95),
+    "Honda Civic": (72, 105), "Peugeot 308": (82, 92), "Renault Megane": (84, 92),
+})
+LISTINGS.update({
+    "Toyota Auris": [(11900, 90000, "2016-05", "79100", "Freiburg"),
+                     (13900, 60000, "2017-08", "79104", "Freiburg")],
+    "Opel Astra": [(10900, 95000, "2016-06", "79098", "Freiburg"),
+                   (12900, 70000, "2018-03", "77933", "Lahr")],
+    "Seat Leon": [(11900, 100000, "2016-04", "79100", "Freiburg"),
+                  (13900, 72000, "2018-06", "79106", "Freiburg")],
+    "Audi A3": [(13900, 98000, "2015-09", "79106", "Freiburg"),
+                (14900, 80000, "2016-11", "77652", "Offenburg")],
+    "Hyundai i30": [(11500, 85000, "2017-05", "79106", "Freiburg"),
+                    (13500, 55000, "2019-02", "79100", "Freiburg")],
+    "Kia Ceed": [(12900, 70000, "2019-03", "79100", "Freiburg")],
+    "Honda Civic": [(13900, 75000, "2018-04", "79104", "Freiburg")],
+    "Peugeot 308": [(9900, 105000, "2015-07", "79098", "Freiburg"),
+                    (11900, 78000, "2017-09", "79312", "Emmendingen")],
+    "Renault Megane": [(10900, 92000, "2017-04", "79111", "Freiburg")],
+})
+WORKSHOPS += [
+    ("Opel", "Opel Autohaus Freiburg", "79106", "Freiburg", 1),
+    ("Seat", "Seat Zentrum Freiburg", "79100", "Freiburg", 1),
+    ("Audi", "Audi Zentrum Freiburg", "79108", "Freiburg", 1),
+    ("Kia", "Kia Freiburg", "79104", "Freiburg", 1),
+    ("Honda", "Honda Haendler Freiburg", "79111", "Freiburg", 1),
+    ("Peugeot", "Peugeot Freiburg", "79098", "Freiburg", 1),
+]
+
 
 class SeedSource(Source):
     name = "seed"
