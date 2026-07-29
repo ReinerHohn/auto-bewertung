@@ -69,6 +69,22 @@ def parse_autoscout24(html: str) -> list[dict]:
         tr = l.get("tracking") or {}
         veh = l.get("vehicle") or {}
         loc = l.get("location") or {}
+        # Varianten-Infos aus vehicleDetails (Leistung, Reichweite)
+        vd = l.get("vehicleDetails") or []
+
+        def _detail(icon):
+            return next((e.get("data") for e in vd if e.get("iconName") == icon), None)
+
+        power_kw = None
+        pp = _detail("speedometer")                 # "225 kW (306 PS)"
+        if pp:
+            mm = re.search(r"(\d+)\s*kW", pp)
+            power_kw = int(mm.group(1)) if mm else None
+        list_range = None
+        rr = _detail("distance")                    # "409 km Reichweite"
+        if rr:
+            mm = re.search(r"(\d+)\s*km", rr.replace(".", ""))
+            list_range = int(mm.group(1)) if mm else None
         fr = tr.get("firstRegistration")            # "MM-YYYY"
         first_reg = f"{fr[3:]}-{fr[:2]}" if fr and len(fr) == 7 and "-" in fr else None
         try:
@@ -83,9 +99,13 @@ def parse_autoscout24(html: str) -> list[dict]:
             "plz": loc.get("zip"),
             "location": loc.get("city"),
             "url": ("https://www.autoscout24.de" + l["url"]) if l.get("url") else None,
-            "title": f"{veh.get('make', '')} {veh.get('model', '')}".strip(),
+            "title": (veh.get("modelVersionInput")
+                      or f"{veh.get('make', '')} {veh.get('model', '')}").strip(),
             "fuel": (tr.get("fuelType") or "").lower(),   # 'e'=Elektro, 'd'=Diesel, ...
             "rating": rating,
+            "power_kw": power_kw,
+            "list_range": list_range,
+            "damaged": bool(veh.get("isCurrentlyDamaged")),
         })
     return out
 
@@ -118,20 +138,30 @@ class AutoScout24Source(Source):
         if not html:
             return 0, "kein Zugriff (blockiert/robots) oder kein Treffer"
         items = parse_autoscout24(html)
-        # nach Kraftstoff filtern (Slug wie /hyundai/kona mischt Benziner + Elektro)
-        spec = conn.execute("SELECT drivetrain FROM vehicle_spec WHERE model_id=?", (model_id,)).fetchone()
+        spec = conn.execute("SELECT drivetrain, range_km FROM vehicle_spec WHERE model_id=?",
+                            (model_id,)).fetchone()
         dt = (spec["drivetrain"] if spec else "") or ""
+        spec_range = spec["range_km"] if spec else None
+        # Unfallwagen raus
+        items = [it for it in items if not it.get("damaged")]
+        # nach Kraftstoff (Slug wie /hyundai/kona mischt Benziner + Elektro)
         if dt == "elektro":
             items = [it for it in items if it["fuel"] == "e"]
         elif dt in ("benzin", "diesel", "hybrid"):
             items = [it for it in items if it["fuel"] != "e"]
+        # variantengenau: E-Auto-Reichweite muss zur modellierten Akkugroesse passen
+        # (blendet kleinere/groessere Akku-Varianten aus, z.B. 44 vs 72 kWh)
+        if dt == "elektro" and spec_range:
+            lo, hi = 0.72 * spec_range, 1.35 * spec_range
+            items = [it for it in items
+                     if not it.get("list_range") or lo <= it["list_range"] <= hi]
         n = 0
         for it in items:
             _record_listing(conn, model_id=model_id, source="autoscout24",
                             source_ref=it["source_ref"], title=it["title"], price=it["price"],
                             mileage_km=it["mileage_km"], first_reg=it["first_reg"],
                             plz=it["plz"], location=it["location"], url=it["url"],
-                            price_rating=it.get("rating"))
+                            power_kw=it.get("power_kw"), price_rating=it.get("rating"))
             n += 1
         conn.commit()
         return n, (f"{n} echte Angebote von AutoScout24" if n else "keine Angebote gefunden")
