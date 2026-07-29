@@ -250,7 +250,18 @@ def render_category(model, cat: str) -> None:
         st.markdown("**Direkt zu den Portalen (Suche nach diesem Modell):**")
         for label, url in portal_links(make, model_name):
             st.markdown(f"- [{label}]({url})")
-        st.caption("📈 Preistrend & Restwerte findest du im Tab **Wertstabilität**.")
+
+        # pkw.de-Preistrend direkt eingebettet
+        pkw = pkw_trend_url(make, model_name)
+        st.markdown(f"**📈 Preistrend & Baujahre (pkw.de)** – [Seite öffnen ↗]({pkw})")
+        try:
+            if hasattr(st, "iframe"):
+                st.iframe(pkw, height=600, scrolling=True)
+            else:
+                import streamlit.components.v1 as components
+                components.iframe(pkw, height=600, scrolling=True)
+        except Exception:
+            st.caption("Einbettung blockiert – Link oben nutzen.")
 
         st.divider()
         st.markdown("**➕ Konkretes Angebot verfolgen** (URL einfügen – Preis wird ab jetzt mitgeschrieben)")
@@ -602,6 +613,19 @@ if not ranked and not result.excluded:
     st.warning("Keine Daten. Erst `python -m autobewertung.collect run` ausführen.")
     st.stop()
 
+# --- Sortierung (inkl. Gesamtkosten über die Haltedauer) --------------------
+def _total_cost(m):
+    return (m.annual_tco or 10**9) * years + 0  # annual_tco*Jahre = komplette Haltekosten
+SORTS = {
+    "🏆 Gesamtscore": lambda m: -m.total,
+    f"💶 Gesamtkosten {years} J (niedrigste)": _total_cost,
+    "🏷️ Kaufpreis (niedrigste)": lambda m: m.purchase_price or 10**9,
+    "📉 TCO/Jahr (niedrigste)": lambda m: m.annual_tco or 10**9,
+    "📈 Wertstabilität (beste)": lambda m: m.dims.get("value_stability", 0) * -1,
+}
+sort_choice = st.radio("Sortieren nach", list(SORTS), horizontal=True, key="sortby")
+ranked = sorted(ranked, key=SORTS[sort_choice])
+
 # ---------------------------------------------------------------------------
 # Layout: Tabelle links (jede Zelle klickbar) · Detail rechts (sofort sichtbar)
 # ---------------------------------------------------------------------------
@@ -659,9 +683,9 @@ with left:
                "Antrieb ⚡Elektro/🔋Hybrid/⛽Verbrenner · Wertst = Wertverlust %/J · "
                "Ausst = Wunsch-Assistenz von 4 (⚠️ = oft teure Matrix-LED) · "
                "Mängel = TÜV % · Pannen /1000 · Teile = Verfügbarkeit %.")
-    WIDTHS = [3.0, 1.2, 1.2] + [1.0] * len(CATCOLS)
+    WIDTHS = [2.8, 1.1, 1.0, 1.35] + [1.0] * len(CATCOLS)
     head = st.columns(WIDTHS)
-    for c, t in zip(head, ["Modell", "Preis", "Versich/J"] + [lbl for _, lbl in CATCOLS]):
+    for c, t in zip(head, ["Modell", "Preis", "Vers/J", f"GESAMT {years}J"] + [lbl for _, lbl in CATCOLS]):
         c.markdown(f"<small><b>{t}</b></small>", unsafe_allow_html=True)
 
     for i, m in enumerate(top, 1):
@@ -677,9 +701,13 @@ with left:
                       if m.purchase_price else "–", unsafe_allow_html=True)
         c[2].markdown(f"<small>{mt['insurance']:,.0f} €</small>".replace(",", ".")
                       if mt["insurance"] is not None else "–", unsafe_allow_html=True)
+        # Gesamtkosten ueber die Haltedauer = TCO/Jahr * Jahre (inkl. Wertverlust!)
+        gesamt = (m.annual_tco * years) if m.annual_tco else None
+        c[3].markdown(f"<small><b>{gesamt:,.0f} €</b></small>".replace(",", ".")
+                      if gesamt else "–", unsafe_allow_html=True)
         for j, (cat_key, _) in enumerate(CATCOLS):
             active = sel_model and st.session_state.cat == cat_key
-            if c[3 + j].button(cell_value(cat_key, m, mt), key=f"cell_{m.model_id}_{cat_key}",
+            if c[4 + j].button(cell_value(cat_key, m, mt), key=f"cell_{m.model_id}_{cat_key}",
                                width="stretch", type="primary" if active else "secondary"):
                 st.session_state.model_id = m.model_id
                 st.session_state.cat = cat_key
