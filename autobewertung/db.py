@@ -122,6 +122,22 @@ CREATE TABLE IF NOT EXISTS workshop (
     UNIQUE(name, plz)
 );
 
+CREATE TABLE IF NOT EXISTS vehicle_spec (
+    model_id       INTEGER PRIMARY KEY REFERENCES car_model(id) ON DELETE CASCADE,
+    drivetrain     TEXT,                 -- 'benzin' | 'diesel' | 'hybrid' | 'elektro'
+    vehicle_class  TEXT,                 -- 'kleinwagen' | 'kompakt' | 'mittelklasse' ...
+    cons_l_100km   REAL,                 -- Verbrauch l/100km (Verbrenner/Hybrid)
+    cons_kwh_100km REAL,                 -- Verbrauch kWh/100km (Elektro/Hybrid)
+    battery_kwh    REAL,                 -- Netto-Akkukapazitaet (Elektro)
+    range_km       REAL,                 -- realistische Reichweite
+    dc_charge_kw   REAL,                 -- DC-Ladeleistung (Peak)
+    km_per_30min   REAL,                 -- nachladbare Reichweite in 30 min (Schnelllader)
+    insurance_eur  REAL,                 -- Versicherung pro Jahr (grob)
+    tax_eur        REAL,                 -- Kfz-Steuer pro Jahr (EV meist 0)
+    typical_price  REAL,                 -- typischer Marktpreis (Fallback ohne Angebot)
+    depr_pct_year  REAL                  -- jaehrlicher Wertverlust-Anteil (0..1)
+);
+
 CREATE INDEX IF NOT EXISTS idx_listing_model ON listing(model_id);
 CREATE INDEX IF NOT EXISTS idx_price_listing ON price_point(listing_id);
 CREATE INDEX IF NOT EXISTS idx_weak_model    ON weak_point(model_id);
@@ -162,6 +178,18 @@ def upsert_model(conn: sqlite3.Connection, make: str, model: str,
     cur = conn.execute(f"INSERT INTO car_model ({keys}) VALUES ({ph})", tuple(cols.values()))
     conn.commit()
     return cur.lastrowid
+
+
+def upsert_spec(conn: sqlite3.Connection, model_id: int, **fields) -> None:
+    """Legt/aktualisiert die Fahrzeug-Spezifikation (1:1 je Modell)."""
+    cols = ["model_id"] + list(fields)
+    ph = ",".join("?" for _ in cols)
+    updates = ",".join(f"{k}=excluded.{k}" for k in fields)
+    conn.execute(
+        f"INSERT INTO vehicle_spec ({','.join(cols)}) VALUES ({ph}) "
+        f"ON CONFLICT(model_id) DO UPDATE SET {updates}",
+        (model_id, *fields.values()),
+    )
 
 
 if __name__ == "__main__":

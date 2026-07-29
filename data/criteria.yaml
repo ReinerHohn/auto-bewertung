@@ -1,15 +1,33 @@
 # Deine Bewertungskriterien. Gewichte muessen sich nicht auf 1 summieren
 # (werden automatisch normalisiert). Anpassen und `rank`/Dashboard neu laden.
-weights:
-  price_value: 0.30        # Schnaeppchen: Preis unter Marktwert + fallender Trend
-  reliability: 0.25        # Pannen-/Maengelquote (wenig Pannen = gut)
-  weak_points: 0.15        # bekannte Schwachstellen + Rueckrufe
-  repair_cost: 0.15        # Reparatur-/Unterhaltskosten
-  parts_availability: 0.08 # Ersatzteil-Verfuegbarkeit
-  workshop_access: 0.07    # Werkstattdichte/Spezialisten in der Naehe
 
-# Optionale harte Filter (leer/auskommentiert = kein Filter)
-# max_price: 20000
-# max_mileage_km: 120000
-# min_year: 2015
+weights:
+  tco: 0.35                # komplette Haltekosten pro Jahr (guenstig = gut)
+  price_value: 0.15        # Schnaeppchen: Preis unter Marktwert + fallender Trend
+  reliability: 0.22        # Pannen-/Maengelquote (wenig Pannen = gut)
+  weak_points: 0.12        # bekannte Schwachstellen + Rueckrufe
+  parts_availability: 0.08 # Ersatzteil-Verfuegbarkeit
+  workshop_access: 0.08    # Werkstattdichte/Spezialisten in der Naehe
+
+# --- Harte Kriterien --------------------------------------------------------
+max_price: 15000           # Budget fuer Verbrenner (E-Autos siehe Ausnahme)
+min_vehicle_class: kompakt # ab Golf/Auris-Klasse aufwaerts
+
+# E-Auto-Ausnahme: darf teurer als max_price sein, soweit die jaehrliche
+# Ersparnis (laufende Kosten) ggue. dem Verbrenner-Median den Aufpreis ueber
+# die Haltedauer deckt.
+ev_price_exception: true
+ev_min_charge_km_30min: 300   # Pflicht fuer E-Autos: >=300 km nachladbar in 30 min
+
 home_plz: "79100"          # fuer Werkstattnaehe (Freiburg)
+
+# --- TCO-Annahmen -----------------------------------------------------------
+tco:
+  annual_km: 15000
+  holding_years: 5
+  price_benzin: 1.80       # EUR/l
+  price_diesel: 1.70       # EUR/l
+  price_strom_home: 0.30   # EUR/kWh
+  price_strom_public: 0.55 # EUR/kWh (Schnelllader)
+  home_charge_share: 0.7   # Anteil Heimladen bei E-Auto
+  misc_per_year: 250       # Reifen, HU/AU, Kleinkram pauschal/Jahr

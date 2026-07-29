@@ -39,24 +39,35 @@ def cmd_run(args) -> None:
     conn.close()
 
 
+def _eur(v) -> str:
+    return f"{v:,.0f}".replace(",", ".") + "€" if v is not None else "  -"
+
+
 def cmd_rank(args) -> None:
     conn = init_db(args.db)
     crit = load_criteria()
-    ranked = score_models(conn, crit)[: args.top]
-    if not ranked:
+    result = score_models(conn, crit)
+    ranked = result.ranked[: args.top]
+    if not ranked and not result.excluded:
         print("Keine Modelle in der DB. Erst `run` ausfuehren.")
         return
     w = crit.normalized_weights()
     print("Gewichte:", ", ".join(f"{d}={w[d]:.0%}" for d in DIMENSIONS))
+    print(f"TCO-Annahmen: {crit.tco.annual_km} km/Jahr, {crit.tco.holding_years} Jahre Haltedauer")
     print()
-    header = f"{'#':>2}  {'Modell':32} {'Score':>6} {'Deal':>9} {'Rabatt':>7}  Dimensionen"
+    header = (f"{'#':>2}  {'Modell':26} {'Antrieb':8} {'Score':>6} "
+              f"{'Kaufpreis':>10} {'TCO/Jahr':>9}  Dimensionen")
     print(header)
     print("-" * len(header))
     for i, m in enumerate(ranked, 1):
-        deal = f"{m.best_deal_eur:,.0f}€".replace(",", ".") if m.best_deal_eur else "  -"
-        disc = f"{m.best_deal_discount_pct:.0f}%" if m.best_deal_discount_pct else "  -"
         dims = " ".join(f"{d[:4]}:{m.dims[d]:.0f}" for d in DIMENSIONS)
-        print(f"{i:>2}  {m.label:32} {m.total:>6.1f} {deal:>9} {disc:>7}  {dims}")
+        print(f"{i:>2}  {m.label[:26]:26} {(m.drivetrain or '-'):8} {m.total:>6.1f} "
+              f"{_eur(m.purchase_price):>10} {_eur(m.annual_tco):>9}  {dims}")
+
+    if result.excluded:
+        print("\nAusgeschlossen (harte Kriterien):")
+        for e in result.excluded:
+            print(f"  - {e.label:26} {e.reason}")
     conn.close()
 
 

@@ -9,14 +9,41 @@ Bewertet werden sechs Dimensionen (jeweils 0–100, relativ zum Datenbestand):
 
 | Dimension | Bedeutung | Quelle(n) |
 |---|---|---|
+| **TCO/Jahr** | komplette Haltekosten pro Jahr (Wertverlust + Energie + Versicherung + Steuer + Wartung + Sonstiges) | Fahrzeug-Specs + Kostenschätzungen |
 | **Preis/Deal** | Preis unter Modell-Median + fallender Preistrend → Schnäppchen | Inserate + Preisverlauf |
 | **Zuverlässigkeit** | Pannen-/Mängelquote (wenig = gut) | ADAC-Pannenstatistik, TÜV-Report |
 | **Schwachstellen** | bekannte Modellprobleme + Rückrufe | Foren/Werkstatt, KBA |
-| **Unterhalt** | Reparatur-/Wartungs-/Versicherungskosten | Kostenschätzungen |
 | **Ersatzteile** | Verfügbarkeit + Preisindex | Teile-Marktplätze |
 | **Werkstätten** | Werkstattdichte/Spezialisten in deiner Nähe | Verzeichnisse (PLZ) |
 
 Der Gesamtscore ist die **gewichtete Summe** – die Gewichte bestimmst du.
+
+### Total Cost of Ownership (TCO)
+
+Für jedes Modell werden die **kompletten jährlichen Haltekosten** über die
+Haltedauer berechnet:
+
+```
+Wertverlust + Energie (Sprit/Strom) + Versicherung + Kfz-Steuer
++ Wartung/Reparatur + Sonstiges (Reifen, HU, Kleinkram)
+```
+
+Alle Annahmen (km/Jahr, Haltedauer, Sprit-/Strompreise, Heimlade-Anteil) stehen
+in `data/criteria.yaml` und sind im Dashboard live einstellbar.
+
+### Harte Kriterien & E-Auto-Ausnahme
+
+- **Budget** `max_price` (Standard 15.000 €) gilt für Verbrenner.
+- **Klasse** ab `min_vehicle_class` (Standard `kompakt` = Golf/Auris) aufwärts.
+- **E-Auto-Ausnahme:** ein E-Auto darf das Budget überschreiten, **soweit seine
+  jährliche Ersparnis bei den laufenden Kosten** (vs. Verbrenner-Median) den
+  Aufpreis über die Haltedauer deckt. Beispiel aus den Seed-Daten: der Tesla
+  Model 3 (19.900 €) qualifiziert sich, weil er ~1.150 €/Jahr spart.
+- **E-Auto-Schnelllade-Pflicht:** `ev_min_charge_km_30min` (Standard 300 km in
+  30 min) – langsam ladende EVs fallen raus.
+
+Nicht qualifizierte Modelle werden mit Begründung separat ausgewiesen (CLI:
+Abschnitt „Ausgeschlossen"; Dashboard: aufklappbarer Bereich).
 
 ## Schnellstart
 
@@ -59,8 +86,9 @@ Schieberegler live verändern.
 autobewertung/
   db.py            SQLite-Schema (Modelle, Angebote, Preisverlauf, Pannen,
                    Schwachstellen, Rückrufe, Kosten, Ersatzteile, Werkstätten)
-  config.py        Kriterien/Gewichte (aus data/criteria.yaml)
-  scoring.py       Aggregation der Rohdaten → 6 Dimensionen → Gesamtscore
+  config.py        Kriterien/Gewichte/Filter (aus data/criteria.yaml)
+  tco.py           Total-Cost-of-Ownership-Berechnung + Fahrzeugklassen
+  scoring.py       Aggregation + TCO + Filter → 6 Dimensionen → Gesamtscore
   collect.py       CLI: init / run / rank
   dashboard.py     Streamlit-Dashboard (Tabelle, Filter, Detail, Preischart)
   sources/
