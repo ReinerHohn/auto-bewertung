@@ -103,6 +103,29 @@ def wear_status(conn: sqlite3.Connection, model_id: int, variant: str | None, mi
             sorted(upcoming, key=lambda x: x["next_km"]))
 
 
+def due_soon(conn: sqlite3.Connection, model_id: int, variant: str | None,
+             mileage: int, horizon_km: int = 15000) -> list[dict]:
+    """Teile, die INNERHALB der naechsten `horizon_km` faellig werden.
+
+    Genau die Warnung 'Achtung, in ~X km ist Teil Y faellig'.
+    """
+    items = load_items(conn, model_id)
+    if variant and variant != "alle":
+        items = [i for i in items if i["variant"] in (variant, "alle")]
+    out = []
+    for it in items:
+        occ = _occurrences(it["at_km"], it["interval_km"], mileage)
+        if mileage < it["at_km"]:
+            nxt = it["at_km"]
+        elif it["interval_km"]:
+            nxt = it["at_km"] + occ * it["interval_km"]
+        else:
+            nxt = None
+        if nxt and 0 < (nxt - mileage) <= horizon_km:
+            out.append({**it, "next_km": nxt, "km_until": nxt - mileage})
+    return sorted(out, key=lambda x: x["km_until"])
+
+
 def carvertical_url(vin: str | None = None) -> str:
     base = "https://www.carvertical.com/de"
     return f"{base}/history?vin={vin}" if vin else base

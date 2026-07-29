@@ -5,7 +5,7 @@ from datetime import datetime, timezone
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from autobewertung.checks import mileage_plausibility, wear_status
+from autobewertung.checks import due_soon, mileage_plausibility, wear_status
 from autobewertung.db import init_db
 from autobewertung.sources.seed import SeedSource
 from autobewertung.sources.wear_import import WearImportSource
@@ -47,6 +47,22 @@ def test_wear_status_variant_filter():
     assert "Steuerkette" in comps               # N47-Kette dabei
     # N20-spezifische Posten sollten NICHT auftauchen
     assert not any("Spanner" in d["component"] for d in done_n47)
+
+
+def test_due_soon_warns_before_zahnriemen():
+    """Golf-Zahnriemen faellig bei 210k -> bei 200k Warnung 'in ~10k km'."""
+    conn = init_db(":memory:"); SeedSource().collect(conn); WearImportSource().collect(conn)
+    mid = conn.execute("SELECT id FROM car_model WHERE model='Golf'").fetchone()["id"]
+    soon = due_soon(conn, mid, "1.2/1.4 TSI (EA211)", 200000, horizon_km=15000)
+    zr = [s for s in soon if "Zahnriemen" in s["component"]]
+    assert zr and zr[0]["km_until"] == 10000
+
+
+def test_due_soon_empty_when_nothing_close():
+    conn = init_db(":memory:"); SeedSource().collect(conn); WearImportSource().collect(conn)
+    mid = conn.execute("SELECT id FROM car_model WHERE model='Golf'").fetchone()["id"]
+    # frisch nach Bremsen/Reifen -> in den naechsten 1000 km nichts
+    assert due_soon(conn, mid, None, 46000, horizon_km=1000) == []
 
 
 if __name__ == "__main__":

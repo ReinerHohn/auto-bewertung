@@ -299,6 +299,13 @@ def render_category(model, cat: str) -> None:
                 st.caption(f"Quelle: {r['source']}")
                 if r["url"]:
                     st.markdown(f"[Zum Inserat]({r['url']})")
+                # Konkretes Auto in den Kauf-Check schicken (km/EZ vorbelegt + Warnungen)
+                if st.button("🔍 Dieses konkrete Auto prüfen", key=f"chkbtn_{r['id']}", width="stretch"):
+                    st.session_state._sel_listing_km = r["mileage_km"]
+                    st.session_state._sel_listing_reg = r["first_reg"]
+                    st.session_state._sel_listing_model = mid
+                    st.session_state.cat = "check"
+                    st.rerun()
                 hist = pd.read_sql_query(
                     "SELECT ts AS Zeit, price AS Preis FROM price_point "
                     "WHERE listing_id=? ORDER BY ts", conn, params=(r["id"],))
@@ -404,32 +411,47 @@ def render_category(model, cat: str) -> None:
         } for it in items]), hide_index=True, width="stretch")
 
     elif cat == "check":
-        from autobewertung.checks import (CHECKLIST, carvertical_url,
+        from autobewertung.checks import (CHECKLIST, carvertical_url, due_soon,
                                           mileage_plausibility, wear_status)
         from autobewertung.wear import load_items
         st.markdown("#### 🕵️ Kauf-Check – Tacho-Betrug & Plausibilität")
 
-        lst = conn.execute("SELECT mileage_km, first_reg FROM listing WHERE model_id=? "
-                           "AND active=1 ORDER BY price LIMIT 1", (mid,)).fetchone()
+        # Vorbelegung: konkret angeklicktes Inserat, sonst guenstigstes Angebot
+        sel_km = st.session_state.get("_sel_listing_km")
+        sel_reg = st.session_state.get("_sel_listing_reg")
+        if st.session_state.get("_sel_listing_model") == mid and sel_km:
+            st.info(f"🚗 Konkretes Angebot: {sel_km:,.0f} km · EZ {sel_reg or '?'}".replace(",", "."))
+            def_km, def_reg = int(sel_km), sel_reg or ""
+        else:
+            lst = conn.execute("SELECT mileage_km, first_reg FROM listing WHERE model_id=? "
+                               "AND active=1 ORDER BY price LIMIT 1", (mid,)).fetchone()
+            def_km = int(lst["mileage_km"]) if lst and lst["mileage_km"] else 100000
+            def_reg = (lst["first_reg"] if lst else "") or ""
         c1, c2 = st.columns(2)
-        km = c1.number_input("Laufleistung des Kandidaten (km)", 0, 400000,
-                             int(lst["mileage_km"]) if lst and lst["mileage_km"] else 100000,
-                             5000, key=f"chk_km_{mid}")
-        reg = c2.text_input("Erstzulassung (YYYY-MM)", value=(lst["first_reg"] if lst else "") or "",
-                            key=f"chk_reg_{mid}")
+        km = c1.number_input("Laufleistung des Kandidaten (km)", 0, 400000, def_km, 5000, key=f"chk_km_{mid}")
+        reg = c2.text_input("Erstzulassung (YYYY-MM)", value=def_reg, key=f"chk_reg_{mid}")
+
+        # Untermodell (VIN-vorgewaehlt) – wird auch fuer die Warnungen gebraucht
+        _vars = sorted({i["variant"] for i in load_items(conn, mid) if i["variant"] != "alle"})
+        _vopts = ["— alle —"] + _vars
+        _vv = st.session_state.get("_vin_variant")
+        _vsel = st.selectbox("Untermodell / Motor", _vopts,
+                             index=_vopts.index(_vv) if _vv in _vars else 0, key=f"chk_var_{mid}")
+        variant = None if _vsel == "— alle —" else _vsel
+
+        # ⚠️ Nähe-Warnungen: was steht in den nächsten km an?
+        soon = due_soon(conn, mid, variant, km, horizon_km=15000)
+        if soon:
+            for s in soon:
+                st.warning(f"⚠️ **Achtung:** in ~{s['km_until']:,} km **{s['component']}** fällig "
+                           f"(~{s['cost_eur']:,.0f} €)".replace(",", "."))
+        else:
+            st.success("✅ In den nächsten 15.000 km steht nichts Größeres an.")
 
         pl = mileage_plausibility(km, reg)
         if pl:
             msg = f"**{pl['km_per_year']:.0f} km/Jahr** ({pl['age_years']:.1f} J) → {pl['verdict']}"
             {"warn": st.error, "info": st.info, "ok": st.success}[pl["level"]](msg)
-
-        # Untermodell wählen (VIN-Variante vorgewählt)
-        variants = sorted({i["variant"] for i in load_items(conn, mid) if i["variant"] != "alle"})
-        vopts = ["— alle —"] + variants
-        vv = st.session_state.get("_vin_variant")
-        variant = st.selectbox("Untermodell / Motor", vopts,
-                               index=vopts.index(vv) if vv in variants else 0, key=f"chk_var_{mid}")
-        variant = None if variant == "— alle —" else variant
 
         done, upcoming = wear_status(conn, mid, variant, km)
         cc1, cc2 = st.columns(2)
