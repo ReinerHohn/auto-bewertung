@@ -245,14 +245,23 @@ def score_models(conn: sqlite3.Connection, crit: Criteria) -> RankResult:
 
         is_ev = bool(spec and (spec["drivetrain"] or "").lower() == "elektro")
 
-        # EV-Schnelllade-Pflicht
+        # EV-Schnelllade-Pflicht (mit Langstrecken-Ausnahme: viel Reichweite
+        # -> seltener laden -> langsameres Laden akzeptabel)
         if is_ev and crit.ev_min_charge_km_30min:
             kmh = (spec["km_per_30min"] or 0) if spec else 0
-            if kmh < crit.ev_min_charge_km_30min:
-                rng = (spec["range_km"] or 0) if spec else 0
-                excluded.append(ExcludedModel(
-                    label, f"laedt nur {kmh:.0f} km in 30 min nach "
-                           f"(Ziel >={crit.ev_min_charge_km_30min:.0f}); Reichweite {rng:.0f} km ok"))
+            rng = (spec["range_km"] or 0) if spec else 0
+            fast_ok = kmh >= crit.ev_min_charge_km_30min
+            long_ok = bool(crit.ev_long_range_km and rng >= crit.ev_long_range_km
+                           and kmh >= (crit.ev_min_charge_km_30min_longrange or 0))
+            if not (fast_ok or long_ok):
+                reason = f"Ladetempo {kmh:.0f} km/30min zu niedrig (Ziel >={crit.ev_min_charge_km_30min:.0f}"
+                if crit.ev_long_range_km:
+                    reason += (f", oder >={crit.ev_min_charge_km_30min_longrange or 0:.0f} ab "
+                               f"{crit.ev_long_range_km:.0f} km Reichweite)")
+                    reason += f"; hat {rng:.0f} km Reichweite"
+                else:
+                    reason += ")"
+                excluded.append(ExcludedModel(label, reason))
                 continue
 
         # Budget (mit EV-Ausnahme)

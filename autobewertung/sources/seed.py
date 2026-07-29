@@ -52,7 +52,7 @@ RELIABILITY = {
 }
 MAENGEL = {
     "VW Golf": 6.5, "Toyota Corolla": 3.0, "BMW 3er": 5.5, "Skoda Octavia": 6.0,
-    "Ford Focus": 8.5, "Mazda 3": 4.5, "Tesla Model 3": 5.0, "Hyundai Ioniq 5": 3.5,
+    "Ford Focus": 8.5, "Mazda 3": 4.5, "Tesla Model 3": 14.5, "Hyundai Ioniq 5": 5.5,
     "VW ID.3 Pro": 4.5, "VW ID.3 Pro S": 4.5, "Renault Zoe": 4.0,
 }
 

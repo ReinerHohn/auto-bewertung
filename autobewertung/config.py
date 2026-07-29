@@ -54,6 +54,9 @@ class Criteria:
     # jaehrliche Ersparnis vs. Verbrenner es ueber die Haltedauer rechtfertigt.
     ev_price_exception: bool = True
     ev_min_charge_km_30min: float | None = None  # Pflicht: km nachladbar in 30 min
+    # Langstrecken-Ausnahme: ab dieser Reichweite reicht ein niedrigeres Ladetempo
+    ev_long_range_km: float | None = None
+    ev_min_charge_km_30min_longrange: float | None = None
     # Ausstattung
     want_features: list[str] = field(default_factory=lambda: list(DEFAULT_WANT_FEATURES))
     avoid_matrix: bool = True            # teure Matrix-/Voll-LED meiden
@@ -91,6 +94,8 @@ def load_criteria(path: Path | str = CRITERIA_FILE) -> Criteria:
         home_plz=raw.get("home_plz"),
         ev_price_exception=raw.get("ev_price_exception", True),
         ev_min_charge_km_30min=raw.get("ev_min_charge_km_30min"),
+        ev_long_range_km=raw.get("ev_long_range_km"),
+        ev_min_charge_km_30min_longrange=raw.get("ev_min_charge_km_30min_longrange"),
         want_features=raw.get("want_features", list(DEFAULT_WANT_FEATURES)),
         avoid_matrix=raw.get("avoid_matrix", True),
         tco=tco,

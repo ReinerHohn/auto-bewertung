@@ -353,6 +353,9 @@ classes = list(CLASS_RANK.keys())
 min_class = st.sidebar.selectbox("Mindest-Klasse", classes, index=classes.index("kompakt"))
 ev_exc = st.sidebar.checkbox("EV-Ausnahme (darf teurer sein, wenn es spart)", True)
 ev_km30 = st.sidebar.number_input("EV: min. km nachladbar in 30 min", 0, 800, 300, step=25)
+ev_lr = st.sidebar.number_input("EV: Langstrecke ab Reichweite (km)", 0, 800, 400, step=25,
+                                help="Ab dieser Reichweite reicht langsameres Laden.")
+ev_km30_lr = st.sidebar.number_input("EV: min. km/30 min bei Langstrecke", 0, 500, 180, step=10)
 max_km = st.sidebar.number_input("Max. km (0 = egal)", 0, 400000, 0, step=10000)
 home_plz = st.sidebar.text_input("Deine PLZ (Werkstattnaehe)", "79100")
 
@@ -382,7 +385,9 @@ st.sidebar.caption(f"→ Strom-Mischpreis: {_tco.price_strom_blend:.3f} €/kWh"
 crit = Criteria(
     weights=weights, max_price=max_price or None, max_mileage_km=max_km or None,
     min_vehicle_class=min_class, home_plz=home_plz or None,
-    ev_price_exception=ev_exc, ev_min_charge_km_30min=ev_km30 or None, tco=_tco,
+    ev_price_exception=ev_exc, ev_min_charge_km_30min=ev_km30 or None,
+    ev_long_range_km=ev_lr or None, ev_min_charge_km_30min_longrange=ev_km30_lr or None,
+    tco=_tco,
 )
 
 result = score_models(conn, crit)

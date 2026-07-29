@@ -23,7 +23,10 @@ min_vehicle_class: kompakt # ab Golf/Auris-Klasse aufwaerts
 # Ersparnis (laufende Kosten) ggue. dem Verbrenner-Median den Aufpreis ueber
 # die Haltedauer deckt.
 ev_price_exception: true
-ev_min_charge_km_30min: 300   # Pflicht fuer E-Autos: >=300 km nachladbar in 30 min
+ev_min_charge_km_30min: 300   # E-Auto normal: >=300 km nachladbar in 30 min
+# Langstrecken-Ausnahme: ab viel Reichweite reicht langsameres Laden (seltener laden)
+ev_long_range_km: 400              # ab dieser Reichweite ...
+ev_min_charge_km_30min_longrange: 180  # ... reichen 180 km/30 min
 
 home_plz: "79100"          # fuer Werkstattnaehe (Freiburg)
 
