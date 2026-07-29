@@ -10,15 +10,17 @@ from .kba_recalls import KbaRecallSource
 from .reliability_import import ReliabilityImportSource
 from .seed import SeedSource
 from .watchlist import WatchlistSource
+from .wear_import import WearImportSource
 
 
 def default_sources() -> list[Source]:
-    # ReliabilityImportSource NACH Seed: echte TUEV/ADAC-Werte ueberschreiben Seeds.
-    return [SeedSource(), ReliabilityImportSource(), WatchlistSource(),
-            InserateSource(), KbaRecallSource()]
+    # Import-Quellen NACH Seed: echte TUEV/ADAC- + Verschleiss-Daten ergaenzen Seeds.
+    return [SeedSource(), ReliabilityImportSource(), WearImportSource(),
+            WatchlistSource(), InserateSource(), KbaRecallSource()]
 
 
 __all__ = [
     "Source", "CollectResult", "SeedSource", "ReliabilityImportSource",
-    "WatchlistSource", "InserateSource", "KbaRecallSource", "default_sources",
+    "WearImportSource", "WatchlistSource", "InserateSource", "KbaRecallSource",
+    "default_sources",
 ]

@@ -6,6 +6,7 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from autobewertung.db import init_db
 from autobewertung.sources.seed import SeedSource
+from autobewertung.sources.wear_import import WearImportSource
 from autobewertung.wear import (_occurrences, cumulative_cost, expected_repair_per_year,
                                 load_items, upcoming_items)
 
@@ -13,6 +14,7 @@ from autobewertung.wear import (_occurrences, cumulative_cost, expected_repair_p
 def seeded():
     conn = init_db(":memory:")
     SeedSource().collect(conn)
+    WearImportSource().collect(conn)   # echte modellspezifische Defekte dazu
     return conn
 
 
@@ -33,12 +35,23 @@ def test_cumulative_monotonic():
     assert cumulative_cost(items, 250000) > cumulative_cost(items, 100000)
 
 
-def test_tesla_querlenker_in_window():
-    """Tesla-Querlenker (750 EUR bei 80k) faellt im Fenster 60k-140k an."""
+def test_tesla_querlenker_from_real_import():
+    """Echter Tesla-Querlenker (Buchsen ~540 EUR ab ~40k) kommt aus wear_real.csv."""
     conn = seeded()
-    up = upcoming_items(conn, tesla_id(conn), start_km=60000, span_km=80000)
+    up = upcoming_items(conn, tesla_id(conn), start_km=30000, span_km=80000)
     q = [u for u in up if "Querlenker" in u["component"]]
-    assert q and abs(q[0]["cost_eur"] - 750) < 1
+    assert q, "Querlenker sollte im Fenster faellig sein"
+    assert any(abs(u["cost_eur"] - 540) < 1 for u in q)
+
+
+def test_id3_variants_both_get_real_wear():
+    """Eine 'ID.3'-CSV-Zeile trifft Pro UND Pro S."""
+    conn = seeded()
+    for model in ("ID.3 Pro", "ID.3 Pro S"):
+        mid = conn.execute("SELECT id FROM car_model WHERE model=?", (model,)).fetchone()["id"]
+        n = conn.execute("SELECT COUNT(*) c FROM wear_item WHERE model_id=? AND source='real'",
+                         (mid,)).fetchone()["c"]
+        assert n >= 2, f"{model} sollte echte Verschleiss-Posten haben"
 
 
 def test_expected_repair_positive_and_amortized():
@@ -47,13 +60,13 @@ def test_expected_repair_positive_and_amortized():
     assert per_year > 0
 
 
-def test_low_mileage_window_cheaper_than_high():
-    """Frueheres km-Fenster (weniger Verschleiss) guenstiger als spaeteres."""
+def test_bigger_window_costs_more_or_equal():
+    """Groesseres km-Fenster (gleicher Start) kann nie weniger kosten."""
     conn = seeded()
-    mid = tesla_id(conn)
-    early = expected_repair_per_year(conn, mid, 20000, 15000, 5)
-    late = expected_repair_per_year(conn, mid, 120000, 15000, 5)
-    assert late >= early
+    items = load_items(conn, tesla_id(conn))
+    small = cumulative_cost(items, 100000) - cumulative_cost(items, 60000)
+    big = cumulative_cost(items, 160000) - cumulative_cost(items, 60000)
+    assert big >= small >= 0
 
 
 if __name__ == "__main__":

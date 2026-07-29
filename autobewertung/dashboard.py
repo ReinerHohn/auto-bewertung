@@ -358,11 +358,15 @@ def render_category(model, cat: str) -> None:
         cdf = pd.DataFrame(curve, columns=["km", "Kumulierte Reparaturkosten €"]).set_index("km")
         st.markdown("**Kostenkurve: kumulierte Reparaturkosten über die Laufleistung**")
         st.line_chart(cdf)
-        # Was fällt in DEINEM Halte-Fenster an?
-        start = st.session_state.get("_start_km", 80000)
-        span = st.session_state.get("_span_km", 75000)
+        # Was fällt in DEINEM Halte-Fenster an? – per Regler einstellbar
+        st.markdown("**Dein km-Fenster** (einstellbar):")
+        cS, cP = st.columns(2)
+        start = cS.slider("Start-Laufleistung (km)", 0, 250000,
+                          int(st.session_state.get("_start_km", 80000)), 5000, key=f"wstart_{mid}")
+        span = cP.slider("Fahrleistung im Zeitraum (km)", 5000, 200000,
+                         int(st.session_state.get("_span_km", 75000)), 5000, key=f"wspan_{mid}")
         up = upcoming_items(conn, mid, start, span)
-        st.markdown(f"**Fällig in deinem Fenster (ca. {start:,.0f}–{start+span:,.0f} km):**"
+        st.markdown(f"**Fällig zwischen ca. {start:,.0f} und {start+span:,.0f} km:**"
                     .replace(",", "."))
         if up:
             updf = pd.DataFrame([{

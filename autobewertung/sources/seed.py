@@ -413,10 +413,9 @@ class SeedSource(Source):
                     "INSERT INTO weak_point(model_id,component,description,severity,cost_eur,source)"
                     " VALUES (?,?,?,?,?,?)", (mid, comp, desc, sev, cost, "seed"))
 
-            # Verschleiss-Teile: generisch je Antrieb + modellspezifisch
-            conn.execute("DELETE FROM wear_item WHERE model_id=?", (mid,))
-            wear = list(WEAR_TEMPLATE.get(dt, [])) + list(WEAR_SPECIFIC.get(key, []))
-            for comp, at_km, interval, cost in wear:
+            # Generische Verschleiss-Teile je Antrieb (modellspezifisch -> wear_real.csv)
+            conn.execute("DELETE FROM wear_item WHERE model_id=? AND source='seed'", (mid,))
+            for comp, at_km, interval, cost in WEAR_TEMPLATE.get(dt, []):
                 conn.execute(
                     "INSERT INTO wear_item(model_id,component,at_km,interval_km,cost_eur,source)"
                     " VALUES (?,?,?,?,?,?)", (mid, comp, at_km, interval, cost, "seed"))

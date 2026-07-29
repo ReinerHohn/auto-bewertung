@@ -1,0 +1,65 @@
+# Recherchierte, quellenbelegte MODELLSPEZIFISCHE Defekte (km + Kosten).
+# Generische Verschleissteile (Bremsen/Reifen/12V/Stossdaempfer) kommen aus dem
+# Seed-Template je Antrieb -> hier nur die typischen Modell-Schwachstellen.
+# Nur km-getriebene Posten (at_km>0, cost>0). Quelle je Zeile. Kosten = freie Werkstatt DE.
+make,model,component,at_km,interval_km,cost_eur,source_url,note
+VW,Golf,Zahnriemen 1.2/1.4 TSI (EA211),210000,210000,550,https://www.autodoc.de/info/zahnriemenwechsel-beim-golf-7,EA211 hat WARTUNGSARMEN Zahnriemen (KEINE Kette wie EA111)
+VW,Golf,Steuerkette 1.8/2.0 TSI (EA888),120000,0,1000,https://www.deine-autoreparatur.de/vw-golf-7/,nur EA888-Benziner; Kettenlaengung ab ~100-120tkm
+VW,Golf,DSG DQ200 Kupplung,100000,0,1200,https://www.autodoc.de/info/dsg-kupplung-wechseln-kosten,7-Gang trocken; 80-150tkm
+VW,Golf,DSG DQ200 Mechatronik,120000,0,2000,https://www.auto-motor-und-sport.de/tech-zukunft/werkstatt/warum-das-dq200-im-vw-golf-7-besondere-pflege-erfordert/,Oelwechsel alle 60tkm empfohlen
+VW,Golf,Wasserpumpe/Thermostatgehaeuse,100000,0,450,https://carwiki.de/golf-7-wasserpumpe-wechseln,Kuehlmittelverlust haeufig
+VW,Golf,AGR/Kuehler 2.0 TDI,120000,0,600,https://motorenlager.de/blog/vw-ea288-2-0-tdi-probleme/,haeufigster EA288-Schwachpunkt
+Skoda,Octavia,Zahnriemen+Wasserpumpe,210000,210000,800,https://www.repareo.de/skoda-octavia-zahnriemenwechsel-wann/,Riemen+WaPu 655-1030 EUR
+Skoda,Octavia,Wasserpumpe/Ladedruck,110000,0,450,https://www.auto-motor-und-sport.de/mittelklasse/gebrauchtwagen/schwachstellen-des-skoda-octavia-iii,ADAC-Pannenschwerpunkt
+Skoda,Octavia,DSG DQ200 Mechatronik/Kupplung,100000,0,1500,https://www.autoteileprofi.de/ratgeber/der-skoda-octavia-probleme,ruckeln/Ausfall
+Skoda,Octavia,AGR-Ventil TDI,120000,0,600,https://kfz-dietrich.com/blog/skoda-octavia-3-typische-probleme/,ab ~120tkm
+Skoda,Octavia,Scheinwerfer Mikrorisse,100000,0,600,https://gebrauchtwagenberater.de/skoda-octavia-schwachstellen/,haeufige HU-Beanstandung
+Seat,Leon,Zahnriemen 1.2/1.4 TSI,210000,210000,550,https://www.autobild.de/artikel/seat-cupra-leon-im-tuev-check-2026--28090849.html,EA211 wartungsarm
+Seat,Leon,Steuerkette 1.8 TSI,100000,0,1100,https://automobilsalon-bellemann.de/news/seat-leon-gebraucht-schwachstellen-steuerkette/,nur EA888
+Seat,Leon,DSG Kupplung,100000,0,1300,https://www.autobild.de/artikel/seat-cupra-leon-im-tuev-check-2026--28090849.html,Oelwechsel-Doku wichtig
+Seat,Leon,Scheinwerfer Mikrorisse,100000,0,700,https://www.autobild.de/artikel/seat-cupra-leon-im-tuev-check-2026--28090849.html,laut TUEV haeufig
+Audi,A3,Steuerkette 1.8 TFSI,100000,0,1000,https://motorenlager.de/blog/audi-1-8-tfsi-probleme/,Kettenlaengung ab ~100tkm; Kaltstart-Rasseln
+Audi,A3,Oelverbrauch Kolbenringe 1.8/2.0 TFSI,100000,0,2200,https://techservicecenter.de/oelverbrauch-audi-a3/,Gen2 betroffen; >0.5l/1000km
+Audi,A3,Hochdruckpumpe,120000,0,550,https://motorenlager.de/blog/audi-1-8-tfsi-probleme/,HDP 350-700 EUR
+Audi,A3,DSG Kupplung,120000,0,1400,https://automobilsalon-bellemann.de/news/dsg-reparatur-mechatronik-kupplung-kosten/,je nach Getriebe
+VW,ID.3 Pro,12V/DC-DC-Wandler,30000,0,300,https://www.autodoc.de/info/probleme-mit-dem-vw-id3,Ruhestrom-Bug; oft Kulanz
+VW,ID.3 Pro,Waermepumpe/Klimakompressor,50000,0,1500,https://carwiki.de/vw-id-3-klimaanlage-defekt/,fruehe Ausfaelle; oft Kulanz
+VW,ID.3 Pro S,12V/DC-DC-Wandler,30000,0,300,https://www.autodoc.de/info/probleme-mit-dem-vw-id3,Ruhestrom-Bug; oft Kulanz
+VW,ID.3 Pro S,Waermepumpe/Klimakompressor,50000,0,1500,https://carwiki.de/vw-id-3-klimaanlage-defekt/,fruehe Ausfaelle; oft Kulanz
+Toyota,Corolla,Hybrid-Hochvoltbatterie (Modul),160000,0,1779,https://www.heise.de/news/Bosch-bietet-Reparaturkit-fuer-Toyota-Batterien-an-9344045.html,Bosch-Kit 1779 netto; haelt oft Autoleben
+Toyota,Auris,Hybrid-Hochvoltbatterie,150000,0,1779,https://www.heise.de/news/Bosch-bietet-Reparaturkit-fuer-Toyota-Batterien-an-9344045.html,meist nur einzelne Module defekt
+Toyota,Auris,Zuendspulen 1.2 Turbo,100000,0,400,https://gebrauchtwagenberater.de/toyota-auris-probleme-krankheiten/,Serienfehler bis Mitte 2018
+Mazda,3,Rost Unterboden/Auspuff,60000,0,600,https://www.autobild.de/artikel/mazda3-typ-bm-gebrauchtwagen-test-17118289.html,Rost schon nach ~4 Jahren
+Mazda,3,Federn/Daempfer,60000,0,500,https://www.autobild.de/artikel/mazda3-typ-bm-gebrauchtwagen-test-17118289.html,oft schon bei 2. HU auffaellig
+Hyundai,i30,Steuerkette 1.4/1.6 (Defekt)+Wasserpumpe,120000,0,700,https://www.hyundaiboard.de/thread/25065-arbeitszeit-kosten-steuerkettentausch-i30/,einzelne Ketten-Probleme
+Hyundai,i30,7-DCT Doppelkupplung,100000,0,1200,https://gebrauchtwagenberater.de/hyundai-i30-probleme-krankheiten/,ruckelt; verschleissfreudig
+Hyundai,i30,Radaufhaengung/Fahrwerk,90000,0,300,https://www.autobild.de/artikel/hyundai-i30-gebraucht-schwachstellen-28133241.html,haeufig TUEV-bemaengelt
+Kia,Ceed,7-DCT Doppelkupplung,110000,0,1200,https://gebrauchtwagenberater.de/kia-ceed-schwachstellen/,vorzeitiger Kupplungsverschleiss
+Kia,Ceed,Auspuffanlage,90000,0,500,https://www.autobild.de/artikel/kia-ceed-im-tuev-check-2026-28259965.html,faellt negativ auf
+Honda,Civic,1.5 Turbo Oelverduennung,80000,0,300,https://www.motor-talk.de/forum/honda-civic-1-5-liter-turbo-t7290180.html,Kraftstoff im Oel; Kaltklima
+Honda,Civic,CVT-Automatik,70000,0,1500,https://www.autodoc.de/info/probleme-mit-dem-honda-civic,ruckelt/Geraeusche 60-80tkm
+BMW,3er,Steuerkette N47 Diesel,120000,0,1540,https://es-autoservice-ffm.de/2019/05/04/steuerkette-wechseln-n47-motor-bmw/,beruechtigt; Festpreis 1540 inkl MwSt
+BMW,3er,Steuerkette+Spanner N20 Benziner,80000,0,2250,https://motorschmiede.com/bmw-steuerkette-wechseln-kosten/,Spanner verschleisst frueh
+BMW,3er,Oelverbrauch Kolbenringe N20,100000,0,3000,https://motorenlager.de/blog/bmw-n20-motor-steuerkette-oelverbrauch/,0.5-1 l/1000km
+BMW,3er,Querlenker Vorderachse,100000,0,300,https://www.repareo.de/querlenker-bmw/,typ. Fahrwerksverschleiss
+Opel,Astra,Steuerkette 1.4 Turbo,100000,0,1200,https://caroobi.com/service/steuerkette-wechseln/opel/,Laengung teils <100tkm
+Opel,Astra,Thermostat/Wasserpumpe,100000,0,400,https://www.autodoc.de/info/opel-astra-k-probleme,el. geregelter Thermostat Schwachstelle
+Opel,Astra,Zuendspulen+Kerzen,80000,80000,250,https://www.autodoc.de/info/opel-astra-k-probleme,Wiederholverschleiss
+Peugeot,308,Zahnriemen im Oel (1.2 PureTech),100000,100000,550,https://www.repareo.de/zahnriemenwechsel-peugeot-308/,beruechtigt; spaetestens 100tkm/6J
+Peugeot,308,Turbolader,120000,0,2500,https://carsearchagent.com/blog/psa-stellantis-1-2-puretech-motor-zahnriemen/,v.a. GTi; oft Folge Oelmangel
+Renault,Megane,Steuerkette TCe,120000,0,1000,https://carwiki.de/renault-megane-probleme,TCe-Ketten laengen sich
+Renault,Megane,Zahnriemen 1.5 dCi,150000,150000,600,https://www.repareo.de/zahnriemenwechsel-renault-megane/,Intervall 150tkm/6J
+Ford,Focus,Zylinderkopf/Kuehlmittel 1.0 EcoBoost,80000,0,1100,https://www.autodoc.de/s/ford-focus-1-0-ecoboost-zylinderkopfdichtung,beruechtigt; schleichender Kuehlmittelverlust
+Ford,Focus,Zahnriemen im Oel 1.0 EcoBoost,100000,100000,1300,https://autohaus-lev.de/leistungen/ford-1-liter-ecoboost-motor-zahnriemenwechsel/,Festpreis 1300 inkl
+Ford,Focus,Powershift DPS6 Doppelkupplung,80000,0,1500,https://caroobi.com/service/kupplung-wechseln/ford/,beruechtigt; Ruckeln im Stadtbetrieb
+Ford,Focus,Getriebesteuergeraet TCM,80000,0,1000,https://blog.upfix.com/ford-tcm-repair-for-dps6-transmission-problems,Fertigungsfehler -> Limp-Mode
+Tesla,Model 3,Vordere Querlenker/Buchsen,40000,0,540,https://www.juers-lackiererei.de/blog/neu-tesla-querlenker-buchsen-wechseln/,beruechtigt; Symptome oft 30-50tkm; Buchsen/Achse
+Tesla,Model 3,Querlenker komplett+Vermessung,90000,0,1300,https://hh-autos.com/tesla-model-3-mangel-131-tuv-quote/,1000-1600 EUR/Achse
+Tesla,Model 3,Waermepumpe/Supermanifold-Ventil,60000,0,3600,https://carwiki.de/tesla-model-3-klimaanlage-defekt/,Bj ab 2021; heizt nicht im Winter
+Tesla,Model 3,MCU eMMC-Speicher,120000,0,300,https://teslawissen.ch/tesla-emmc-speicherchip-probleme/,fruehe Baujahre; Tegra-Board ~300
+Hyundai,Ioniq 5,Reifen HA hoher Sturz (E-GMP),20000,25000,400,https://www.ioniqforum.com/threads/camber-suspension.51199/,dokumentierter Sturz bis -3.3 Grad HA
+Hyundai,Kona Elektro,Klimakompressor/Kaeltemittel,80000,0,800,https://carwiki.de/hyundai-kona-klimaanlage-defekt/,Kompressortausch
+Renault,Zoe,Waermepumpe/Heizung,25000,0,1500,https://carwiki.de/renault-zoe-klimaanlage-defekt/,faellt bei Kaelte aus; ab 20-30tkm
+Renault,Zoe,Antriebseinheit Lagerdefekt,100000,0,1500,https://www.elektroauto.community/blogs/entry/302-renault-zoe-motorschaden/,Lagerreparatur frei ~1500
+Cupra,Born,Klimaanlage Kuehlleistung,40000,0,500,https://carwiki.de/cupra-born-probleme/,grob; junges Modell wenig Langzeitdaten
+Polestar,2,Klimakompressor,80000,0,650,https://carwiki.de/polestar-2-klimaanlage-defekt/,Kompressor/Kondensator
