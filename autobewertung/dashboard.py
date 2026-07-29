@@ -390,6 +390,7 @@ left, right = st.columns([2.15, 1.35])
 with left:
     st.subheader(f"Ranking · {len(ranked)} Modelle")
     st.caption("👉 **Modellname** oder eine **Zahl** anklicken – Detail erscheint rechts. "
+               "Antrieb: ⚡ Elektro · 🔋 Hybrid · ⛽ Verbrenner. "
                "Mängel = TÜV-Quote %, Pannen = pro 1000, Teile = Verfügbarkeit %.")
     WIDTHS = [3.0, 1.3] + [1.0] * len(CATCOLS)
     head = st.columns(WIDTHS)
@@ -400,7 +401,8 @@ with left:
         mt = real_metrics(m.model_id)
         c = st.columns(WIDTHS)
         sel_model = st.session_state.model_id == m.model_id
-        if c[0].button(f"{'▶ ' if sel_model else ''}{i}. {m.label}", key=f"mdl_{m.model_id}",
+        mark = {"elektro": "⚡", "hybrid": "🔋"}.get(m.drivetrain, "⛽")
+        if c[0].button(f"{'▶ ' if sel_model else ''}{mark} {i}. {m.label}", key=f"mdl_{m.model_id}",
                        width="stretch", type="primary" if sel_model else "secondary"):
             st.session_state.model_id = m.model_id
             st.rerun()
