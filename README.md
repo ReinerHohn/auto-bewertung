@@ -90,7 +90,8 @@ autobewertung/
   tco.py           Total-Cost-of-Ownership-Berechnung + Fahrzeugklassen
   scoring.py       Aggregation + TCO + Filter → 6 Dimensionen → Gesamtscore
   collect.py       CLI: init / run / rank
-  dashboard.py     Streamlit-Dashboard (Tabelle, Filter, Detail, Preischart)
+  dashboard.py     Streamlit-Dashboard mit Drill-down: Zeile=Auto + Spalte=
+                   Kategorie anklicken -> Liste -> Eintrag aufklappen (Details)
   sources/
     base.py        Adapter-Interface (robots-Check, höfliches Rate-Limit)
     seed.py        Beispieldaten (sofort lauffähig)
