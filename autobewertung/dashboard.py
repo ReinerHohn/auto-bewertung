@@ -307,7 +307,7 @@ def render_category(model, cat: str) -> None:
         st.divider()
         st.markdown("**Erfasste Angebote & Preisverlauf (je Angebot)**")
         rows = conn.execute(
-            "SELECT id,title,price,mileage_km,first_reg,location,plz,url,source,price_rating "
+            "SELECT id,title,price,mileage_km,first_reg,location,plz,url,source,price_rating,power_kw "
             "FROM listing WHERE model_id=? AND active=1 ORDER BY price", (mid,)).fetchall()
         if not rows:
             st.info("Noch keine Angebote in der DB – Marktpreis geschätzt. "
@@ -319,12 +319,16 @@ def render_category(model, cat: str) -> None:
             rating = PRICE_RATING.get(r["price_rating"], "")
             title = (f"{r['price']:,.0f} € · {r['mileage_km'] or '?'} km · "
                      f"EZ {r['first_reg'] or '?'}").replace(",", ".")
+            kw = f" · {r['power_kw']} kW" if r["power_kw"] else ""
             with st.expander(f"{rating + ' · ' if rating else ''}{title} · {r['location'] or ''}"):
+                if r["source"] == "autoscout24" and r["title"]:
+                    st.write(f"**Version:** {r['title']}{kw}")
                 st.write(f"**Preis:** {r['price']:,.0f} €".replace(",", ".")
                          + (f" — {rating}" if rating else ""))
                 st.write(f"**Laufleistung:** {r['mileage_km'] or '?'} km")
                 st.write(f"**Erstzulassung:** {r['first_reg'] or '?'}")
-                st.write(f"**Ort:** {r['location'] or '-'} (PLZ {r['plz'] or '-'})")
+                st.write(f"**Ort:** {r['location'] or '-'} (PLZ {r['plz'] or '-'})"
+                         + (f" · {r['power_kw']} kW" if r["power_kw"] else ""))
                 st.caption(f"Quelle: {r['source']}")
                 if r["url"]:
                     st.markdown(f"[Zum Inserat]({r['url']})")
