@@ -370,6 +370,49 @@ EQUIP["Renault Zoe"] = {"einparkhilfe", "rueckfahrkamera"}
 MATRIX_MODELS = {"Audi A3", "BMW 3er", "VW Golf", "Kia EV6", "Polestar 2", "Hyundai Ioniq 5"}
 
 
+# --- Weitere (guenstige) E-Autos zum Pruefen --------------------------------
+MODELS += [
+    ("Kia", "e-Niro", "64 kWh (2019-2022)", 2019, 2022, "SUV", "Elektro"),
+    ("Renault", "Megane E-Tech", "60 kWh (2022-)", 2022, 2025, "Kompakt", "Elektro"),
+    ("Nissan", "Leaf e+", "62 kWh (2019-)", 2019, 2024, "Kompakt", "Elektro"),
+    ("VW", "e-Golf", "35 kWh (2017-2020)", 2017, 2020, "Kompakt", "Elektro"),
+    ("BMW", "i3", "42 kWh (2019-2022)", 2019, 2022, "Kleinwagen", "Elektro"),
+]
+SPECS.update({
+    "Kia e-Niro":            ("elektro", "suv",        None, 16.5, 64.0, 400,  77, 190, 520, 0, 23000),
+    "Renault Megane E-Tech": ("elektro", "kompakt",    None, 16.5, 60.0, 450, 130, 250, 520, 0, 26500),
+    "Nissan Leaf e+":        ("elektro", "kompakt",    None, 18.0, 62.0, 380,  55, 140, 500, 0, 19500),
+    "VW e-Golf":             ("elektro", "kompakt",    None, 16.0, 32.0, 230,  40, 130, 470, 0, 14000),
+    "BMW i3":                ("elektro", "kleinwagen", None, 15.0, 37.0, 260,  50, 150, 520, 0, 18000),
+})
+RELIABILITY.update({"Kia e-Niro": 4.0, "Renault Megane E-Tech": 6.0, "Nissan Leaf e+": 4.5,
+                    "VW e-Golf": 3.4, "BMW i3": 5.0})
+MAENGEL.update({"Kia e-Niro": 4.0, "Renault Megane E-Tech": 4.5, "Nissan Leaf e+": 4.0,
+                "VW e-Golf": 3.4, "BMW i3": 4.5})
+WEAK.update({
+    "Kia e-Niro": [("ICCU", "12V/Ladewandler (Hyundai/Kia-Familie)", 2, 1200)],
+    "Renault Megane E-Tech": [("Software", "Infotainment/Assistenz Fruehserien", 2, 300)],
+    "Nissan Leaf e+": [("Akku", "Passivkuehlung -> Degradation/Rapidgate bei Hitze", 2, 0),
+                       ("CHAdeMO", "langsames/aussterbendes Schnellladen", 1, 0)],
+    "VW e-Golf": [("Reichweite", "kleiner Akku ~230 km", 1, 0)],
+    "BMW i3": [("Reichweite", "kleiner Akku", 1, 0)],
+})
+REPAIR.update({k: [("inspektion", 200, "pro_jahr"), ("bremsfluessigkeit", 120, "pro_intervall")]
+               for k in ["Kia e-Niro", "Renault Megane E-Tech", "Nissan Leaf e+", "VW e-Golf", "BMW i3"]})
+PARTS.update({"Kia e-Niro": (80, 100), "Renault Megane E-Tech": (78, 95), "Nissan Leaf e+": (80, 95),
+              "VW e-Golf": (90, 90), "BMW i3": (75, 120)})
+LISTINGS.update({
+    "Kia e-Niro": [(22900, 60000, "2020-05", "79106", "Freiburg"),
+                   (24900, 40000, "2021-03", "79100", "Freiburg")],
+    "Renault Megane E-Tech": [(26500, 35000, "2022-06", "79111", "Freiburg")],
+    "Nissan Leaf e+": [(19500, 55000, "2020-01", "79098", "Freiburg")],
+    "VW e-Golf": [(14000, 70000, "2019-03", "79100", "Freiburg")],
+    "BMW i3": [(18000, 50000, "2020-05", "79106", "Freiburg")],
+})
+DEPR.update({"Kia e-Niro": 0.15, "Renault Megane E-Tech": 0.16, "Nissan Leaf e+": 0.16,
+             "VW e-Golf": 0.15, "BMW i3": 0.14})
+
+
 class SeedSource(Source):
     name = "seed"
     live = True

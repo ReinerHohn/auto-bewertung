@@ -614,15 +614,24 @@ if not ranked and not result.excluded:
     st.warning("Keine Daten. Erst `python -m autobewertung.collect run` ausführen.")
     st.stop()
 
-# --- Sortierung (inkl. Gesamtkosten über die Haltedauer) --------------------
-def _total_cost(m):
-    return (m.annual_tco or 10**9) * years + 0  # annual_tco*Jahre = komplette Haltekosten
+# --- Gesamtkosten fuer 5 UND 10 Jahre (jeweils exakt mit eigener Wertverlust-/
+#     Verschleiss-Rechnung ueber die Haltedauer) --------------------------------
+import dataclasses as _dc
+
+
+def _totals_for(n: int) -> dict:
+    crit_n = _dc.replace(crit, tco=_dc.replace(crit.tco, holding_years=n))
+    r = score_models(conn, crit_n)
+    return {m.model_id: (m.annual_tco * n) for m in r.ranked if m.annual_tco}
+
+
+T5, T10 = _totals_for(5), _totals_for(10)
 SORTS = {
     "🏆 Gesamtscore": lambda m: -m.total,
-    f"💶 Gesamtkosten {years} J (niedrigste)": _total_cost,
-    "🏷️ Kaufpreis (niedrigste)": lambda m: m.purchase_price or 10**9,
-    "📉 TCO/Jahr (niedrigste)": lambda m: m.annual_tco or 10**9,
-    "📈 Wertstabilität (beste)": lambda m: m.dims.get("value_stability", 0) * -1,
+    "💶 Gesamtkosten 5 J": lambda m: T5.get(m.model_id, 10**12),
+    "💶 Gesamtkosten 10 J": lambda m: T10.get(m.model_id, 10**12),
+    "🏷️ Kaufpreis": lambda m: m.purchase_price or 10**12,
+    "📈 Wertstabilität (beste)": lambda m: -m.dims.get("value_stability", 0),
 }
 sort_choice = st.radio("Sortieren nach", list(SORTS), index=1, horizontal=True, key="sortby")
 ranked = sorted(ranked, key=SORTS[sort_choice])
@@ -684,8 +693,8 @@ with left:
                "Antrieb ⚡Elektro/🔋Hybrid/⛽Verbrenner · **📉 = hoher Wertverlust (≥15 %/J)** · "
                "Wertst = Wertverlust %/J · Ausst = Wunsch-Assistenz von 4 (⚠️ oft teure Matrix-LED) · "
                "Mängel = TÜV % · Pannen /1000 · Teile = Verfügbarkeit %.")
-    HEADERS = ["Modell", "Baujahr", "Preis", "Vers/J", f"GESAMT {years}J", "Wertverl/J", "🚨"]
-    WIDTHS = [2.6, 1.0, 1.0, 0.9, 1.25, 1.1, 0.55] + [0.95] * len(CATCOLS)
+    HEADERS = ["Modell", "Baujahr", "Preis", "GESAMT 5J", "GESAMT 10J", "Wertverl/J", "🚨"]
+    WIDTHS = [2.5, 0.9, 0.95, 1.15, 1.2, 1.05, 0.5] + [0.9] * len(CATCOLS)
     head = st.columns(WIDTHS)
     for c, t in zip(head, HEADERS + [lbl for _, lbl in CATCOLS]):
         c.markdown(f"<small><b>{t}</b></small>", unsafe_allow_html=True)
@@ -709,10 +718,10 @@ with left:
         c[1].markdown(_s(f"{yf}–{yt}" if yf else "–"), unsafe_allow_html=True)
         c[2].markdown(_s(f"{m.purchase_price:,.0f} €".replace(",", ".")) if m.purchase_price else "–",
                       unsafe_allow_html=True)
-        c[3].markdown(_s(f"{mt['insurance']:,.0f} €".replace(",", ".")) if mt["insurance"] else "–",
+        t5, t10 = T5.get(m.model_id), T10.get(m.model_id)
+        c[3].markdown(f"<small><b>{t5:,.0f} €</b></small>".replace(",", ".") if t5 else "–",
                       unsafe_allow_html=True)
-        gesamt = (m.annual_tco * years) if m.annual_tco else None
-        c[4].markdown(f"<small><b>{gesamt:,.0f} €</b></small>".replace(",", ".") if gesamt else "–",
+        c[4].markdown(f"<small><b>{t10:,.0f} €</b></small>".replace(",", ".") if t10 else "–",
                       unsafe_allow_html=True)
         wv = m.tco_breakdown.get("wertverlust")
         c[5].markdown(_s(f"{wv:,.0f} €{warn}".replace(",", ".")) if wv else "–", unsafe_allow_html=True)
