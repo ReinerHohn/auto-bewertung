@@ -21,7 +21,8 @@ MODELS = [
     ("Mazda", "3", "BM (2013-2019)", 2013, 2019, "Kompakt", "Benzin"),
     ("Tesla", "Model 3", "(2019-)", 2019, 2025, "Limousine", "Elektro"),
     ("Hyundai", "Ioniq 5", "(2021-)", 2021, 2025, "SUV", "Elektro"),
-    ("VW", "ID.3", "(2020-)", 2020, 2025, "Kompakt", "Elektro"),
+    ("VW", "ID.3 Pro", "58 kWh (2020-)", 2020, 2025, "Kompakt", "Elektro"),
+    ("VW", "ID.3 Pro S", "77 kWh (2020-)", 2020, 2025, "Kompakt", "Elektro"),
     ("Renault", "Zoe", "(2019-)", 2019, 2024, "Kleinwagen", "Elektro"),
 ]
 
@@ -37,7 +38,9 @@ SPECS = {
     # Elektro: cons_kwh, battery, range, dc_kw, km_per_30min gesetzt
     "Tesla Model 3":  ("elektro", "mittelklasse", None, 15.5, 57.0, 430, 170, 320, 520, 0, 22000),
     "Hyundai Ioniq 5":("elektro", "suv",          None, 17.5, 72.0, 400, 220, 340, 560, 0, 31000),
-    "VW ID.3":        ("elektro", "kompakt",      None, 16.5, 58.0, 340, 100, 230, 500, 0, 19000),
+    # realistisch warm/vorkonditioniert; Winter deutlich weniger
+    "VW ID.3 Pro":    ("elektro", "kompakt",      None, 16.5, 58.0, 340, 120, 250, 500, 0, 19000),
+    "VW ID.3 Pro S":  ("elektro", "kompakt",      None, 16.5, 77.0, 420, 170, 305, 520, 0, 22900),
     "Renault Zoe":    ("elektro", "kleinwagen",   None, 17.0, 52.0, 300,  46, 120, 470, 0, 11000),
 }
 
@@ -45,12 +48,12 @@ SPECS = {
 RELIABILITY = {
     "VW Golf": 8.0, "Toyota Corolla": 3.5, "BMW 3er": 9.5, "Skoda Octavia": 7.0,
     "Ford Focus": 11.0, "Mazda 3": 5.5, "Tesla Model 3": 6.0, "Hyundai Ioniq 5": 4.0,
-    "VW ID.3": 7.5, "Renault Zoe": 5.0,
+    "VW ID.3 Pro": 7.5, "VW ID.3 Pro S": 7.5, "Renault Zoe": 5.0,
 }
 MAENGEL = {
     "VW Golf": 6.5, "Toyota Corolla": 3.0, "BMW 3er": 5.5, "Skoda Octavia": 6.0,
     "Ford Focus": 8.5, "Mazda 3": 4.5, "Tesla Model 3": 5.0, "Hyundai Ioniq 5": 3.5,
-    "VW ID.3": 4.5, "Renault Zoe": 4.0,
+    "VW ID.3 Pro": 4.5, "VW ID.3 Pro S": 4.5, "Renault Zoe": 4.0,
 }
 
 WEAK = {
@@ -68,7 +71,8 @@ WEAK = {
     "Tesla Model 3": [("Verarbeitung", "Spaltmasse/Lack Fruehserien", 1),
                       ("MCU", "eMMC-Speicher Verschleiss aeltere Baujahre", 2)],
     "Hyundai Ioniq 5": [("ICCU", "ICCU/12V-Ladewandler kann ausfallen", 3)],
-    "VW ID.3": [("Software", "Infotainment-Bugs Fruehserien", 2)],
+    "VW ID.3 Pro": [("Software", "Infotainment-Bugs Fruehserien", 2)],
+    "VW ID.3 Pro S": [("Software", "Infotainment-Bugs Fruehserien", 2)],
     "Renault Zoe": [("Akku", "Akkumiete/Degradation bei aelteren", 2)],
 }
 
@@ -88,7 +92,8 @@ REPAIR = {
     "Mazda 3": [("inspektion", 340, "pro_jahr")],
     "Tesla Model 3": [("inspektion", 200, "pro_jahr"), ("bremsfluessigkeit", 120, "pro_intervall")],
     "Hyundai Ioniq 5": [("inspektion", 220, "pro_jahr"), ("bremsfluessigkeit", 120, "pro_intervall")],
-    "VW ID.3": [("inspektion", 210, "pro_jahr"), ("bremsfluessigkeit", 120, "pro_intervall")],
+    "VW ID.3 Pro": [("inspektion", 210, "pro_jahr"), ("bremsfluessigkeit", 120, "pro_intervall")],
+    "VW ID.3 Pro S": [("inspektion", 210, "pro_jahr"), ("bremsfluessigkeit", 120, "pro_intervall")],
     "Renault Zoe": [("inspektion", 190, "pro_jahr"), ("bremsfluessigkeit", 120, "pro_intervall")],
 }
 
@@ -97,7 +102,7 @@ PARTS = {
     "VW Golf": (98, 85), "Toyota Corolla": (85, 100), "BMW 3er": (95, 120),
     "Skoda Octavia": (95, 88), "Ford Focus": (90, 90), "Mazda 3": (75, 105),
     "Tesla Model 3": (70, 110), "Hyundai Ioniq 5": (78, 105),
-    "VW ID.3": (90, 95), "Renault Zoe": (85, 95),
+    "VW ID.3 Pro": (90, 95), "VW ID.3 Pro S": (90, 95), "Renault Zoe": (85, 95),
 }
 
 # Angebote je Modell: (price, mileage, first_reg, plz, ort)
@@ -117,7 +122,8 @@ LISTINGS = {
     "Tesla Model 3": [(19900, 130000, "2019-06", "79100", "Freiburg"),
                       (23900, 70000, "2020-03", "79104", "Freiburg")],
     "Hyundai Ioniq 5": [(30900, 45000, "2022-01", "79106", "Freiburg")],
-    "VW ID.3": [(18900, 60000, "2021-05", "79100", "Freiburg")],
+    "VW ID.3 Pro": [(18900, 60000, "2021-05", "79100", "Freiburg")],
+    "VW ID.3 Pro S": [(22900, 45000, "2022-03", "79104", "Freiburg")],
     "Renault Zoe": [(10500, 40000, "2020-08", "79098", "Freiburg")],
 }
 
@@ -223,6 +229,27 @@ WORKSHOPS += [
     ("Honda", "Honda Haendler Freiburg", "79111", "Freiburg", 1),
     ("Peugeot", "Peugeot Freiburg", "79098", "Freiburg", 1),
 ]
+
+# --- Hyundai Kona Elektro: effizient + hohe Reichweite, ABER langsamer Lader --
+MODELS += [("Hyundai", "Kona Elektro", "64 kWh (2018-2023)", 2018, 2023, "SUV", "Elektro")]
+SPECS.update({
+    # sehr effizient, grosse Reichweite; DC nur ~77 kW -> km/30min (warm) niedrig
+    "Hyundai Kona Elektro": ("elektro", "suv", None, 15.0, 64.0, 400, 77, 190, 520, 0, 24000),
+})
+RELIABILITY.update({"Hyundai Kona Elektro": 4.0})
+MAENGEL.update({"Hyundai Kona Elektro": 3.5})
+WEAK.update({"Hyundai Kona Elektro": [
+    ("Akku", "LG-Zellen Brandrisiko (Rueckruf 2020/21, Akkutausch/Update)", 3),
+    ("Ladeleistung", "max ~77 kW DC, kein 800V -> langsames Schnellladen", 1),
+]})
+RECALLS.update({"Hyundai Kona Elektro": [
+    ("kona-bms-21", "2021-02-01", "Batterie-Rueckruf: LG-Zellen Brandrisiko, Austausch/BMS-Update")]})
+REPAIR.update({"Hyundai Kona Elektro": [
+    ("inspektion", 210, "pro_jahr"), ("bremsfluessigkeit", 120, "pro_intervall")]})
+PARTS.update({"Hyundai Kona Elektro": (80, 100)})
+LISTINGS.update({"Hyundai Kona Elektro": [
+    (23900, 55000, "2020-06", "79106", "Freiburg"),
+    (21900, 72000, "2019-09", "79100", "Freiburg")]})
 
 
 class SeedSource(Source):
