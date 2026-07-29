@@ -203,7 +203,9 @@ def score_models(conn: sqlite3.Connection, crit: Criteria) -> RankResult:
         if rows:
             prices = [r["price"] for r in rows]
             median = statistics.median(prices)
-            best = min(rows, key=lambda r: r["price"])
+            # Ausreisser rauswerfen (Salvage/Bastler/Leasingraten): unter 45% des Medians
+            sound = [r for r in rows if r["price"] >= 0.45 * median] or rows
+            best = min(sound, key=lambda r: r["price"])
             discount = (median - best["price"]) / median * 100.0 if median else 0.0
             trend = _price_trend(conn, best["id"])
             price_meta[mid] = {

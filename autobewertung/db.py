@@ -48,6 +48,7 @@ CREATE TABLE IF NOT EXISTS listing (
     location      TEXT,
     plz           TEXT,
     url           TEXT,
+    price_rating  INTEGER,               -- Portal-Preisbewertung 1=sehr gut .. 5=hoch
     first_seen    TEXT NOT NULL,         -- ISO-Zeitstempel (UTC)
     last_seen     TEXT NOT NULL,
     active        INTEGER NOT NULL DEFAULT 1,

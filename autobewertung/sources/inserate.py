@@ -27,7 +27,7 @@ from .base import CollectResult, Source, now_iso
 
 def _record_listing(conn, *, model_id, source, source_ref, title, price,
                     mileage_km=None, first_reg=None, plz=None, location=None,
-                    url=None, power_kw=None) -> str:
+                    url=None, power_kw=None, price_rating=None) -> str:
     """Legt Angebot an bzw. aktualisiert es und schreibt einen Preis-Punkt."""
     now = now_iso()
     existing = conn.execute(
@@ -35,17 +35,17 @@ def _record_listing(conn, *, model_id, source, source_ref, title, price,
     ).fetchone()
     if existing:
         conn.execute(
-            "UPDATE listing SET price=?, mileage_km=?, last_seen=?, active=1 WHERE id=?",
-            (price, mileage_km, now, existing["id"]))
+            "UPDATE listing SET price=?, mileage_km=?, price_rating=?, last_seen=?, active=1 WHERE id=?",
+            (price, mileage_km, price_rating, now, existing["id"]))
         lid = existing["id"]
         action = "updated"
     else:
         cur = conn.execute(
             "INSERT INTO listing(model_id,source,source_ref,title,price,mileage_km,"
-            "first_reg,power_kw,location,plz,url,first_seen,last_seen,active)"
-            " VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,1)",
+            "first_reg,power_kw,location,plz,url,price_rating,first_seen,last_seen,active)"
+            " VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,1)",
             (model_id, source, source_ref, title, price, mileage_km, first_reg,
-             power_kw, location, plz, url, now, now))
+             power_kw, location, plz, url, price_rating, now, now))
         lid = cur.lastrowid
         action = "inserted"
     # Preispunkt nur bei Aenderung schreiben (kein Zuspammen gleicher Preise);

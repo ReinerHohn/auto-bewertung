@@ -4,6 +4,7 @@
 Quellen hier eintragen. `live=False`-Quellen sind Gerueste und tun (ausser ggf.
 einem Netz-Check) nichts, bis sie konfiguriert werden.
 """
+from .autoscout24 import AutoScout24Source
 from .base import CollectResult, Source
 from .inserate import InserateSource
 from .recalls import NhtsaRecallSource, RecallImportSource

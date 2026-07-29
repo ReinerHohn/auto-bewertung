@@ -53,6 +53,9 @@ COLUMN_TO_CATEGORY = {
     "Werkstaetten": "workshop",
 }
 SEV = {1: "gering", 2: "mittel", 3: "schwer"}
+# AutoScout24-Preisbewertung
+PRICE_RATING = {1: "🟢 Sehr guter Preis", 2: "🟢 Guter Preis", 3: "🟡 Fairer Preis",
+                4: "🟠 Erhöhter Preis", 5: "🔴 Hoher Preis"}
 TCO_LABELS = {
     "wertverlust": "Wertverlust", "energie": "Energie", "versicherung": "Versicherung",
     "steuer": "Kfz-Steuer", "wartung": "Wartung (Service)",
@@ -248,6 +251,17 @@ def render_category(model, cat: str) -> None:
         st.markdown("#### 💰 Angebote in Portalen")
         make = _make_of(mid)
         model_name = conn.execute("SELECT model FROM car_model WHERE id=?", (mid,)).fetchone()["model"]
+        # Echte Angebote von AutoScout24 laden (kanonische Modellseite)
+        if st.button("🔄 Echte AutoScout24-Angebote laden", key=f"as24_{mid}", width="stretch"):
+            from autobewertung.sources.autoscout24 import AutoScout24Source
+            with st.spinner("Lade echte Angebote von AutoScout24 …"):
+                try:
+                    n, msg = AutoScout24Source().fetch_model(conn, mid, make, model_name)
+                    (st.success if n else st.warning)(msg)
+                except Exception as e:
+                    st.error(f"Fehler: {e}")
+            st.rerun()
+
         st.markdown("**Direkt zu den Portalen (Suche nach diesem Modell):**")
         for label, url in portal_links(make, model_name):
             st.markdown(f"- [{label}]({url})")
@@ -293,7 +307,7 @@ def render_category(model, cat: str) -> None:
         st.divider()
         st.markdown("**Erfasste Angebote & Preisverlauf (je Angebot)**")
         rows = conn.execute(
-            "SELECT id,title,price,mileage_km,first_reg,location,plz,url,source "
+            "SELECT id,title,price,mileage_km,first_reg,location,plz,url,source,price_rating "
             "FROM listing WHERE model_id=? AND active=1 ORDER BY price", (mid,)).fetchall()
         if not rows:
             st.info("Noch keine Angebote in der DB – Marktpreis geschätzt. "
@@ -302,9 +316,12 @@ def render_category(model, cat: str) -> None:
                 st.metric("Geschätzter Marktpreis", f"{model.purchase_price:,.0f} €".replace(",", "."))
             return
         for r in rows:
-            title = f"{r['price']:,.0f} € · {r['mileage_km'] or '?'} km · EZ {r['first_reg'] or '?'}".replace(",", ".")
-            with st.expander(f"{title} · {r['location'] or ''}"):
-                st.write(f"**Preis:** {r['price']:,.0f} €".replace(",", "."))
+            rating = PRICE_RATING.get(r["price_rating"], "")
+            title = (f"{r['price']:,.0f} € · {r['mileage_km'] or '?'} km · "
+                     f"EZ {r['first_reg'] or '?'}").replace(",", ".")
+            with st.expander(f"{rating + ' · ' if rating else ''}{title} · {r['location'] or ''}"):
+                st.write(f"**Preis:** {r['price']:,.0f} €".replace(",", ".")
+                         + (f" — {rating}" if rating else ""))
                 st.write(f"**Laufleistung:** {r['mileage_km'] or '?'} km")
                 st.write(f"**Erstzulassung:** {r['first_reg'] or '?'}")
                 st.write(f"**Ort:** {r['location'] or '-'} (PLZ {r['plz'] or '-'})")
