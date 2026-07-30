@@ -333,20 +333,23 @@ def render_category(model, cat: str) -> None:
                 st.metric("Geschätzter Marktpreis", f"{model.purchase_price:,.0f} €".replace(",", "."))
             return
 
-        # Kompakte Liste (echte Angebote), sortiert nach Preis
+        # Klickbare Angebotsliste: jeder Button oeffnet DAS Inserat auf AutoScout24
         n_as24 = sum(1 for r in rows if r["source"] == "autoscout24")
-        st.markdown(f"**🚗 {len(rows)} Angebote** ({n_as24} live von AutoScout24) – klick unten „prüfen“ für den Kauf-Check:")
-        st.dataframe(pd.DataFrame([{
-            "Preis €": r["price"],
-            "Bewertung": PRICE_RATING.get(r["price_rating"], "–"),
-            "km": r["mileage_km"], "EZ": r["first_reg"], "kW": r["power_kw"],
-            "Ort": r["location"], "Version": (r["title"] or "")[:34],
-            "Link": r["url"],
-        } for r in rows]), hide_index=True, width="stretch",
-            column_config={"Preis €": st.column_config.NumberColumn(format="%.0f €"),
-                           "Link": st.column_config.LinkColumn("Inserat", display_text="öffnen ↗")})
+        st.markdown(f"**🚗 {len(rows)} Angebote** ({n_as24} live von AutoScout24) – "
+                    "**Angebot anklicken = direkt zum Inserat ↗**")
+        for r in rows[:20]:
+            rating = PRICE_RATING.get(r["price_rating"], "")
+            label = (f"{rating + '  ' if rating else ''}{r['price']:,.0f} €".replace(",", ".")
+                     + f"  ·  {r['mileage_km'] or '?'} km  ·  EZ {r['first_reg'] or '?'}"
+                     + (f"  ·  {r['power_kw']} kW" if r["power_kw"] else "")
+                     + (f"  ·  {r['location']}" if r["location"] else ""))
+            if r["url"]:
+                st.link_button(label + "   ↗", r["url"], width="stretch")
+            else:
+                st.button(label + "  (kein Link)", key=f"nolink_{r['id']}", width="stretch", disabled=True)
 
-        st.markdown("**Details & Preisverlauf je Angebot:**")
+        st.divider()
+        st.markdown("**Details & Kauf-Check je Angebot:**")
         for r in rows:
             rating = PRICE_RATING.get(r["price_rating"], "")
             title = (f"{r['price']:,.0f} € · {r['mileage_km'] or '?'} km · "
