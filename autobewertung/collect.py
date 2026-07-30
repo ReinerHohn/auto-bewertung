@@ -68,6 +68,42 @@ def _eur(v) -> str:
     return f"{v:,.0f}".replace(",", ".") + "€" if v is not None else "  -"
 
 
+def cmd_track(args) -> None:
+    """Preis-Tracking (fuer Cron): echte AS24-Preise je qualifiziertem Modell +
+    verfolgte URLs + Modell-Preis-Snapshot -> Preistrend ueber die Zeit."""
+    from datetime import datetime
+    from .config import load_criteria
+    from .scoring import score_models
+    from .sources import default_sources
+    from .sources.autoscout24 import AutoScout24Source
+    from .sources.watchlist import WatchlistSource
+    from .tracking import snapshot_model_prices
+
+    conn = init_db(args.db)
+    # Datenbestand sicherstellen (Modelle/Specs), falls leer
+    if not conn.execute("SELECT 1 FROM car_model LIMIT 1").fetchone():
+        for s in default_sources():
+            s.collect(conn)
+
+    crit = load_criteria()
+    ranked = score_models(conn, crit).ranked[: args.top]
+    as24 = AutoScout24Source()
+    got = 0
+    for m in ranked:
+        row = conn.execute("SELECT make, model FROM car_model WHERE id=?", (m.model_id,)).fetchone()
+        try:
+            n, _ = as24.fetch_model(conn, m.model_id, row["make"], row["model"])
+            got += n
+        except Exception:
+            pass
+    wres = WatchlistSource().collect(conn)
+    snaps = snapshot_model_prices(conn)
+    ts = datetime.now().strftime("%Y-%m-%d %H:%M")
+    print(f"[{ts}] track: {got} AS24-Angebote ({len(ranked)} Modelle), "
+          f"Watchlist: {wres.notes}, {snaps} Modell-Preispunkte")
+    conn.close()
+
+
 def cmd_watch(args) -> None:
     from .db import add_watch
     conn = init_db(args.db)
@@ -117,6 +153,10 @@ def main(argv=None) -> None:
     r.add_argument("--only", nargs="*", help="nur diese Quellen (Name)")
     r.add_argument("--inserate-csv", help="CSV mit Angeboten importieren")
     r.set_defaults(func=cmd_run)
+
+    tr = sub.add_parser("track", help="Preis-Tracking fuer Cron (AS24 + Watchlist + Snapshot)")
+    tr.add_argument("--top", type=int, default=20, help="Anzahl Top-Modelle, die getrackt werden")
+    tr.set_defaults(func=cmd_track)
 
     w = sub.add_parser("watch", help="Inserats-URL verfolgen (Preisverlauf)")
     w.add_argument("url")
