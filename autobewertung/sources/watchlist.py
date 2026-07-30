@@ -173,9 +173,21 @@ class WatchlistSource(Source):
     name = "watchlist"
     live = True
 
+    #: Browser-UA, damit Portale (z.B. AutoScout24) das einzelne, vom Nutzer
+    #: gewaehlte Inserat ausliefern (kein Massen-Crawl, ein URL pro Aufruf).
+    BROWSER_UA = "Mozilla/5.0 (X11; Linux x86_64; rv:120.0) Gecko/20100101 Firefox/120.0"
+
     def __init__(self, fetch=None):
-        # fetch(url) -> Objekt mit .status_code/.text; Default = polite_get.
-        self._fetch = fetch or (lambda u: polite_get(u, min_interval_s=3.0))
+        self._fetch = fetch or self._default_fetch
+
+    def _default_fetch(self, url):
+        import time
+        import requests
+        time.sleep(2.0)   # hoeflich, eine konkrete URL
+        try:
+            return requests.get(url, headers={"User-Agent": self.BROWSER_UA}, timeout=20)
+        except Exception:
+            return None
 
     def collect(self, conn: sqlite3.Connection) -> CollectResult:
         res = CollectResult(source=self.name)
