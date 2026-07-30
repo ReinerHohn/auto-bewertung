@@ -254,8 +254,23 @@ def render_category(model, cat: str) -> None:
         st.markdown("#### 💰 Angebote in Portalen")
         make = _make_of(mid)
         model_name = conn.execute("SELECT model FROM car_model WHERE id=?", (mid,)).fetchone()["model"]
-        # Echte Angebote von AutoScout24 laden (kanonische Modellseite)
-        if st.button("🔄 Echte AutoScout24-Angebote laden", key=f"as24_{mid}", width="stretch"):
+
+        # Echte AS24-Angebote automatisch laden, wenn fuer dieses Modell noch keine da
+        # sind (einmal pro Modell je Session; spaeter Refresh per Button unten).
+        _tried = st.session_state.setdefault("_as24_tried", set())
+        _has = conn.execute("SELECT 1 FROM listing WHERE model_id=? AND source='autoscout24' "
+                            "AND active=1 LIMIT 1", (mid,)).fetchone()
+        if not _has and mid not in _tried:
+            _tried.add(mid)
+            from autobewertung.sources.autoscout24 import AutoScout24Source
+            with st.spinner(f"Lade echte Angebote für {make} {model_name} von AutoScout24 …"):
+                try:
+                    AutoScout24Source().fetch_model(conn, mid, make, model_name)
+                except Exception:
+                    pass
+
+        # manueller Refresh
+        if st.button("🔄 Angebote neu laden (AutoScout24)", key=f"as24_{mid}", width="stretch"):
             from autobewertung.sources.autoscout24 import AutoScout24Source
             with st.spinner("Lade echte Angebote von AutoScout24 …"):
                 try:
@@ -308,16 +323,30 @@ def render_category(model, cat: str) -> None:
                        "Angeboten), desto aussagekräftiger.")
 
         st.divider()
-        st.markdown("**Erfasste Angebote & Preisverlauf (je Angebot)**")
         rows = conn.execute(
             "SELECT id,title,price,mileage_km,first_reg,location,plz,url,source,price_rating,power_kw "
             "FROM listing WHERE model_id=? AND active=1 ORDER BY price", (mid,)).fetchall()
         if not rows:
-            st.info("Noch keine Angebote in der DB – Marktpreis geschätzt. "
-                    "Nutze die Portal-Links oben oder importiere Angebote per CSV.")
+            st.info("Keine echten Angebote gefunden (evtl. Variante/Baujahr aktuell nicht inseriert). "
+                    "Button „Neu laden“ versuchen oder Portal-Link oben nutzen.")
             if model.purchase_price:
                 st.metric("Geschätzter Marktpreis", f"{model.purchase_price:,.0f} €".replace(",", "."))
             return
+
+        # Kompakte Liste (echte Angebote), sortiert nach Preis
+        n_as24 = sum(1 for r in rows if r["source"] == "autoscout24")
+        st.markdown(f"**🚗 {len(rows)} Angebote** ({n_as24} live von AutoScout24) – klick unten „prüfen“ für den Kauf-Check:")
+        st.dataframe(pd.DataFrame([{
+            "Preis €": r["price"],
+            "Bewertung": PRICE_RATING.get(r["price_rating"], "–"),
+            "km": r["mileage_km"], "EZ": r["first_reg"], "kW": r["power_kw"],
+            "Ort": r["location"], "Version": (r["title"] or "")[:34],
+            "Link": r["url"],
+        } for r in rows]), hide_index=True, width="stretch",
+            column_config={"Preis €": st.column_config.NumberColumn(format="%.0f €"),
+                           "Link": st.column_config.LinkColumn("Inserat", display_text="öffnen ↗")})
+
+        st.markdown("**Details & Preisverlauf je Angebot:**")
         for r in rows:
             rating = PRICE_RATING.get(r["price_rating"], "")
             title = (f"{r['price']:,.0f} € · {r['mileage_km'] or '?'} km · "
@@ -815,6 +844,7 @@ with left:
                        width="stretch", type="primary" if sel_model else "secondary",
                        help=(" · ".join(helps) or None)):
             st.session_state.model_id = m.model_id
+            st.session_state.cat = "price"      # Klick aufs Modell -> echte Angebote
             st.rerun()
         yf, yt = m.details.get("year_from"), m.details.get("year_to")
         c[1].markdown(_s(f"{yf}–{yt}" if yf else "–"), unsafe_allow_html=True)
