@@ -153,6 +153,25 @@ DIMS = {
 }
 ALU_BODY = {"Tesla Model 3", "BMW i3", "Audi A3"}   # Alu-/CFK-Anteil -> Dellen teuer
 
+# Reifensatz (4, montiert) je Modell nach realer Zoll-/Groesse. Fallback: Antrieb.
+TIRE_COST = {
+    # Verbrenner/Hybrid Kompakt (16-17")
+    "VW Golf": 480, "Toyota Corolla": 480, "Toyota Auris": 450, "Skoda Octavia": 500,
+    "Ford Focus": 480, "Mazda 3": 500, "Opel Astra": 480, "Seat Leon": 500,
+    "Audi A3": 550, "Hyundai i30": 460, "Kia Ceed": 460, "Honda Civic": 520,
+    "Peugeot 308": 480, "Renault Megane": 500, "BMW 3er": 640,
+    # E-Autos nach Rad/Gewicht
+    "Tesla Model 3": 750, "Hyundai Ioniq 5": 820, "Kia EV6": 820, "Polestar 2": 850,
+    "Hyundai Kona Elektro": 620, "Kia e-Niro": 600, "VW ID.3 Pro": 600, "VW ID.3 Pro S": 620,
+    "Cupra Born": 620, "MG MG4": 560, "MG 5 EV": 560, "MG ZS EV": 580, "Fiat 600e": 540,
+    "Renault Zoe": 400, "Renault Megane E-Tech": 620, "Nissan Leaf e+": 540, "VW e-Golf": 520,
+    "BMW i3": 700, "Peugeot e-2008": 560, "Citroen e-C4": 560, "Mazda MX-30": 560,
+    "Opel Corsa-e": 420,
+}
+# Reifen verschleissen schneller bei schweren/starken E-Autos (Intervall km)
+TIRE_FAST = {"Tesla Model 3", "Hyundai Ioniq 5", "Kia EV6", "Polestar 2",
+             "Renault Megane E-Tech"}
+
 # Verschleiss/Teile: (Bauteil, at_km erste Faelligkeit, interval_km 0=einmalig, Kosten EUR)
 # Generische Teile je Antriebsart (gelten fuer JEDES Modell dieser Art):
 WEAR_TEMPLATE = {
@@ -531,6 +550,10 @@ class SeedSource(Source):
             # Generische Verschleiss-Teile je Antrieb (modellspezifisch -> wear_real.csv)
             conn.execute("DELETE FROM wear_item WHERE model_id=? AND source='seed'", (mid,))
             for comp, at_km, interval, cost in WEAR_TEMPLATE.get(dt, []):
+                if comp.startswith("Reifen"):        # Reifenkosten/-intervall verfeinern
+                    cost = TIRE_COST.get(key, cost)
+                    if key in TIRE_FAST:
+                        at_km, interval = 30000, 30000
                 conn.execute(
                     "INSERT INTO wear_item(model_id,component,variant,at_km,interval_km,cost_eur,source)"
                     " VALUES (?,?,'alle',?,?,?,?)", (mid, comp, at_km, interval, cost, "seed"))
