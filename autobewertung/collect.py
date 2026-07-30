@@ -71,7 +71,9 @@ def _eur(v) -> str:
 def cmd_track(args) -> None:
     """Preis-Tracking (fuer Cron): echte AS24-Preise je qualifiziertem Modell +
     verfolgte URLs + Modell-Preis-Snapshot -> Preistrend ueber die Zeit."""
-    from datetime import datetime
+    from datetime import datetime, timezone
+    from pathlib import Path
+    from .alerts import scan_alerts
     from .config import load_criteria
     from .scoring import score_models
     from .sources import default_sources
@@ -80,6 +82,7 @@ def cmd_track(args) -> None:
     from .tracking import snapshot_model_prices
 
     conn = init_db(args.db)
+    since_ts = datetime.now(timezone.utc).isoformat(timespec="seconds")   # Alarm-Fenster
     # Datenbestand sicherstellen (Modelle/Specs), falls leer
     if not conn.execute("SELECT 1 FROM car_model LIMIT 1").fetchone():
         for s in default_sources():
@@ -98,9 +101,17 @@ def cmd_track(args) -> None:
             pass
     wres = WatchlistSource().collect(conn)
     snaps = snapshot_model_prices(conn)
+    alerts = scan_alerts(conn, since_ts)
     ts = datetime.now().strftime("%Y-%m-%d %H:%M")
     print(f"[{ts}] track: {got} AS24-Angebote ({len(ranked)} Modelle), "
-          f"Watchlist: {wres.notes}, {snaps} Modell-Preispunkte")
+          f"Watchlist: {wres.notes}, {snaps} Modell-Preispunkte, {len(alerts)} Schnaeppchen-Alarm(e)")
+    if alerts:
+        logf = Path(args.db).resolve().parent.parent / "alerts.log"
+        with open(logf, "a", encoding="utf-8") as f:
+            for a in alerts:
+                line = f"[{ts}] {a}"
+                print("  🔔 " + a)
+                f.write(line + "\n")
     conn.close()
 
 

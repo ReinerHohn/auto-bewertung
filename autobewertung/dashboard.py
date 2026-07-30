@@ -680,6 +680,17 @@ if not ranked and not result.excluded:
     st.warning("Keine Daten. Erst `python -m autobewertung.collect run` ausführen.")
     st.stop()
 
+# 🔔 Schnäppchen-Alarm (neue Top-Preise / Preissenkungen aus dem Tracking)
+_alerts = conn.execute("SELECT id, message FROM alert WHERE seen=0 ORDER BY ts DESC LIMIT 25").fetchall()
+if _alerts:
+    with st.expander(f"🔔 **Schnäppchen-Alarm ({len(_alerts)} neu)**", expanded=True):
+        for a in _alerts:
+            st.markdown(f"- {a['message']}")
+        if st.button("Als gelesen markieren", key="alerts_seen"):
+            conn.execute("UPDATE alert SET seen=1 WHERE seen=0")
+            conn.commit()
+            st.rerun()
+
 # --- Gesamtkosten fuer 5 UND 10 Jahre (jeweils exakt mit eigener Wertverlust-/
 #     Verschleiss-Rechnung ueber die Haltedauer) --------------------------------
 import dataclasses as _dc

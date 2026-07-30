@@ -161,6 +161,17 @@ CREATE TABLE IF NOT EXISTS wear_item (
 );
 CREATE INDEX IF NOT EXISTS idx_wear_model ON wear_item(model_id);
 
+CREATE TABLE IF NOT EXISTS alert (
+    id         INTEGER PRIMARY KEY,
+    ts         TEXT,
+    model_id   INTEGER REFERENCES car_model(id) ON DELETE CASCADE,
+    listing_id INTEGER,
+    kind       TEXT,                  -- 'deal' | 'drop'
+    message    TEXT,
+    sig        TEXT UNIQUE,           -- Dedup-Signatur (kein Doppel-Alarm)
+    seen       INTEGER DEFAULT 0
+);
+
 CREATE TABLE IF NOT EXISTS watch (
     id       INTEGER PRIMARY KEY,
     url      TEXT UNIQUE NOT NULL,     -- verfolgte Inserats-URL

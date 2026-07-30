@@ -138,12 +138,23 @@ class AutoScout24Source(Source):
         if not html:
             return 0, "kein Zugriff (blockiert/robots) oder kein Treffer"
         items = parse_autoscout24(html)
-        spec = conn.execute("SELECT drivetrain, range_km FROM vehicle_spec WHERE model_id=?",
-                            (model_id,)).fetchone()
+        spec = conn.execute(
+            "SELECT vs.drivetrain, vs.range_km, cm.year_from, cm.year_to "
+            "FROM vehicle_spec vs JOIN car_model cm ON cm.id=vs.model_id WHERE vs.model_id=?",
+            (model_id,)).fetchone()
         dt = (spec["drivetrain"] if spec else "") or ""
         spec_range = spec["range_km"] if spec else None
         # Unfallwagen raus
         items = [it for it in items if not it.get("damaged")]
+        # nur die richtige Generation (Slug /vw/golf liefert Golf II..VIII!)
+        yf, yt = (spec["year_from"], spec["year_to"]) if spec else (None, None)
+        if yf and yt:
+            def _yr(it):
+                try:
+                    return int(str(it.get("first_reg"))[:4])
+                except (TypeError, ValueError):
+                    return None
+            items = [it for it in items if not _yr(it) or yf <= _yr(it) <= yt]
         # nach Kraftstoff (Slug wie /hyundai/kona mischt Benziner + Elektro)
         if dt == "elektro":
             items = [it for it in items if it["fuel"] == "e"]
