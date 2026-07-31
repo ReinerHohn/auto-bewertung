@@ -919,3 +919,56 @@ with right:
             st.rerun()
     st.divider()
     render_category(model, st.session_state.cat)
+
+
+# ---------------------------------------------------------------------------
+# ⚖️ Direkter Modell-Vergleich (2–4 Modelle nebeneinander)
+# ---------------------------------------------------------------------------
+st.divider()
+with st.expander("⚖️ Modelle direkt vergleichen"):
+    _labels = [m.label for m in ranked]
+    _default = [m.label for m in ranked[:3]]
+    _picked = st.multiselect("Modelle wählen (2–4)", _labels, default=_default, max_selections=4)
+    _sel = [m for m in ranked if m.label in _picked]
+    if len(_sel) < 2:
+        st.caption("Mindestens 2 Modelle wählen.")
+    else:
+        def _rel(mid, metric):
+            r = conn.execute("SELECT value FROM reliability_stat WHERE model_id=? AND metric=?",
+                             (mid, metric)).fetchone()
+            return r[0] if r else None
+
+        def _tire(mid):
+            r = conn.execute("SELECT cost_eur, interval_km FROM wear_item WHERE model_id=? "
+                             "AND component LIKE 'Reifen%'", (mid,)).fetchone()
+            return f"{r[0]:.0f} €/{r[1]//1000}tkm" if r else "–"
+
+        cols = {}
+        for m in _sel:
+            mt = real_metrics(m.model_id)
+            b = m.tco_breakdown
+            lm, wm = mt.get("length_mm"), mt.get("width_mm")
+            dwid = (f"{(wm-ref_w)/10:+.0f} cm" if (ref_w and wm) else "–")
+            maeng = _rel(m.model_id, "maengelquote_pct")
+            pann = _rel(m.model_id, "pannen_pro_1000")
+            cols[m.label.split(" (")[0]] = {
+                "Antrieb": m.drivetrain,
+                "Score": f"{m.total:.0f}",
+                "Kaufpreis": f"{m.purchase_price:,.0f} €".replace(",", ".") if m.purchase_price else "–",
+                "Gesamt 5 J": f"{T5.get(m.model_id, 0):,.0f} €".replace(",", ".") if T5.get(m.model_id) else "–",
+                "Gesamt 10 J": f"{T10.get(m.model_id, 0):,.0f} €".replace(",", ".") if T10.get(m.model_id) else "–",
+                "Wertverlust/J": f"{b.get('wertverlust', 0):.0f} €",
+                "Energie/J": f"{b.get('energie', 0):.0f} €",
+                "Versicherung/J": f"{b.get('versicherung', 0):.0f} €",
+                "Verschleiß/J": f"{b.get('verschleiss_reparatur', 0):.0f} €",
+                "Reifensatz": _tire(m.model_id),
+                "TÜV Mängel %": f"{maeng:.1f}" if maeng is not None else "–",
+                "ADAC Pannen/1000": f"{pann:.1f}" if pann is not None else "–",
+                "Reichweite": f"{m.range_km:.0f} km" if m.range_km else "–",
+                "Laden 30 min": f"{m.km_per_30min:.0f} km" if m.km_per_30min else "–",
+                "L×B": f"{lm/1000:.2f}×{wm/1000:.2f} m".replace(".", ",") if lm and wm else "–",
+                f"Breite vs {ref_choice or 'Ref'}": dwid,
+                "Rückrufe": str(conn.execute("SELECT COUNT(*) FROM recall WHERE model_id=?", (m.model_id,)).fetchone()[0]),
+                "Ersatzteile": f"{mt['parts']:.0f}/100" if mt.get("parts") is not None else "–",
+            }
+        st.dataframe(pd.DataFrame(cols), width="stretch")
