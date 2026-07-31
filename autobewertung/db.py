@@ -145,7 +145,8 @@ CREATE TABLE IF NOT EXISTS vehicle_spec (
     has_matrix     INTEGER DEFAULT 0,    -- 1 = Modell oft mit (teuren) Matrix-/Voll-LED
     alu_body       INTEGER DEFAULT 0,    -- 1 = Alu-/CFK-Karosserie -> Dellen teuer in Reparatur
     length_mm      INTEGER,              -- Fahrzeuglaenge in mm
-    width_mm       INTEGER               -- Breite (ohne Spiegel) in mm; Spiegel ~+40cm gesamt
+    width_mm       INTEGER,              -- Breite (ohne Spiegel) in mm; Spiegel ~+40cm gesamt
+    turning_m      REAL                  -- Wendekreis in m (enges Rangieren)
 );
 
 CREATE TABLE IF NOT EXISTS wear_item (

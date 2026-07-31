@@ -141,6 +141,7 @@ def real_metrics(model_id):
         "length_mm": one("SELECT length_mm FROM vehicle_spec WHERE model_id=?", (model_id,)),
         "width_mm": one("SELECT width_mm FROM vehicle_spec WHERE model_id=?", (model_id,)),
         "alu_body": one("SELECT alu_body FROM vehicle_spec WHERE model_id=?", (model_id,)) or 0,
+        "turning_m": one("SELECT turning_m FROM vehicle_spec WHERE model_id=?", (model_id,)),
     }
 
 
@@ -425,10 +426,13 @@ def render_category(model, cat: str) -> None:
         st.markdown("#### 🅿️ Parken & Dellen")
         lm, wm = mt.get("length_mm"), mt.get("width_mm")
         if lm and wm:
-            a, b, c = st.columns(3)
+            a, b, c, d = st.columns(4)
             a.metric("Länge", f"{lm/1000:.2f} m".replace(".", ","))
             b.metric("Breite (o. Spiegel)", f"{wm/1000:.2f} m".replace(".", ","))
             c.metric("mit Spiegeln ~", f"{(wm+380)/1000:.2f} m".replace(".", ","))
+            tc = mt.get("turning_m")
+            d.metric("Wendekreis", f"{tc:.1f} m".replace(".", ",") if tc else "–",
+                     help="Kleiner = wendiger beim engen Rangieren.")
             if ref_w and ref_l and ref_choice and ref_choice not in model.label:
                 dw, dl = (wm - ref_w) / 10, (lm - ref_l) / 10
                 wtxt = (f"**{dw:+.0f} cm** {'breiter' if dw >= 0 else 'schmaler'}").replace("+", "")
@@ -968,6 +972,7 @@ with st.expander("⚖️ Modelle direkt vergleichen"):
                 "Laden 30 min": f"{m.km_per_30min:.0f} km" if m.km_per_30min else "–",
                 "L×B": f"{lm/1000:.2f}×{wm/1000:.2f} m".replace(".", ",") if lm and wm else "–",
                 f"Breite vs {ref_choice or 'Ref'}": dwid,
+                "Wendekreis": f"{mt['turning_m']:.1f} m".replace(".", ",") if mt.get("turning_m") else "–",
                 "Rückrufe": str(conn.execute("SELECT COUNT(*) FROM recall WHERE model_id=?", (m.model_id,)).fetchone()[0]),
                 "Ersatzteile": f"{mt['parts']:.0f}/100" if mt.get("parts") is not None else "–",
             }

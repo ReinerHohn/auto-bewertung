@@ -153,6 +153,22 @@ DIMS = {
 }
 ALU_BODY = {"Tesla Model 3", "BMW i3", "Audi A3"}   # Alu-/CFK-Anteil -> Dellen teuer
 
+# Wendekreis (m) - kleiner = wendiger beim engen Rangieren. MEB-Heckantrieb
+# (ID.3/Cupra Born) + i3 sind ueberraschend wendig; Tesla/Ioniq5 gross.
+TURN = {
+    "VW Golf": 10.9, "Toyota Corolla": 10.6, "BMW 3er": 11.3, "Skoda Octavia": 10.4,
+    "Ford Focus": 11.0, "Mazda 3": 10.6, "Toyota Auris": 10.4, "Opel Astra": 11.0,
+    "Seat Leon": 10.6, "Audi A3": 10.9, "Hyundai i30": 10.6, "Kia Ceed": 10.6,
+    "Honda Civic": 11.0, "Peugeot 308": 10.8, "Renault Megane": 11.0,
+    "Tesla Model 3": 11.6, "Hyundai Ioniq 5": 12.0, "VW ID.3 Pro": 10.2,
+    "VW ID.3 Pro S": 10.2, "Renault Zoe": 10.6, "Hyundai Kona Elektro": 10.6,
+    "Kia EV6": 11.4, "Cupra Born": 10.2, "MG MG4": 10.6, "Polestar 2": 11.5,
+    "Kia e-Niro": 10.6, "Renault Megane E-Tech": 10.4, "Nissan Leaf e+": 10.6,
+    "VW e-Golf": 10.9, "BMW i3": 9.9, "MG ZS EV": 10.7, "MG 5 EV": 10.9,
+    "Fiat 600e": 10.5, "Peugeot e-2008": 10.5, "Citroen e-C4": 10.7,
+    "Mazda MX-30": 11.4, "Opel Corsa-e": 10.5,
+}
+
 # Reifensatz (4, montiert) je Modell nach realer Zoll-/Groesse. Fallback: Antrieb.
 TIRE_COST = {
     # Verbrenner/Hybrid Kompakt (16-17")
@@ -528,7 +544,8 @@ class SeedSource(Source):
                         has_matrix=1 if key in MATRIX_MODELS else 0,
                         alu_body=1 if key in ALU_BODY else 0,
                         length_mm=DIMS.get(key, (None, None))[0],
-                        width_mm=DIMS.get(key, (None, None))[1])
+                        width_mm=DIMS.get(key, (None, None))[1],
+                        turning_m=TURN.get(key))
 
             conn.execute(
                 "INSERT OR REPLACE INTO reliability_stat(model_id,source,metric,vehicle_age,value,year)"
