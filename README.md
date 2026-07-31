@@ -1,155 +1,110 @@
 # Auto-Bewertung 🚗
 
-Automatisches Bewertungs- und Ranking-Tool für **Gebrauchtwagen (DE)**. Du gibst
-deine Kriterien vor, das Tool sammelt Daten aus mehreren Quellen, speichert sie
-in einer SQLite-Datenbank und liefert ein sortierbares Ranking – als CLI-Tabelle
-oder interaktives Dashboard.
-
-Bewertet werden sechs Dimensionen (jeweils 0–100, relativ zum Datenbestand):
-
-| Dimension | Bedeutung | Quelle(n) |
-|---|---|---|
-| **TCO/Jahr** | komplette Haltekosten pro Jahr (Wertverlust + Energie + Versicherung + Steuer + Wartung + Sonstiges) | Fahrzeug-Specs + Kostenschätzungen |
-| **Preis/Deal** | Preis unter Modell-Median + fallender Preistrend → Schnäppchen | Inserate + Preisverlauf |
-| **Zuverlässigkeit** | Pannen-/Mängelquote (wenig = gut) | ADAC-Pannenstatistik, TÜV-Report |
-| **Schwachstellen** | bekannte Modellprobleme + Rückrufe | Foren/Werkstatt, KBA |
-| **Ersatzteile** | Verfügbarkeit + Preisindex | Teile-Marktplätze |
-| **Werkstätten** | Werkstattdichte/Spezialisten in deiner Nähe | Verzeichnisse (PLZ) |
-
-Der Gesamtscore ist die **gewichtete Summe** – die Gewichte bestimmst du.
-
-### Total Cost of Ownership (TCO)
-
-Für jedes Modell werden die **kompletten jährlichen Haltekosten** über die
-Haltedauer berechnet:
-
-```
-Wertverlust + Energie (Sprit/Strom) + Versicherung + Kfz-Steuer
-+ Wartung/Reparatur + Sonstiges (Reifen, HU, Kleinkram)
-```
-
-Alle Annahmen (km/Jahr, Haltedauer, Sprit-/Strompreise) stehen in
-`data/criteria.yaml` und sind im Dashboard live einstellbar.
-
-**Lade-Mix beim E-Auto:** die Stromkosten mischen sich aus mehreren Quellen mit
-eigenen Preisen und Anteilen – z. B. *95 % kostenlos in der Firma*, etwas
-Solarstrom, Rest zuhause/Schnelllader. Das senkt die EV-Energiekosten drastisch
-(Beispiel: Tesla Model 3 fällt damit auf den besten TCO-Wert im Feld).
-
-### Angebote verfolgen (Preisverlauf)
-
-Einzelne Inserate lassen sich per URL beobachten – bei jedem Lauf wird der Preis
-mitgeschrieben, so entsteht ein Preisverlauf je Angebot:
-
-```bash
-python -m autobewertung.collect watch "https://www.autoscout24.de/angebote/..."
-python -m autobewertung.collect run     # holt Preise der beobachteten URLs
-```
-
-Oder direkt im Dashboard unter **Angebote/Portale → „Angebot verfolgen"**. Der
-Preis wird robots-konform aus schema.org-Daten der Seite gelesen; ein Preispunkt
-entsteht nur bei Änderung.
-
-### Harte Kriterien & E-Auto-Ausnahme
-
-- **Budget** `max_price` (Standard 15.000 €) gilt für Verbrenner.
-- **Klasse** ab `min_vehicle_class` (Standard `kompakt` = Golf/Auris) aufwärts.
-- **E-Auto-Ausnahme:** ein E-Auto darf das Budget überschreiten, **soweit seine
-  jährliche Ersparnis bei den laufenden Kosten** (vs. Verbrenner-Median) den
-  Aufpreis über die Haltedauer deckt. Beispiel aus den Seed-Daten: der Tesla
-  Model 3 (19.900 €) qualifiziert sich, weil er ~1.150 €/Jahr spart.
-- **E-Auto-Schnelllade-Pflicht:** `ev_min_charge_km_30min` (Standard 300 km in
-  30 min) – langsam ladende EVs fallen raus.
-
-Nicht qualifizierte Modelle werden mit Begründung separat ausgewiesen (CLI:
-Abschnitt „Ausgeschlossen"; Dashboard: aufklappbarer Bereich).
+Ein Profi-Tool zur Bewertung von **Gebrauchtwagen (DE)** nach *deinen* Kriterien:
+Total Cost of Ownership, Zuverlässigkeit, Wertstabilität, Ausstattung, echter
+Verschleiß je Untermodell, Rückrufe, echte Angebote von AutoScout24, Kauf-Check
+(Tacho-Betrug), VIN-Decoder – mit sortierbarem Dashboard und automatischem
+Preis-Tracking.
 
 ## Schnellstart
 
-Ein Skript richtet alles ein (venv, Abhängigkeiten, Datenbank, Datensammlung)
-und startet das Dashboard:
-
 ```bash
-./start.sh                 # einrichten + Daten sammeln + Dashboard öffnen
-./start.sh --no-dashboard  # nur einrichten + Ranking in der Konsole
-./start.sh --rank          # nur Ranking neu ausgeben
-./start.sh --inserate-csv meine_liste.csv   # zusätzlich eigene Angebote importieren
+./start.sh            # einrichten + Daten laden + Dashboard öffnen (localhost:8501)
+./start.sh --rank     # nur Ranking in der Konsole
 ```
 
-Das Skript ist idempotent (venv/Installation nur beim ersten Lauf) und öffnet das
-Dashboard auf <http://localhost:8501>.
+Die Sidebar (links, per Chevron aufklappen) enthält alle Kriterien, Gewichte,
+TCO-Annahmen, Parkplatz-Breite und den VIN-Decoder.
 
-<details><summary>Manuell (ohne Skript)</summary>
+## Was das Tool bewertet
+
+**Gewichteter Gesamtscore** aus 8 Dimensionen (je 0–100, relativ zum Feld):
+TCO/Jahr · Wertstabilität · Ausstattung · Zuverlässigkeit · Schwachstellen ·
+Preis/Deal · Ersatzteile · Werkstätten. Gewichte frei einstellbar.
+
+**Harte Kriterien:** Budget (mit E-Auto-Ausnahme bei Betriebskosten-Ersparnis),
+Klasse ab Kompakt, E-Auto ≥300 km/30 min **oder** ≥400 km Reichweite & ≥180/30 min
+(Langstrecken-Ausnahme). Nicht-qualifizierte Modelle werden mit Begründung ausgewiesen.
+
+### Kernfunktionen (Dashboard)
+- **Sortierbare Tabelle** – Modell anklicken → Detail; nach Score / **Gesamtkosten 5 J / 10 J** / Kaufpreis / Wertstabilität sortieren. Spalten: Baujahr, Preis (echt), L×B, Gesamt 5/10 J, Wertverlust/J, 🚨 Rückrufe. Marker: ⚡🔋⛽ Antrieb, 📉 hoher Wertverlust, 📏 zu breit für deinen Platz.
+- **💰 Angebote** – echte AutoScout24-Angebote (Auto-Load je Modell), jedes als **Klick-Button direkt zum Inserat**, mit AS24-Preisbewertung (🟢 Sehr gut … 🔴 Hoch), Version, kW; + pkw.de-Preistrend eingebettet, Preisverlauf.
+- **💶 TCO** – volle Kostenaufschlüsselung/Jahr inkl. Lade-Mix (Firma/Solar/Heim/Schnelllader).
+- **🔩 Verschleiß** – welches Teil bei wie viel km + Kosten, **je Untermodell/Motor** (Zahnriemen vs Kette, Tesla-Querlenker …), Kostenkurve über die Laufleistung, einstellbares km-Fenster.
+- **🕵️ Kauf-Check** – km-Plausibilität (Rückdreh-Warnung), fällige/anstehende Teile, **Nähe-Warnung** („in ~X km Reparatur Y"), Rückrufe, Tacho-Betrug-/Unfall-Checkliste, carVertical/AutoDNA-Links.
+- **📉 Wertstabilität** – Wertverlust %/Jahr + pkw.de-Restwerte.
+- **⭐ Ausstattung** – Wunsch-Assistenz (Einparkhilfe, Kamera, Notbrems-, Spurhalteassistent), Matrix-LED-Warnung, **Parken & Dellen** (L×B, Wendekreis, „passt in deinen Parkplatz?", Dellen-Reparaturkosten, Alu-Karosserie-Warnung).
+- **📊 Zuverlässigkeit** – echte TÜV-Mängel + ADAC-Pannen (🟢 echt / 🟡 Schätzung, mit Quelle).
+- **⚖️ Vergleich** – 2–4 Modelle direkt nebeneinander (alle Kennzahlen).
+- **🔔 Schnäppchen-Alarm** – neue Top-Preis-Angebote + Preissenkungen.
+- **VIN-Decoder** (NHTSA, gratis) – erkennt Modell + Untermodell aus der FIN.
+
+## Echte Datenquellen (vs. Schätzung)
+
+Das Tool trennt sauber **echte, quellenbelegte Daten** von markierten Schätzungen:
+- **AutoScout24** – echte Angebote (Preis/km/EZ/kW/Bewertung), gefiltert nach
+  Kraftstoff, Baujahr-Generation, Akku-Variante (Reichweite) und Unfall-Flag.
+  `data/` – kein Login, nur kanonische `/lst/marke/modell`-Seiten. mobile.de blockt (403).
+- **TÜV-Report / ADAC-Pannenstatistik** – `data/reliability_real.csv` (quellenbelegt).
+- **KBA-/Hersteller-Rückrufe** – `data/recalls_real.csv` (+ NHTSA-API optional).
+- **Verschleiß** – `data/wear_real.csv` (recherchierte Defekt-km + Kosten je Untermodell).
+
+Alle nicht belegten Werte sind im Dashboard klar als 🟡 Schätzung markiert.
+
+## Automatisches Preis-Tracking (Cron)
 
 ```bash
-pip install -r requirements.txt
-python -m autobewertung.collect run
-python -m autobewertung.collect rank
-streamlit run autobewertung/dashboard.py
+python -m autobewertung.collect track --top 20
 ```
-</details>
+Holt echte AS24-Preise, aktualisiert verfolgte Angebote, schreibt Modell-Preis-
+Snapshots und erkennt Schnäppchen (`alerts.log`). Als Cron (z. B. alle 6 h):
+```
+0 */6 * * * cd /pfad/auto-bewertung && .venv/bin/python -m autobewertung.collect track --top 20 >> track.log 2>&1
+```
 
-Beim ersten `run` werden **Beispieldaten** (6 populäre DE-Gebrauchtwagen) geladen,
-damit sofort etwas Sinnvolles im Dashboard steht. Diese werden von echten
-Adaptern überschrieben, sobald du sie scharfschaltest.
+Einzelnes Inserat verfolgen: im Dashboard unter Angebote „verfolgen", oder
+`python -m autobewertung.collect watch "<url>"`.
 
-## Deine Kriterien
+## Kriterien anpassen
 
-`data/criteria.yaml` anpassen (Gewichte + harte Filter wie `max_price`,
-`max_mileage_km`, `home_plz`). Im Dashboard lassen sich die Gewichte per
-Schieberegler live verändern.
+`data/criteria.yaml` – Gewichte, Budget, Klasse, EV-Regeln, TCO-Annahmen
+(inkl. Lade-Mix, z. B. 95 % Firma gratis), Wunsch-Ausstattung. Alles auch live
+im Dashboard einstellbar.
 
 ## Architektur
 
 ```
 autobewertung/
-  db.py            SQLite-Schema (Modelle, Angebote, Preisverlauf, Pannen,
-                   Schwachstellen, Rückrufe, Kosten, Ersatzteile, Werkstätten)
-  config.py        Kriterien/Gewichte/Filter (aus data/criteria.yaml)
-  tco.py           Total-Cost-of-Ownership-Berechnung + Fahrzeugklassen
-  scoring.py       Aggregation + TCO + Filter → 6 Dimensionen → Gesamtscore
-  collect.py       CLI: init / run / rank
-  dashboard.py     Streamlit-Dashboard mit Drill-down: Zeile=Auto + Spalte=
-                   Kategorie anklicken -> Liste -> Eintrag aufklappen (Details)
-  sources/
-    base.py        Adapter-Interface (robots-Check, höfliches Rate-Limit)
-    seed.py        Beispieldaten (sofort lauffähig)
-    watchlist.py   Einzel-Angebote per URL verfolgen (JSON-LD-Parser, Preisverlauf)
-    inserate.py    mobile.de / AutoScout24 – Gerüst (+ CSV-Import)
-    kba_recalls.py KBA-Rückrufe – Gerüst
+  db.py            SQLite-Schema (Modelle, Specs, Angebote+Preisverlauf, Verschleiss,
+                   Reliability, Rueckrufe, Alarme, Watchlist, Snapshots)
+  config.py        Kriterien/Gewichte/Filter
+  tco.py           Total Cost of Ownership + Lade-Mix + Fahrzeugklassen
+  wear.py          Verschleiss-km-Kurve + erwartete Reparaturkosten
+  checks.py        Kauf-Check (Tacho-Plausibilitaet, faellige Teile, Checkliste)
+  vin.py           NHTSA-VIN-Decoder + Modell-/Varianten-Zuordnung
+  alerts.py        Schnaeppchen-Alarm (neue Top-Preise, Preissenkungen)
+  scoring.py       Aggregation + Filter -> 8 Dimensionen -> Gesamtscore
+  tracking.py      Modell-Preis-Snapshots + Zuordnungs-Verifikation
+  collect.py       CLI: init / run / track / watch / rank / assignments
+  dashboard.py     Streamlit-Dashboard
+  sources/         seed, autoscout24 (live), reliability_import, wear_import,
+                   recalls, watchlist, inserate (CSV)
+data/              criteria.yaml + reliability_real / wear_real / recalls_real .csv
 ```
-
-Jede Datenquelle ist ein **Adapter**, der normalisiert in die DB schreibt. Neue
-Quellen einfach in `sources/__init__.py::default_sources()` registrieren.
-
-## Datenbeschaffung: legal/pragmatisch zuerst
-
-Das Tool startet mit offiziellen/offenen Wegen und respektiert `robots.txt` sowie
-höfliche Rate-Limits (`sources/base.py`). Wichtig:
-
-- **Inserate (mobile.de/AutoScout24):** automatisiertes Massen-Scraping verstößt
-  gegen deren AGB und wird per Bot-Schutz unterbunden. Der `inserate`-Adapter ist
-  daher standardmäßig **aus** und bietet stattdessen:
-  - **CSV-Import** (eigene Merklisten/Exporte):
-    `python -m autobewertung.collect run --inserate-csv meine_liste.csv`
-    (Spalten: `make,model,generation,source,source_ref,title,price,mileage_km,first_reg,plz,location,url`)
-  - Platzhalter für **offizielle Partner-/Händler-APIs** (`fetch_via_api`).
-  - Wiederholte Läufe schreiben automatisch den **Preisverlauf** fort → daraus
-    entsteht die Schnäppchen-Erkennung.
-- **KBA-Rückrufe / ADAC / TÜV:** öffentlich verfügbar; die Adapter laden die
-  Seiten robots-konform, der modellspezifische Parser ist als TODO markiert.
 
 ## Tests
 
 ```bash
-python tests/test_scoring.py       # ohne pytest lauffähig
+for t in scoring wear checks recalls reliability vin watchlist alerts autoscout24; do
+    python tests/test_$t.py; done
 # oder: pytest tests/
 ```
 
-## Nächste Ausbaustufen
+## Ehrliche Grenzen
 
-1. Inserate-CSV-Import mit echten Daten füttern → Preisverlauf/Deals werden live.
-2. KBA-Rückruf-Parser fertigstellen (öffentliche Quelle).
-3. ADAC-/TÜV-Kennzahlen je Modell/Baujahr pflegen (Adapter analog zu `seed`).
-4. Ersatzteil-Preisindex und Werkstatt-Verzeichnis je PLZ automatisieren.
-5. Benachrichtigung bei neuem Schnäppchen (Preis fällt unter Schwelle).
+- **Slug-Varianten**: Portal-Slugs mischen Generationen/Akkugrößen – gefiltert nach
+  Baujahr/Reichweite/Kraftstoff, aber Grenzfälle möglich; die angezeigte Version + AS24-Bewertung helfen beim Gegencheck.
+- **Wenige Treffer**: Bei Modellen mit 1–2 Angeboten kann ein Ausreißer den Preis verzerren (Filter greift ab mehreren Angeboten).
+- **Rückrufe** greifen FIN-spezifisch – ob *dieses* Auto betroffen/erledigt ist, klärt nur der FIN-Check.
+- **Verschleiß-km/Kosten** sind fundierte Größenordnungen (±30 %), keine Einzelfall-Kostenvoranschläge.
+- **AutoScout24-Abrufe** sind für persönliche Recherche gedacht (robots-konform, höflich); Massen-Crawling ist nicht das Ziel.
