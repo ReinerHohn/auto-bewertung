@@ -155,11 +155,12 @@ class AutoScout24Source(Source):
                 except (TypeError, ValueError):
                     return None
             items = [it for it in items if not _yr(it) or yf <= _yr(it) <= yt]
-        # nach Kraftstoff (Slug wie /hyundai/kona mischt Benziner + Elektro)
-        if dt == "elektro":
-            items = [it for it in items if it["fuel"] == "e"]
-        elif dt in ("benzin", "diesel", "hybrid"):
-            items = [it for it in items if it["fuel"] != "e"]
+        # nach Kraftstoff exakt zum modellierten Antrieb (AS24: b=Benzin, d=Diesel,
+        # 2=Hybrid Elektro/Benzin, 3=Hybrid Elektro/Diesel, e=Elektro).
+        FUEL_MAP = {"benzin": {"b"}, "diesel": {"d"}, "hybrid": {"2", "3"}, "elektro": {"e"}}
+        allowed = FUEL_MAP.get(dt)
+        if allowed:
+            items = [it for it in items if not it["fuel"] or it["fuel"] in allowed]
         # variantengenau: E-Auto-Reichweite muss zur modellierten Akkugroesse passen
         # (blendet kleinere/groessere Akku-Varianten aus, z.B. 44 vs 72 kWh)
         if dt == "elektro" and spec_range:
