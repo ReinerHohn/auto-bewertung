@@ -6,6 +6,7 @@ Wird am Ende des `track`-Laufs aufgerufen. Neue Alarme werden dedupliziert in de
 from __future__ import annotations
 
 import sqlite3
+import statistics
 from datetime import datetime, timezone
 
 RATING_LABEL = {1: "Sehr guter Preis", 2: "Guter Preis"}
@@ -22,14 +23,27 @@ def scan_alerts(conn: sqlite3.Connection, since_ts: str) -> list[str]:
     """Sucht neue Schnaeppchen. `since_ts` = Beginn des aktuellen Laufs (ISO)."""
     ts = datetime.now(timezone.utc).isoformat(timespec="seconds")
     out: list[str] = []
+    _med: dict[int, float] = {}
 
-    # 1) NEU aufgetauchte Angebote mit Top-Bewertung (Sehr gut / Gut)
+    def median_price(model_id):
+        if model_id not in _med:
+            ps = [x[0] for x in conn.execute(
+                "SELECT price FROM listing WHERE model_id=? AND active=1 AND price IS NOT NULL",
+                (model_id,))]
+            _med[model_id] = statistics.median(ps) if ps else None
+        return _med[model_id]
+
+    # 1) NEU aufgetauchte Angebote mit Top-Bewertung UND Preis <= Modell-Median
+    #    (echtes Schnaeppchen, nicht teure Sport-/Sonderversion mit gutem Preis)
     for r in conn.execute(
         "SELECT l.id, l.model_id, l.price, l.price_rating, l.mileage_km, l.first_reg, l.url, "
         "       cm.make||' '||cm.model AS model "
         "FROM listing l JOIN car_model cm ON cm.id=l.model_id "
         "WHERE l.active=1 AND l.first_seen>=? AND l.price_rating IN (1,2) AND l.price IS NOT NULL "
         "ORDER BY l.price", (since_ts,)):
+        med = median_price(r["model_id"])
+        if med and r["price"] > med:
+            continue
         sig = f"deal:{r['id']}:{int(r['price'])}"
         lbl = RATING_LABEL.get(r["price_rating"], "Top-Preis")
         msg = (f"🟢 {lbl}: {r['model']} – {r['price']:,.0f} €".replace(",", ".")

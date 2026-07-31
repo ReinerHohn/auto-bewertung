@@ -15,7 +15,7 @@ from .base import CollectResult, Source
 MODELS = [
     ("VW", "Golf", "VII (2012-2019)", 2012, 2019, "Kompakt", "Benzin"),
     ("Toyota", "Corolla", "E210 (2019-)", 2019, 2025, "Kompakt", "Hybrid"),
-    ("BMW", "3er", "F30 (2011-2019)", 2011, 2019, "Limousine", "Diesel"),
+    ("BMW", "3er", "F30 (2012-2019)", 2012, 2019, "Limousine", "Diesel"),
     ("Skoda", "Octavia", "III (2013-2020)", 2013, 2020, "Kombi", "Benzin"),
     ("Ford", "Focus", "III (2011-2018)", 2011, 2018, "Kompakt", "Benzin"),
     ("Mazda", "3", "BM (2013-2019)", 2013, 2019, "Kompakt", "Benzin"),
