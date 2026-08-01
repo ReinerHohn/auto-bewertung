@@ -660,7 +660,7 @@ max_price = st.sidebar.number_input("Budget Verbrenner (€)", 0, 200000, 15000,
 classes = list(CLASS_RANK.keys())
 min_class = st.sidebar.selectbox("Mindest-Klasse", classes, index=classes.index("kompakt"))
 ev_exc = st.sidebar.checkbox("EV-Ausnahme (darf teurer sein, wenn es spart)", True)
-ev_km30 = st.sidebar.number_input("EV: min. km nachladbar in 30 min", 0, 800, 300, step=25)
+ev_km30 = st.sidebar.number_input("EV: min. km nachladbar in 30 min", 0, 800, 250, step=25)
 ev_lr = st.sidebar.number_input("EV: Langstrecke ab Reichweite (km)", 0, 800, 400, step=25,
                                 help="Ab dieser Reichweite reicht langsameres Laden.")
 ev_km30_lr = st.sidebar.number_input("EV: min. km/30 min bei Langstrecke", 0, 500, 180, step=10)
