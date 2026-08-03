@@ -561,10 +561,10 @@ def render_category(model, cat: str) -> None:
 
     elif cat == "check":
         from autobewertung import fairprice
-        from autobewertung.checks import (CHECKLIST, SCAM_PATTERNS, carvertical_url,
-                                          due_soon, emission_note, mileage_plausibility,
-                                          next_hu, scam_flags, warranty_note, wear_status,
-                                          zahnriemen_time_status)
+        from autobewertung.checks import (CHECKLIST, SCAM_PATTERNS, age_service_checks,
+                                          carvertical_url, due_soon, emission_note,
+                                          mileage_plausibility, next_hu, scam_flags,
+                                          warranty_note, wear_status, zahnriemen_time_status)
         from autobewertung.wear import load_items
         st.markdown("#### 🕵️ Kauf-Check – Betrug, Tacho & Plausibilität")
 
@@ -665,6 +665,15 @@ def render_category(model, cat: str) -> None:
                     f"herstellerabhängig), unabhängig von der Laufleistung. **Wechselbeleg verlangen!** "
                     f"Reißt er → Motorschaden. ~{_zr['cost']:,.0f} €".replace(",", "."))
             (st.warning if _zr["due"] else st.info)(_msg)
+
+        # ⏳ Alters-/Zeit-Checks: was der km-Verschleiss verpasst (Bremsfl., 12V, Reifen ...)
+        _asc = age_service_checks(reg, km, model.drivetrain)
+        if _asc:
+            _nwarn = sum(1 for c in _asc if c["level"] == "warn")
+            with st.expander(f"⏳ Alters-/Zeit-Checks ({len(_asc)}{f', {_nwarn} wichtig' if _nwarn else ''})",
+                             expanded=_nwarn > 0):
+                for c in _asc:
+                    (st.warning if c["level"] == "warn" else st.info)(c["text"])
 
         # 🚨 Offizielle Rückrufe (sicherheitskritisch – prüfen ob erledigt!)
         rc = conn.execute("SELECT kba_code, date, description, url FROM recall "

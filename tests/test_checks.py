@@ -6,7 +6,7 @@ from datetime import datetime, timezone
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from autobewertung.checks import (
-    CHECKLIST, SCAM_PATTERNS, due_soon, emission_note, listing_age_days,
+    CHECKLIST, SCAM_PATTERNS, age_service_checks, due_soon, emission_note, listing_age_days,
     mileage_plausibility, negotiation_hint, next_hu, scam_flags, warranty_note,
     wear_status, zahnriemen_time_status)
 from autobewertung.db import init_db
@@ -140,6 +140,20 @@ def test_zahnriemen_time_status():
     # BMW 3er hat Steuerkette (kein Zahnriemen) -> None
     bmw = conn.execute("SELECT id FROM car_model WHERE model='3er'").fetchone()["id"]
     assert zahnriemen_time_status(conn, bmw, None, "2015-01", ref=REF) is None
+
+
+def test_age_service_checks():
+    old = age_service_checks("2016-01", 120000, "benzin", ref=REF)     # 10 J, normal
+    txt = " ".join(c["text"] for c in old)
+    assert "Bremsflüssigkeit" in txt and "12V" in txt and "Reifenalter" in txt
+    young = age_service_checks("2025-06", 10000, "benzin", ref=REF)    # <1 J
+    assert young == []                                                 # nichts faellig
+    # Wenigfahrer -> Standschaden-Hinweis
+    wenig = age_service_checks("2019-01", 15000, "benzin", ref=REF)    # ~2100 km/J, 7 J
+    assert any("Wenigfahrer" in c["text"] for c in wenig)
+    # E-Auto-spezifisch
+    ev = age_service_checks("2021-01", 40000, "elektro", ref=REF)
+    assert any("E-Auto" in c["text"] for c in ev)
 
 
 def test_listing_age_days():

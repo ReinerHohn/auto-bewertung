@@ -223,6 +223,41 @@ def zahnriemen_time_status(conn: sqlite3.Connection, model_id: int, variant: str
             "cost": max(i["cost_eur"] for i in zr), "component": zr[0]["component"]}
 
 
+def age_service_checks(first_reg: str | None, mileage: int | None,
+                       drivetrain: str | None, ref=None) -> list[dict]:
+    """Alters-/zeitbasierte Pruefpunkte, die der km-Verschleiss verpasst
+    (wie der Zahnriemen). Liste {level, text}; level 'warn'|'info'."""
+    mp = mileage_plausibility(mileage, first_reg, ref)
+    if not mp:
+        return []
+    age, kmy, dt = mp["age_years"], mp["km_per_year"], (drivetrain or "").lower()
+    out: list[dict] = []
+    if age >= 2:
+        out.append({"level": "warn" if age >= 4 else "info", "text":
+            "🛑 **Bremsflüssigkeit** alle ~2 Jahre wechseln (zieht Wasser → Siedepunkt sinkt → "
+            "Bremsversagen bei Belastung). Wechselbeleg da? Sonst ~60–90 € einplanen."})
+    if age >= 5:
+        out.append({"level": "warn", "text":
+            f"🔋 **12V-Starterbatterie** hält nur ~5–6 J – bei {age:.0f} J oft fällig (~120–200 €). "
+            "Häufigste Pannenursache (ADAC), unabhängig von der Laufleistung."})
+    if age >= 6:
+        out.append({"level": "info", "text":
+            "🛞 **Reifenalter**: Gummi altert nach ~6–8 J aus (hart/rissig, unsicher) – "
+            "DOT-Nummer (Woche/Jahr) prüfen, nicht nur die Profiltiefe."})
+    if age >= 3:
+        out.append({"level": "info", "text":
+            "❄️ **Klimaanlage**: Kältemittel/Service alle ~2–3 J (~80 €). Im Test: kühlt sie zügig?"})
+    if kmy < 6000 and age >= 3:
+        out.append({"level": "warn", "text":
+            f"🐌 **Wenigfahrer** (~{kmy:.0f} km/J): Standschäden prüfen – Bremsscheiben-Korrosion, "
+            "alte/verharzte Betriebsstoffe, Reifen-Standplatten, bei Diesel DPF-Zusetzen."})
+    if dt == "elektro" and age >= 3:
+        out.append({"level": "info", "text":
+            "🔌 **E-Auto**: Bremsscheiben rosten oft (Rekuperation → Bremse kaum genutzt); "
+            "12V-Batterie & Batterie-Gesundheit (SoH) auslesen lassen."})
+    return out
+
+
 def listing_age_days(first_seen: str | None, ref=None) -> int | None:
     """Tage, die ein Inserat schon online ist (aus first_seen ISO-Timestamp)."""
     if not first_seen:
