@@ -38,6 +38,9 @@ class ModelScore:
     total: float = 0.0
     n_listings: int = 0
     purchase_price: float | None = None
+    purchase_km: int | None = None           # Laufleistung des guenstigsten Angebots
+    median_price: float | None = None         # typischer Preis (Median der Angebote)
+    median_km: int | None = None              # typische Laufleistung (Median)
     best_deal_discount_pct: float | None = None
     fair_gap_pct: float | None = None        # bestes Angebot X% unter fairem Preis
     annual_tco: float | None = None
@@ -220,6 +223,8 @@ def score_models(conn: sqlite3.Connection, crit: Criteria) -> RankResult:
         if rows:
             prices = [r["price"] for r in rows]
             median = statistics.median(prices)
+            kms = [r["mileage_km"] for r in rows if r["mileage_km"] is not None]
+            median_km = int(statistics.median(kms)) if kms else None
             # Ausreisser rauswerfen (Salvage/Bastler/Leasingraten): unter 45% des Medians
             sound = [r for r in rows if r["price"] >= 0.45 * median] or rows
             best = min(sound, key=lambda r: r["price"])
@@ -231,6 +236,7 @@ def score_models(conn: sqlite3.Connection, crit: Criteria) -> RankResult:
             deal_base = fair_gap if fair_gap is not None else discount
             price_meta[mid] = {
                 "purchase": best["price"], "median": median, "n": len(rows),
+                "purchase_km": best["mileage_km"], "median_km": median_km,
                 "discount": discount, "fair_gap_pct": fair_gap,
                 "deal_score": deal_base + max(0.0, -trend) * 2.0,
                 "best_id": best["id"], "start_km": best["mileage_km"] or 80000,
@@ -361,6 +367,9 @@ def score_models(conn: sqlite3.Connection, crit: Criteria) -> RankResult:
             total=round(total, 1),
             n_listings=pm["n"],
             purchase_price=pm["purchase"],
+            purchase_km=pm.get("purchase_km"),
+            median_price=round(pm["median"]) if pm.get("median") is not None else None,
+            median_km=pm.get("median_km"),
             best_deal_discount_pct=round(pm["discount"], 1) if pm["discount"] is not None else None,
             fair_gap_pct=round(pm["fair_gap_pct"], 1) if pm.get("fair_gap_pct") is not None else None,
             annual_tco=round(t.annual_total) if t else None,

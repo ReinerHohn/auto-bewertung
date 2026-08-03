@@ -186,14 +186,19 @@ def cmd_rank(args) -> None:
     print("Gewichte:", ", ".join(f"{d}={w[d]:.0%}" for d in DIMENSIONS))
     print(f"TCO-Annahmen: {crit.tco.annual_km} km/Jahr, {crit.tco.holding_years} Jahre Haltedauer")
     print()
-    header = (f"{'#':>2}  {'Modell':26} {'Antrieb':8} {'Score':>6} "
-              f"{'Kaufpreis':>10} {'TCO/Jahr':>9}  Dimensionen")
+    def _tkm(km):
+        return f"{round(km / 1000)}tkm" if km else "?"
+
+    header = (f"{'#':>2}  {'Modell':24} {'Antr.':7} {'Score':>5} "
+              f"{'guenstigst @ km':>17} {'typisch':>8} {'fair':>5} {'Ang':>3} {'TCO/J':>7}")
     print(header)
     print("-" * len(header))
     for i, m in enumerate(ranked, 1):
-        dims = " ".join(f"{d[:4]}:{m.dims[d]:.0f}" for d in DIMENSIONS)
-        print(f"{i:>2}  {m.label[:26]:26} {(m.drivetrain or '-'):8} {m.total:>6.1f} "
-              f"{_eur(m.purchase_price):>10} {_eur(m.annual_tco):>9}  {dims}")
+        cheap = f"{_eur(m.purchase_price)} @ {_tkm(m.purchase_km)}"
+        fair = f"{m.fair_gap_pct:+.0f}%" if m.fair_gap_pct is not None else "-"
+        print(f"{i:>2}  {m.label[:24]:24} {(m.drivetrain or '-'):7} {m.total:>5.1f} "
+              f"{cheap:>17} {_eur(m.median_price):>8} {fair:>5} {m.n_listings:>3} "
+              f"{_eur(m.annual_tco):>7}")
 
     if result.excluded:
         print("\nAusgeschlossen (harte Kriterien):")

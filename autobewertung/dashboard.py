@@ -824,8 +824,8 @@ with left:
                "Wertst = Wertverlust %/J · Ausst = Wunsch-Assistenz von 4 (⚠️ oft teure Matrix-LED) · "
                "Mängel = TÜV % · Pannen /1000 · Teile = Verfügbarkeit %.")
     park_mm = park_cm * 10
-    HEADERS = ["Modell", "Baujahr", "Preis", "L×B (m)", "GESAMT 5J", "GESAMT 10J", "Wertv/J", "🚨"]
-    WIDTHS = [2.4, 0.8, 0.9, 1.05, 1.1, 1.15, 0.95, 0.5] + [0.85] * len(CATCOLS)
+    HEADERS = ["Modell", "Baujahr", "Preis günst./ø", "L×B (m)", "GESAMT 5J", "GESAMT 10J", "Wertv/J", "🚨"]
+    WIDTHS = [2.4, 0.8, 1.25, 1.05, 1.1, 1.15, 0.95, 0.5] + [0.85] * len(CATCOLS)
     head = st.columns(WIDTHS)
     for c, t in zip(head, HEADERS + [lbl for _, lbl in CATCOLS]):
         c.markdown(f"<small><b>{t}</b></small>", unsafe_allow_html=True)
@@ -855,8 +855,17 @@ with left:
             st.rerun()
         yf, yt = m.details.get("year_from"), m.details.get("year_to")
         c[1].markdown(_s(f"{yf}–{yt}" if yf else "–"), unsafe_allow_html=True)
-        c[2].markdown(_s(f"{m.purchase_price:,.0f} €".replace(",", ".")) if m.purchase_price else "–",
-                      unsafe_allow_html=True)
+        if m.purchase_price:
+            sub = []
+            if m.purchase_km:
+                sub.append(f"@ {round(m.purchase_km / 1000)}tkm")
+            if m.median_price:
+                sub.append("ø " + f"{m.median_price:,.0f}€".replace(",", "."))
+            price_html = (f"<b>{m.purchase_price:,.0f} €</b>".replace(",", ".")
+                          + (f"<br><span style='color:#888'>{' · '.join(sub)}</span>" if sub else ""))
+            c[2].markdown(f"<small>{price_html}</small>", unsafe_allow_html=True)
+        else:
+            c[2].markdown("–", unsafe_allow_html=True)
         lm, wm = mt.get("length_mm"), mt.get("width_mm")
         lxb = f"{lm/1000:.2f}×{wm/1000:.2f}".replace(".", ",") if lm and wm else "–"
         # Breiten-Delta zum Referenzauto
@@ -892,8 +901,16 @@ with right:
     st.markdown(f"### {model.label}")
     a, b = st.columns(2)
     a.metric("Score", f"{model.total:.1f}")
-    b.metric("Kaufpreis", f"{model.purchase_price:,.0f} €".replace(",", "."))
+    b.metric("Günstigstes", f"{model.purchase_price:,.0f} €".replace(",", ".") if model.purchase_price else "–",
+             help="günstigstes gesundes Angebot (Ausreißer < 45 % Median rausgefiltert)")
     a.metric("TCO/Jahr", f"{model.annual_tco:,.0f} €".replace(",", "."))
+    _pk = f"@ {round(model.purchase_km / 1000)} tkm" if model.purchase_km else ""
+    _ty = ("typisch ø " + f"{model.median_price:,.0f} €".replace(",", ".")
+           + (f" bei ~{round(model.median_km / 1000)} tkm" if model.median_km else "")) if model.median_price else ""
+    _fair = f"{model.fair_gap_pct:+.0f} % vs. fair" if model.fair_gap_pct is not None else ""
+    _info = " · ".join(x for x in (_pk, _ty, _fair, f"{model.n_listings} Angebote") if x)
+    if _info:
+        st.caption(_info)
     if model.drivetrain == "elektro":
         b.metric("Laden in 30 min", f"{model.km_per_30min:.0f} km" if model.km_per_30min else "-",
                  help="Nachgeladene km in 30 min Schnellladen – NICHT die Reichweite!")
