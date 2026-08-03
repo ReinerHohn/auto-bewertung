@@ -74,6 +74,30 @@ CHECKLIST = [
     ]),
 ]
 
+# Die "goldenen Regeln" – kompakte Faustregeln eines kritischen Profis, als
+# Merkkasten fuers Kaufgespraech. (gruppe, [regeln])
+GOLDEN_RULES = [
+    ("🧠 Mindset", [
+        "Kauf den Verkäufer, nicht das Auto – Halter = Verkäufer? Ehrlich mit Mängeln? "
+        "Drängt er? Wegbleiben-Können ist deine stärkste Waffe.",
+        "Verlieb dich nicht – der nächste Gute kommt. Emotion kostet Tausende.",
+        "Zu gut = zu gut: 25–30 % unter Markt ist Mangel oder Betrug, kein Glück.",
+    ]),
+    ("🔍 Besichtigung", [
+        "Motor muss KALT sein – warmgefahren verdeckt Kettenrasseln, Rauch, Öldruck. „Schon warm“? → nochmal kommen.",
+        "Fehlerspeicher + km in ALLEN Steuergeräten auslesen (OBD) – entlarvt Tacho-Dreh & versteckte Fehler.",
+        "Unter's Auto: Unterboden, Radläufe, Bremsleitungen, Schweißnähte. Frischer Unterbodenschutz = Verdacht.",
+        "Papiere zuerst: ZB II (Brief) im Original, HU-Bericht (echter km-Verlauf!), lückenloses Scheckheft.",
+        "Probefahrt lang & vielseitig, Radio aus – Autobahn, enge Kurve, Vollbremsung, rückwärts.",
+    ]),
+    ("💶 Geld & Verhandlung", [
+        "Nie Vorkasse/Anzahlung/Treuhand/Ausland – bar bei Übergabe oder Echtzeit-Überweisung vor Ort.",
+        "Rechne Folgekosten, nicht Kaufpreis – billig + fälliger Zahnriemen/DSG/DPF = teuer.",
+        "Zielpreis vorher festlegen, Mängel als Munition nennen – dann schweigen. Wer zuerst redet, verliert.",
+        "Ernster Kandidat? Profi-Check (ADAC/TÜV/Werkstatt, ~100–150 €) = billigste Versicherung.",
+    ]),
+]
+
 
 # Typische Betrugsmaschen beim Gebrauchtwagenkauf (DE, v.a. Kleinanzeigen/eBay-KA).
 # Je Masche: wie du sie erkennst (signal) und wie du dich schuetzt (protect).

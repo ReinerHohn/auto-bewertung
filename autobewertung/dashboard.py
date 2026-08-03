@@ -565,12 +565,18 @@ def render_category(model, cat: str) -> None:
         from autobewertung import fairprice
         from autobewertung.advice import (ADAC_KAUFVERTRAG_URL, buy_dossier, kaufvertrag,
                                           model_watchpoints, negotiation_ammo)
-        from autobewertung.checks import (CHECKLIST, SCAM_PATTERNS, age_service_checks,
-                                          carvertical_url, due_soon, emission_note,
-                                          listing_age_days, mileage_plausibility, next_hu,
-                                          scam_flags, warranty_note, wear_status, zahnriemen_time_status)
+        from autobewertung.checks import (CHECKLIST, GOLDEN_RULES, SCAM_PATTERNS,
+                                          age_service_checks, carvertical_url, due_soon,
+                                          emission_note, listing_age_days, mileage_plausibility,
+                                          next_hu, scam_flags, warranty_note, wear_status,
+                                          zahnriemen_time_status)
         from autobewertung.wear import load_items
         st.markdown("#### 🕵️ Kauf-Check – Betrug, Tacho & Plausibilität")
+        with st.expander("🏆 Goldene Regeln vom Profi – immer im Kopf behalten"):
+            for _grp, _rules in GOLDEN_RULES:
+                st.markdown(f"**{_grp}**")
+                for _r in _rules:
+                    st.markdown(f"- {_r}")
 
         # Vorbelegung: konkret angeklicktes Inserat, sonst guenstigstes Angebot
         sel_km = st.session_state.get("_sel_listing_km")

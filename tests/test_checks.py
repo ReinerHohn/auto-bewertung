@@ -6,7 +6,7 @@ from datetime import datetime, timezone
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from autobewertung.checks import (
-    CHECKLIST, SCAM_PATTERNS, age_service_checks, due_soon, emission_note, listing_age_days,
+    CHECKLIST, GOLDEN_RULES, SCAM_PATTERNS, age_service_checks, due_soon, emission_note, listing_age_days,
     mileage_plausibility, negotiation_hint, next_hu, scam_flags, warranty_note,
     wear_status, zahnriemen_time_status)
 from autobewertung.db import init_db
@@ -128,6 +128,11 @@ def test_emission_note_old_diesel_warns():
 def test_checklist_has_recht_section():
     titles = [s for s, _ in CHECKLIST]
     assert any("Recht" in t or "Papiere" in t for t in titles)
+
+
+def test_golden_rules_structure():
+    assert len(GOLDEN_RULES) >= 3
+    assert all(len(rules) >= 2 for _, rules in GOLDEN_RULES)   # (gruppe, [regeln])
 
 
 def test_zahnriemen_time_status():
