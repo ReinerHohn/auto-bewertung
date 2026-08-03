@@ -101,6 +101,29 @@ def test_bargains_excludes_edge_artifacts():
     assert over not in ids                      # ueberteuert ist kein Schnaeppchen
 
 
+def test_equipment_from_title_lifts_fair_price():
+    """Ausstattung/Trim aus dem Titel hebt den fairen Preis -> keine Fehl-Deals."""
+    conn = init_db(":memory:")
+    a = _model(conn, "VW", "Golf")
+
+    def add(ref, price, title):
+        conn.execute(
+            "INSERT INTO listing(model_id,source,source_ref,title,price,mileage_km,"
+            "first_reg,power_kw,active,first_seen,last_seen) "
+            "VALUES (?,?,?,?,?,60000,'2022-06',100,1,'t0','t0')",
+            (a, "autoscout24", ref, title, price))
+
+    for i in range(6):
+        add(f"b{i}", 12000, "VW Golf Trendline")          # nackt, guenstig
+        add(f"s{i}", 18000, "VW Golf GTI Leder")          # ausgestattet, teurer
+    conn.commit()
+    m = fairprice.fit(conn)
+    assert m.b_equip["sport"] > 0.1                        # Sport-Aufschlag erkannt
+    base = m.predict(a, 4, 60000, 100, set())
+    loaded = m.predict(a, 4, 60000, 100, {"sport", "leder"})
+    assert loaded > base * 1.2                             # ausgestattet -> hoeherer fairer Preis
+
+
 def test_prediction_matches_law_for_clean_point():
     conn, a, *_ = _build()
     m = fairprice.fit(conn)

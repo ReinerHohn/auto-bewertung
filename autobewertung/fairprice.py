@@ -22,14 +22,48 @@ Benoetigt numpy (kommt mit pandas). Ohne numpy -> gibt None zurueck (Feature aus
 from __future__ import annotations
 
 import math
+import re
 import sqlite3
 import statistics
 from collections import Counter
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from datetime import datetime, timedelta, timezone
 
 MIN_PER_MODEL = 4          # weniger Angebote -> kein Basiswert (zu wenig Signal)
 FIT_WINDOW_DAYS = 120      # verkaufte Angebote bis hierher zaehlen als Marktdaten
+
+# Ausstattungs-/Trim-Signale aus dem Inserats-Titel. Erklaeren viel Preisvarianz
+# INNERHALB eines Modells -> trennen 'guenstig weil nackt' von echtem Schnaeppchen.
+TITLE_FLAGS = {
+    "automatik": r"automatik|automat\b|\bdsg\b|tiptronic|s-?tronic|steptronic|\bpdk\b|\bat\b",
+    "leder": r"leder|nappa|alcantara",
+    "navi": r"navi|navigation|mmi|comand",
+    "ahk": r"\bahk\b|anh[aä]ngerkupplung|anhaengerkupplung",
+    "panorama": r"panorama|\bpano\b|schiebedach|glasdach|sky",
+    "allrad": r"4x4|4motion|quattro|allrad|\bawd\b|xdrive|4matic|\b4wd\b|4drive",
+    "sport": r"\bgti\b|\bgtd\b|\bgte\b|r-?line|s-?line|n-?line|st-?line|\bamg\b|m-?sport|"
+             r"\bvz\b|cupra|\bgt\b|\br\b\s|\bs3\b|\bs4\b|\brs\b",
+    "vollausstattung": r"vollausst|voll ausgestattet|highline|\bstyle\b|titanium|elegance|"
+                       r"\bgt-?line\b|\bxcellence\b|top ausstattung|\bfr\b",
+}
+FLAG_ORDER = sorted(TITLE_FLAGS)
+
+
+def _title_flags(title: str | None) -> set[str]:
+    t = (title or "").lower()
+    return {k for k, rx in TITLE_FLAGS.items() if re.search(rx, t)}
+
+
+def _title_power_kw(title: str | None) -> int | None:
+    """Leistung aus dem Titel (KA liefert kein kW-Feld). kW bevorzugt, sonst PS."""
+    t = (title or "").lower()
+    m = re.search(r"(\d{2,3})\s*kw", t)
+    if m:
+        return int(m.group(1))
+    m = re.search(r"(\d{2,3})\s*ps", t)
+    if m:
+        return round(int(m.group(1)) / 1.36)
+    return None
 PRICE_MIN, PRICE_MAX = 1500, 150000
 KM_MAX = 400000
 AGE_MAX = 25
@@ -65,13 +99,16 @@ class FairPriceModel:
     kw_default: float
     n: int
     r2: float
+    b_equip: dict[str, float] = field(default_factory=dict)   # Ausstattungs-Aufschlaege (log)
 
-    def predict(self, model_id: int, age: float, km: float, kw: float | None) -> float | None:
+    def predict(self, model_id: int, age: float, km: float, kw: float | None,
+                flags: set[str] | None = None) -> float | None:
         if model_id not in self.base:
             return None
         log_fair = (self.base[model_id] + self.b_age * age
                     + self.b_logkm * math.log1p(max(0, km))
-                    + self.b_kw * (kw if kw else self.kw_default))
+                    + self.b_kw * (kw if kw else self.kw_default)
+                    + sum(self.b_equip.get(f, 0.0) for f in (flags or ())))
         return math.exp(log_fair)
 
 
@@ -87,7 +124,7 @@ def _feature_rows(conn: sqlite3.Connection, include_sold: bool = False) -> list[
         where, params = ("active=1 AND price IS NOT NULL AND source!='seed'", ())
     out: list[dict] = []
     for r in conn.execute(
-        "SELECT id, model_id, price, mileage_km, first_reg, power_kw FROM listing "
+        "SELECT id, model_id, price, mileage_km, first_reg, power_kw, title FROM listing "
         f"WHERE {where}", params):
         price, km, fr = r["price"], r["mileage_km"], r["first_reg"]
         if not price or km is None or not fr:
@@ -99,7 +136,9 @@ def _feature_rows(conn: sqlite3.Connection, include_sold: bool = False) -> list[
         if not (PRICE_MIN <= price <= PRICE_MAX) or km < 0 or km > KM_MAX or age < 0 or age > AGE_MAX:
             continue
         out.append({"id": r["id"], "model_id": r["model_id"], "price": float(price),
-                    "km": float(km), "age": float(age), "kw": r["power_kw"]})
+                    "km": float(km), "age": float(age),
+                    "kw": r["power_kw"] or _title_power_kw(r["title"]),
+                    "flags": _title_flags(r["title"])})
     return out
 
 
@@ -124,7 +163,8 @@ def fit(conn: sqlite3.Connection) -> FairPriceModel | None:
     def feats(r):
         base = [0.0] * M
         base[midx[r["model_id"]]] = 1.0
-        return base + [r["age"], math.log1p(r["km"]), float(r["kw"] or kw_default)]
+        equip = [1.0 if f in r["flags"] else 0.0 for f in FLAG_ORDER]
+        return base + [r["age"], math.log1p(r["km"]), float(r["kw"] or kw_default)] + equip
 
     X = np.array([feats(r) for r in rows], dtype=float)
     y = np.array([math.log(r["price"]) for r in rows], dtype=float)
@@ -145,10 +185,11 @@ def fit(conn: sqlite3.Connection) -> FairPriceModel | None:
     r2 = 1.0 - ss_res / ss_tot
 
     base = {m: float(coef[midx[m]]) for m in models}
+    b_equip = {f: float(coef[M + 3 + i]) for i, f in enumerate(FLAG_ORDER)}
     return FairPriceModel(model_ids=models, base=base,
                           b_age=float(coef[M]), b_logkm=float(coef[M + 1]),
                           b_kw=float(coef[M + 2]), kw_default=kw_default,
-                          n=len(rows), r2=r2)
+                          n=len(rows), r2=r2, b_equip=b_equip)
 
 
 def estimate_listings(conn: sqlite3.Connection,
@@ -159,7 +200,7 @@ def estimate_listings(conn: sqlite3.Connection,
         return {}
     out: dict[int, FairEstimate] = {}
     for r in _feature_rows(conn):
-        fair = model.predict(r["model_id"], r["age"], r["km"], r["kw"])
+        fair = model.predict(r["model_id"], r["age"], r["km"], r["kw"], r["flags"])
         if not fair:
             continue
         resid = r["price"] - fair
