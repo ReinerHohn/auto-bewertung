@@ -419,6 +419,8 @@ def render_category(model, cat: str) -> None:
                     st.session_state._sel_listing_reg = r["first_reg"]
                     st.session_state._sel_listing_price = r["price"]
                     st.session_state._sel_listing_source = r["source"]
+                    st.session_state._sel_listing_first_seen = r["first_seen"]
+                    st.session_state._sel_listing_url = r["url"]
                     st.session_state._sel_listing_model = mid
                     st.session_state.cat = "check"
                     st.rerun()
@@ -561,10 +563,11 @@ def render_category(model, cat: str) -> None:
 
     elif cat == "check":
         from autobewertung import fairprice
+        from autobewertung.advice import buy_dossier, model_watchpoints, negotiation_ammo
         from autobewertung.checks import (CHECKLIST, SCAM_PATTERNS, age_service_checks,
                                           carvertical_url, due_soon, emission_note,
-                                          mileage_plausibility, next_hu, scam_flags,
-                                          warranty_note, wear_status, zahnriemen_time_status)
+                                          listing_age_days, mileage_plausibility, next_hu,
+                                          scam_flags, warranty_note, wear_status, zahnriemen_time_status)
         from autobewertung.wear import load_items
         st.markdown("#### 🕵️ Kauf-Check – Betrug, Tacho & Plausibilität")
 
@@ -674,6 +677,33 @@ def render_category(model, cat: str) -> None:
                              expanded=_nwarn > 0):
                 for c in _asc:
                     (st.warning if c["level"] == "warn" else st.info)(c["text"])
+
+        # 🤝 Verhandeln & Dossier – die Analyse zu Handlung verdichtet
+        st.divider()
+        st.markdown("### 🤝 Verhandeln & Kauf-Dossier")
+        _wp, _nr = model_watchpoints(conn, mid, variant)
+        if _wp:
+            st.markdown("**🎯 Bei genau diesem Modell zuerst prüfen:**")
+            for w in _wp:
+                st.markdown(f"- **{w['label']}**: {w['detail']}"
+                            + (f" (~{w['cost']:,.0f} €)".replace(",", ".") if w["cost"] else ""))
+        _sel = st.session_state.get("_sel_listing_model") == mid
+        _dsel = listing_age_days(st.session_state.get("_sel_listing_first_seen")) if _sel else None
+        _amm = negotiation_ammo(conn, mid, variant, price, km, reg, _fair, _dsel, model.drivetrain)
+        if _amm["args"] or _amm["context"]:
+            tgt = f" → Zielpreis ~{_amm['target']:,.0f} €".replace(",", ".") if _amm["target"] else ""
+            st.markdown(f"**💬 Verhandlungs-Munition** – Masse ~{_amm['reduction']:,.0f} €{tgt}".replace(",", "."))
+            for a in _amm["args"]:
+                st.markdown(f"- {a['text']}" + (f" (~{a['eur']:,.0f} €)".replace(",", ".") if a["eur"] else ""))
+            for cc in _amm["context"]:
+                st.markdown(f"- {cc}")
+        _doss = buy_dossier(conn, mid, model.label, variant, price, km, reg, _fair, _dsel,
+                            _src, model.drivetrain,
+                            url=st.session_state.get("_sel_listing_url") if _sel else None)
+        with st.expander("📄 Kauf-Dossier – kopieren/mitnehmen zum Besichtigungstermin"):
+            st.code(_doss, language="markdown")
+            st.download_button("⬇️ Als .md herunterladen", _doss,
+                               file_name=f"dossier_{model.label[:30]}.md", key=f"doss_{mid}")
 
         # 🚨 Offizielle Rückrufe (sicherheitskritisch – prüfen ob erledigt!)
         rc = conn.execute("SELECT kba_code, date, description, url FROM recall "
