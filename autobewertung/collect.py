@@ -6,6 +6,7 @@ Beispiele:
     python -m autobewertung.collect run --only seed
     python -m autobewertung.collect rank --top 10
     python -m autobewertung.collect run --inserate-csv meine_merkliste.csv
+    python -m autobewertung.collect discover --dry-run   # neue Modelle aus AS24
 """
 from __future__ import annotations
 
@@ -115,6 +116,26 @@ def cmd_track(args) -> None:
     conn.close()
 
 
+def cmd_discover(args) -> None:
+    """Neue Modelle aus den AS24-Live-Angeboten erkennen und anlegen.
+
+    Scannt die kanonischen Marken-Seiten, gruppiert nach Modell und legt noch
+    nicht vorhandene Modelle mit abgeleiteter Minimal-Spec an. `--dry-run` zeigt
+    nur, was angelegt wuerde.
+    """
+    from .sources.discover import DiscoverSource
+    conn = init_db(args.db)
+    src = DiscoverSource(min_listings=args.min, dry_run=args.dry_run)
+    res = src.collect(conn)
+    for line in src.report:
+        print(("  ~ " if args.dry_run else "  + ") + line)
+    print(f"[{res.source}] {res.notes}")
+    if not args.dry_run and res.inserted:
+        print("Tipp: `rank` neu ausfuehren; neue Modelle sind als "
+              "generation='auto-entdeckt' markiert (Spec noch teils 🟡).")
+    conn.close()
+
+
 def cmd_watch(args) -> None:
     from .db import add_watch
     conn = init_db(args.db)
@@ -168,6 +189,11 @@ def main(argv=None) -> None:
     tr = sub.add_parser("track", help="Preis-Tracking fuer Cron (AS24 + Watchlist + Snapshot)")
     tr.add_argument("--top", type=int, default=20, help="Anzahl Top-Modelle, die getrackt werden")
     tr.set_defaults(func=cmd_track)
+
+    dc = sub.add_parser("discover", help="neue Modelle aus AS24-Angeboten erkennen + anlegen")
+    dc.add_argument("--min", type=int, default=2, help="Mindestzahl Angebote je neuem Modell")
+    dc.add_argument("--dry-run", action="store_true", help="nur anzeigen, nichts anlegen")
+    dc.set_defaults(func=cmd_discover)
 
     w = sub.add_parser("watch", help="Inserats-URL verfolgen (Preisverlauf)")
     w.add_argument("url")

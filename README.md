@@ -65,6 +65,18 @@ Snapshots und erkennt Schnäppchen (`alerts.log`). Als Cron (z. B. alle 6 h):
 Einzelnes Inserat verfolgen: im Dashboard unter Angebote „verfolgen", oder
 `python -m autobewertung.collect watch "<url>"`.
 
+## Auto-Discovery neuer Modelle
+
+```bash
+python -m autobewertung.collect discover --dry-run   # nur anzeigen, was fehlt
+python -m autobewertung.collect discover --min 3     # ab 3 Angeboten anlegen
+```
+Scannt die kanonischen AS24-Marken-Seiten, gruppiert die Angebote nach Modell und
+legt noch nicht erfasste Modelle automatisch an (Antrieb aus Kraftstoff, typ. Preis
+aus Median, Baujahr-Spanne + Reichweite aus den Angeboten). Neue Modelle sind über
+`generation='auto-entdeckt'` markiert und können später via Seed/CSV mit Echtdaten
+(Verbrauch, Klasse, Zuverlässigkeit) vertieft werden.
+
 ## Kriterien anpassen
 
 `data/criteria.yaml` – Gewichte, Budget, Klasse, EV-Regeln, TCO-Annahmen

@@ -101,6 +101,8 @@ def parse_autoscout24(html: str) -> list[dict]:
             "url": ("https://www.autoscout24.de" + l["url"]) if l.get("url") else None,
             "title": (veh.get("modelVersionInput")
                       or f"{veh.get('make', '')} {veh.get('model', '')}").strip(),
+            "make": veh.get("make"),          # AS24-Marke (ausgeschrieben), fuer Discovery
+            "model": veh.get("model"),        # AS24-Modellname (ohne Trim), fuer Discovery
             "fuel": (tr.get("fuelType") or "").lower(),   # 'e'=Elektro, 'd'=Diesel, ...
             "rating": rating,
             "power_kw": power_kw,

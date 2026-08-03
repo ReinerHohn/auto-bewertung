@@ -6,6 +6,7 @@ einem Netz-Check) nichts, bis sie konfiguriert werden.
 """
 from .autoscout24 import AutoScout24Source
 from .base import CollectResult, Source
+from .discover import DiscoverSource
 from .inserate import InserateSource
 from .recalls import NhtsaRecallSource, RecallImportSource
 from .reliability_import import ReliabilityImportSource
@@ -22,11 +23,13 @@ def default_sources() -> list[Source]:
 
 
 def all_sources() -> list[Source]:
-    return default_sources() + [NhtsaRecallSource()]
+    # DiscoverSource (Netz, langsam) nicht im Default -> via `collect discover`.
+    return default_sources() + [NhtsaRecallSource(), DiscoverSource()]
 
 
 __all__ = [
     "Source", "CollectResult", "SeedSource", "ReliabilityImportSource",
     "WearImportSource", "RecallImportSource", "NhtsaRecallSource",
-    "WatchlistSource", "InserateSource", "default_sources", "all_sources",
+    "WatchlistSource", "InserateSource", "DiscoverSource",
+    "default_sources", "all_sources",
 ]
