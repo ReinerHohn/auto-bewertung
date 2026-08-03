@@ -1,0 +1,48 @@
+# Recherchierte Fahrzeug-Specs zum Vertiefen (v.a. auto-entdeckter) Modelle.
+# Nur nicht-leere Felder werden gesetzt (partielles Update von vehicle_spec).
+# Klasse ist das wichtigste Feld: steuert den harten Klassenfilter (>= kompakt).
+# Verbrauch/Masse/Versicherung/Steuer/Wertverlust sind fundierte Groessenordnungen.
+make,model,vehicle_class,cons_l_100km,cons_kwh_100km,battery_kwh,range_km,dc_charge_kw,km_per_30min,insurance_eur,tax_eur,depr_pct_year,length_mm,width_mm,turning_m,note
+# --- Profil-relevant (>= kompakt): SUVs / Kompakt / Mittelklasse / Van / EV-SUV ---
+Cupra,Formentor,suv,6.5,,,,,,560,150,0.14,4450,1839,11.0,1.5 TSI Kompakt-SUV
+Cupra,Ateca,suv,7.5,,,,,,620,180,0.14,4386,1841,11.1,2.0 TSI 4Drive
+Cupra,Leon,kompakt,6.2,,,,,,540,150,0.14,4368,1799,10.9,1.5/2.0 TSI
+Seat,Arona,suv,5.8,,,,,,480,120,0.13,4138,1780,10.6,1.0 TSI Klein-SUV
+Skoda,Scala,kompakt,5.5,,,,,,460,120,0.13,4362,1793,10.8,1.0/1.5 TSI
+Skoda,Yeti,suv,6.8,,,,,,480,140,0.12,4223,1793,10.3,1.2/1.4 TSI Kompakt-SUV
+Nissan,Juke,suv,6.0,,,,,,480,130,0.13,4135,1800,10.7,1.0/1.6 Klein-SUV
+Peugeot,2008,suv,5.8,,,,,,480,120,0.14,4300,1770,10.6,1.2 PureTech - Steuerkette beachten
+Hyundai,BAYON,suv,5.6,,,,,,460,120,0.13,4180,1775,10.4,1.0 T-GDi Klein-SUV
+MG,HS,suv,7.0,,,,,,520,150,0.16,4574,1876,11.0,1.5 T Benziner
+Suzuki,Vitara,suv,5.9,,,,,,460,130,0.13,4175,1775,10.4,1.4/1.6
+Honda,HR-V,suv,6.0,,,,,,500,140,0.13,4340,1790,10.8,
+Honda,CR-V,suv,5.8,,,,,,520,220,0.13,4570,1820,11.5,2.2 i-DTEC Diesel
+Volvo,XC40,suv,7.0,,,,,,560,160,0.14,4425,1863,11.4,T3/T4 Benziner
+Nissan,X-Trail,suv,5.6,,,,,,520,220,0.14,4640,1820,11.2,1.6 dCi Diesel
+Audi,Q5,suv,6.5,,,,,,620,240,0.12,4629,1880,11.7,2.0 TDI (8R)
+Audi,A6,mittelklasse,5.5,,,,,,640,260,0.13,4933,1874,11.9,2.0 TDI (C7/C8)
+Opel,Zafira Life,van,6.5,,,,,,560,260,0.15,4959,1920,11.5,Diesel Grossraum-Van
+Citroen,C4,kompakt,5.8,,,,,,480,120,0.14,4360,1800,10.7,1.2 PureTech - Steuerkette beachten
+Volvo,EX30,suv,,16.5,64,450,153,220,560,0,0.18,4233,1837,10.2,Elektro-SUV Single Motor ER
+Polestar,3,suv,,22.0,107,560,250,300,700,0,0.18,4900,1968,11.6,grosses Elektro-SUV (Premium)
+# --- Kleinwagen/Kleinstwagen: v.a. korrekt klassifizieren (< kompakt -> Filter raus) ---
+Fiat,500,kleinstwagen,5.0,,,,,,360,90,0.13,3571,1627,9.3,1.2/0.9 TwinAir
+Toyota,Aygo,kleinstwagen,4.7,,,,,,340,50,0.11,3455,1615,9.6,1.0 VVT-i
+Kia,Picanto,kleinstwagen,5.0,,,,,,340,60,0.12,3595,1595,9.4,1.0/1.2
+Nissan,Micra,kleinwagen,5.2,,,,,,380,100,0.14,3999,1743,10.2,
+Mini,One,kleinwagen,5.5,,,,,,420,110,0.13,3821,1727,10.7,
+Mini,Cooper,kleinwagen,5.5,,,,,,460,120,0.13,3876,1727,10.7,
+VW,Polo,kleinwagen,5.4,,,,,,420,110,0.12,4053,1751,10.6,
+Skoda,Fabia,kleinwagen,5.3,,,,,,400,100,0.12,4108,1780,10.4,
+Dacia,Sandero,kleinwagen,5.5,,,,,,380,100,0.12,4088,1848,10.7,
+Seat,Ibiza,kleinwagen,5.4,,,,,,440,110,0.13,4059,1780,10.6,
+Ford,Fiesta,kleinwagen,5.4,,,,,,420,110,0.13,4040,1735,10.2,
+Hyundai,i20,kleinwagen,5.3,,,,,,400,100,0.12,4040,1734,10.2,
+Renault,Clio,kleinwagen,5.3,,,,,,420,110,0.13,4050,1798,10.6,
+Peugeot,208,kleinwagen,5.2,,,,,,420,110,0.14,4055,1745,10.4,1.2 PureTech - Steuerkette
+Citroen,C3,kleinwagen,5.4,,,,,,400,100,0.14,3996,1749,10.7,1.2 PureTech
+Toyota,Yaris,kleinwagen,4.8,,,,,,400,90,0.11,3940,1695,9.8,Hybrid effizient
+Suzuki,Swift,kleinwagen,5.0,,,,,,400,100,0.13,3840,1735,10.2,
+Honda,Jazz,kleinwagen,5.2,,,,,,440,110,0.12,4044,1694,10.4,
+MG,MG3,kleinwagen,4.5,,,,,,460,40,0.16,4113,1797,10.6,Vollhybrid
+Dacia,Spring,kleinstwagen,,14.0,25,220,30,60,420,0,0.16,3734,1622,9.6,Elektro-Kleinstwagen (langsam ladend)
