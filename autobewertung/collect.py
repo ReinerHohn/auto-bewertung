@@ -90,13 +90,17 @@ def cmd_track(args) -> None:
             s.collect(conn)
 
     crit = load_criteria()
-    ranked = score_models(conn, crit).ranked[: args.top]
+    if getattr(args, "all", False):
+        targets = conn.execute("SELECT id AS model_id, make, model FROM car_model").fetchall()
+    else:
+        ranked = score_models(conn, crit).ranked[: args.top]
+        targets = [conn.execute("SELECT id AS model_id, make, model FROM car_model WHERE id=?",
+                                (m.model_id,)).fetchone() for m in ranked]
     as24 = AutoScout24Source()
     got = 0
-    for m in ranked:
-        row = conn.execute("SELECT make, model FROM car_model WHERE id=?", (m.model_id,)).fetchone()
+    for m in targets:
         try:
-            n, _ = as24.fetch_model(conn, m.model_id, row["make"], row["model"])
+            n, _ = as24.fetch_model(conn, m["model_id"], m["make"], m["model"])
             got += n
         except Exception:
             pass
@@ -104,7 +108,7 @@ def cmd_track(args) -> None:
     snaps = snapshot_model_prices(conn)
     alerts = scan_alerts(conn, since_ts)
     ts = datetime.now().strftime("%Y-%m-%d %H:%M")
-    print(f"[{ts}] track: {got} AS24-Angebote ({len(ranked)} Modelle), "
+    print(f"[{ts}] track: {got} AS24-Angebote ({len(targets)} Modelle), "
           f"Watchlist: {wres.notes}, {snaps} Modell-Preispunkte, {len(alerts)} Schnaeppchen-Alarm(e)")
     if alerts:
         logf = Path(args.db).resolve().parent.parent / "alerts.log"
@@ -226,6 +230,7 @@ def main(argv=None) -> None:
 
     tr = sub.add_parser("track", help="Preis-Tracking fuer Cron (AS24 + Watchlist + Snapshot)")
     tr.add_argument("--top", type=int, default=20, help="Anzahl Top-Modelle, die getrackt werden")
+    tr.add_argument("--all", action="store_true", help="ALLE Modelle tracken (mehr Angebote, langsamer)")
     tr.set_defaults(func=cmd_track)
 
     dl = sub.add_parser("deals", help="unterbewertete Angebote laut Fair-Preis-Modell")

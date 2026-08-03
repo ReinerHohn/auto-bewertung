@@ -54,12 +54,15 @@ Alle nicht belegten Werte sind im Dashboard klar als 🟡 Schätzung markiert.
 ## Automatisches Preis-Tracking (Cron)
 
 ```bash
-python -m autobewertung.collect track --top 20
+python -m autobewertung.collect track --top 20   # nur die Top-Modelle
+python -m autobewertung.collect track --all       # ALLE Modelle (mehr Angebote, langsamer)
 ```
 Holt echte AS24-Preise, aktualisiert verfolgte Angebote, schreibt Modell-Preis-
-Snapshots und erkennt Schnäppchen (`alerts.log`). Als Cron (z. B. alle 6 h):
+Snapshots und erkennt Schnäppchen (`alerts.log`). Mehr getrackte Modelle =
+mehr echte Angebote fürs Fair-Preis-Modell und mehr Schnäppchen-Kandidaten.
+Als Cron (z. B. alle 6 h, alle Modelle):
 ```
-0 */6 * * * cd /pfad/auto-bewertung && .venv/bin/python -m autobewertung.collect track --top 20 >> track.log 2>&1
+0 */6 * * * cd /pfad/auto-bewertung && .venv/bin/python -m autobewertung.collect track --all >> track.log 2>&1
 ```
 
 Einzelnes Inserat verfolgen: im Dashboard unter Angebote „verfolgen", oder
