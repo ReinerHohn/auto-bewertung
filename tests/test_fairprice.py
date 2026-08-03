@@ -77,6 +77,18 @@ def test_sparse_model_has_no_estimate():
     assert all(lid not in est for lid in c_listings)
 
 
+def test_bargains_excludes_edge_artifacts():
+    conn, a, b, c, under, over, *_ = _build()
+    # unterbewertete Rand-Ausreisser: sehr viel km bzw. fast neu
+    hi = _listing(conn, a, "a_hikm", _law(22000, 5, 300000) * 0.70, 5, 300000)
+    nn = _listing(conn, a, "a_new", _law(22000, 1, 2000) * 0.70, 1, 2000)
+    conn.commit()
+    ids = {e.listing_id for e in fairprice.bargains(conn)}
+    assert under in ids                         # normales Schnaeppchen bleibt
+    assert hi not in ids and nn not in ids      # >200tkm und fast neu raus
+    assert over not in ids                      # ueberteuert ist kein Schnaeppchen
+
+
 def test_prediction_matches_law_for_clean_point():
     conn, a, *_ = _build()
     m = fairprice.fit(conn)

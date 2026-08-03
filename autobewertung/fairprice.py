@@ -42,6 +42,16 @@ class FairEstimate:
     fair_price: float
     resid_eur: float       # price - fair_price (negativ = guenstiger als fair)
     resid_pct: float       # resid_eur / fair_price
+    km: float | None = None
+    age: float | None = None
+
+
+# Plausibles Schnaeppchen-Band: unter fair, aber ohne Rand-Artefakte des Modells
+# (uralte Vielfahrer + fast neue Basisversionen werden systematisch ueberbewertet).
+DEAL_BAND = (-0.35, -0.08)      # resid_pct zwischen -35 % und -8 %
+DEAL_MIN_EUR = 700              # mind. 700 EUR unter fair
+DEAL_KM_MIN, DEAL_KM_MAX = 5000, 200000
+DEAL_AGE_MAX = 15
 
 
 @dataclass
@@ -146,5 +156,24 @@ def estimate_listings(conn: sqlite3.Connection,
         resid = r["price"] - fair
         out[r["id"]] = FairEstimate(
             listing_id=r["id"], model_id=r["model_id"], price=r["price"],
-            fair_price=fair, resid_eur=resid, resid_pct=resid / fair)
+            fair_price=fair, resid_eur=resid, resid_pct=resid / fair,
+            km=r["km"], age=r["age"])
+    return out
+
+
+def bargains(conn: sqlite3.Connection,
+             model: FairPriceModel | None = None) -> list[FairEstimate]:
+    """Plausible Schnaeppchen: unter fairem Preis, aber ohne Rand-Artefakte
+    (Extrem-km/-Alter oder fast neue Basisversionen). Sortiert nach Abstand."""
+    lo, hi = DEAL_BAND
+    out = []
+    for e in estimate_listings(conn, model).values():
+        if not (lo <= e.resid_pct <= hi) or e.resid_eur > -DEAL_MIN_EUR:
+            continue
+        if e.km is not None and not (DEAL_KM_MIN <= e.km <= DEAL_KM_MAX):
+            continue
+        if e.age is not None and e.age > DEAL_AGE_MAX:
+            continue
+        out.append(e)
+    out.sort(key=lambda e: e.resid_pct)
     return out

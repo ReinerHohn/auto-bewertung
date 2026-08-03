@@ -809,9 +809,7 @@ if _alerts:
 # Marktwert (Fair-Preis-Modell), sortiert nach Abstand, mit Standzeit + Zielpreis.
 from autobewertung import fairprice as _fp
 from autobewertung.checks import listing_age_days as _lad, negotiation_hint as _nh
-_deals = [e for e in _fp.estimate_listings(conn).values()
-          if -0.35 <= e.resid_pct <= -0.08 and e.resid_eur <= -700]
-_deals.sort(key=lambda e: e.resid_pct)
+_deals = _fp.bargains(conn)
 if _deals:
     with st.expander(f"🔥 **Top-Schnäppchen jetzt ({len(_deals)})** – unter fairem Marktwert", expanded=True):
         st.caption("Modellübergreifend nach Fair-Preis-Abstand. ⚠️ Sehr weit unter fair = evtl. "

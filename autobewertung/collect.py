@@ -124,12 +124,9 @@ def cmd_deals(args) -> None:
     if model is None:
         print("Fair-Preis-Modell nicht verfuegbar (zu wenig Daten oder numpy fehlt).")
         return
-    est = fairprice.estimate_listings(conn, model)
-    band = [e for e in est.values()
-            if -0.35 <= e.resid_pct <= -0.05 and e.resid_eur <= -500]
-    band.sort(key=lambda e: e.resid_pct)
+    band = fairprice.bargains(conn, model)
     print(f"Fair-Preis-Modell: {model.n} Angebote, {len(model.model_ids)} Modelle, "
-          f"R2={model.r2:.2f}. Plausibel unter fairem Preis (Top {args.top}):\n")
+          f"R2={model.r2:.2f}. Plausible Schnaeppchen (Top {args.top}):\n")
     from .checks import listing_age_days, negotiation_hint
     for e in band[: args.top]:
         r = conn.execute(
