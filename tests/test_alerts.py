@@ -58,6 +58,29 @@ def test_price_drop_alert():
     assert any("Preis gefallen" in a for a in al)
 
 
+def test_fair_alert_only_plausible_skips_near_new():
+    """💸-Alarm: plausibler Deal (60tkm) alarmiert, fast neuer (3tkm) NICHT."""
+    import math
+    conn = _conn(); mid = _mid(conn)
+
+    def law(age, km):
+        return 30000 * math.exp(-0.09 * age - 0.05 * math.log1p(km))
+
+    def add(ref, price, age, km):
+        _record_listing(conn, model_id=mid, source="autoscout24", source_ref=ref,
+                        title="e-Niro", price=round(price), mileage_km=km,
+                        first_reg=f"{2026 - age:04d}-06")
+
+    for i in range(6):                                   # 6 faire Basis-Angebote
+        km = (2 + i) * 12000 + i * 3000
+        add(f"b{i}", law(2 + i, km), 2 + i, km)
+    add("normal", law(4, 60000) * 0.80, 4, 60000)        # -20 %, plausibel -> Alarm
+    add("nearnew", law(1, 3000) * 0.80, 1, 3000)         # -20 % aber fast neu -> kein Alarm
+    al = scan_alerts(conn, "2000-01-01T00:00:00+00:00")
+    assert any("Unter Marktwert" in a and "60000 km" in a for a in al)
+    assert not any("Unter Marktwert" in a and "3000 km" in a for a in al)
+
+
 def test_seed_simulated_history_no_drop_alert():
     """Seed-Listings (simulierter Verlauf) duerfen keinen Drop-Alarm ausloesen."""
     conn = _conn()

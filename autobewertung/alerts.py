@@ -11,10 +11,9 @@ from datetime import datetime, timezone
 
 RATING_LABEL = {1: "Sehr guter Preis", 2: "Guter Preis"}
 
-# Fair-Preis-Deal-Band: erst ab FAIR_MIN_PCT unter fair, aber Angebote unter
-# FAIR_FLOOR_PCT (meist Unfall/Bastler/Datenfehler) NICHT als Deal melden.
+# Fair-Preis-Alarm: erst ab FAIR_MIN_PCT UND FAIR_MIN_EUR unter fair. Das untere
+# Band (Unfall/Bastler) + km/Alter-Plausibilitaet erledigt fairprice.bargains().
 FAIR_MIN_PCT = -0.10
-FAIR_FLOOR_PCT = -0.35
 FAIR_MIN_EUR = 1000.0
 
 
@@ -58,17 +57,19 @@ def scan_alerts(conn: sqlite3.Connection, since_ts: str) -> list[str]:
         if _add(conn, ts, r["model_id"], r["id"], "deal", msg, sig):
             out.append(msg)
 
-    # 1b) NEU aufgetauchte Angebote deutlich UNTER dem statistisch fairen Preis
-    #     (Fair-Preis-Modell kontrolliert Alter/km/kW; robuster als das AS24-Label)
+    # 1b) NEU aufgetauchte, PLAUSIBLE Schnaeppchen deutlich unter fairem Preis.
+    #     bargains() filtert bereits km/Alter-Artefakte (fast neue Basisversionen,
+    #     Uralt-Vielfahrer) raus -> nur echte Schnaeppchen, nicht jedes Lockangebot.
     from . import fairprice
-    fair = fairprice.estimate_listings(conn)
-    if fair:
+    deals = fairprice.bargains(conn)
+    if deals:
         newly = {r["id"] for r in conn.execute(
             "SELECT id FROM listing WHERE active=1 AND first_seen>=?", (since_ts,))}
-        for e in sorted(fair.values(), key=lambda x: x.resid_pct):
+        for e in deals:
             if e.listing_id not in newly:
                 continue
-            if not (FAIR_FLOOR_PCT <= e.resid_pct <= FAIR_MIN_PCT) or e.resid_eur > -FAIR_MIN_EUR:
+            # Alarm-Schwelle strenger als das 🔥-Listen-Band: >=10 % UND >=1000 € unter fair
+            if e.resid_pct > FAIR_MIN_PCT or e.resid_eur > -FAIR_MIN_EUR:
                 continue
             r = conn.execute(
                 "SELECT l.price, l.mileage_km, l.first_reg, l.url, cm.make||' '||cm.model AS model "
