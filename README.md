@@ -31,7 +31,7 @@ Klasse ab Kompakt, E-Auto ≥300 km/30 min **oder** ≥400 km Reichweite & ≥18
 - **💰 Angebote** – echte AutoScout24-Angebote (Auto-Load je Modell), jedes als **Klick-Button direkt zum Inserat**, mit AS24-Preisbewertung (🟢 Sehr gut … 🔴 Hoch), Version, kW; + pkw.de-Preistrend eingebettet, Preisverlauf.
 - **💶 TCO** – volle Kostenaufschlüsselung/Jahr inkl. Lade-Mix (Firma/Solar/Heim/Schnelllader).
 - **🔩 Verschleiß** – welches Teil bei wie viel km + Kosten, **je Untermodell/Motor** (Zahnriemen vs Kette, Tesla-Querlenker …), Kostenkurve über die Laufleistung, einstellbares km-Fenster.
-- **🕵️ Kauf-Check** – km-Plausibilität (Rückdreh-Warnung), fällige/anstehende Teile, **Nähe-Warnung** („in ~X km Reparatur Y"), Rückrufe, Tacho-Betrug-/Unfall-Checkliste, carVertical/AutoDNA-Links.
+- **🕵️ Kauf-Check** – **Betrugs-Check** (automatische Warnung bei Preis weit unter fairem Marktwert + Liste typischer Maschen mit Erkennen/Schutz), km-Plausibilität (Rückdreh-Warnung), fällige/anstehende Teile, **Nähe-Warnung** („in ~X km Reparatur Y"), Rückrufe, Tacho-Betrug-/Unfall-Checkliste, carVertical/AutoDNA-Links.
 - **📉 Wertstabilität** – Wertverlust %/Jahr + pkw.de-Restwerte.
 - **⭐ Ausstattung** – Wunsch-Assistenz (Einparkhilfe, Kamera, Notbrems-, Spurhalteassistent), Matrix-LED-Warnung, **Parken & Dellen** (L×B, Wendekreis, „passt in deinen Parkplatz?", Dellen-Reparaturkosten, Alu-Karosserie-Warnung).
 - **📊 Zuverlässigkeit** – echte TÜV-Mängel + ADAC-Pannen (🟢 echt / 🟡 Schätzung, mit Quelle).

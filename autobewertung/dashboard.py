@@ -14,6 +14,7 @@ from __future__ import annotations
 
 import os
 import sys
+from datetime import datetime, timezone
 from urllib.parse import quote_plus
 
 # Streamlit legt beim Start nur das Skriptverzeichnis auf sys.path, nicht das
@@ -351,6 +352,9 @@ def render_category(model, cat: str) -> None:
 
         st.divider()
         st.markdown("**Details & Kauf-Check je Angebot:**")
+        from autobewertung import fairprice
+        from autobewertung.checks import scam_flags
+        fair_by_lid = fairprice.estimate_listings(conn)
         for r in rows:
             rating = PRICE_RATING.get(r["price_rating"], "")
             title = (f"{r['price']:,.0f} € · {r['mileage_km'] or '?'} km · "
@@ -361,6 +365,14 @@ def render_category(model, cat: str) -> None:
                     st.write(f"**Version:** {r['title']}{kw}")
                 st.write(f"**Preis:** {r['price']:,.0f} €".replace(",", ".")
                          + (f" — {rating}" if rating else ""))
+                fe = fair_by_lid.get(r["id"])
+                if fe:
+                    gap = fe.resid_pct * 100
+                    tag = "🟢 unter fair" if gap < -3 else ("🔴 über fair" if gap > 3 else "⚪ ~fair")
+                    st.write(f"**Fair-Preis (Modell):** ~{fe.fair_price:,.0f} € → dieses Angebot "
+                             f"**{gap:+.0f} %** ({tag})".replace(",", "."))
+                    for fl in scam_flags(r["price"], fe.fair_price, r["mileage_km"], r["first_reg"]):
+                        {"danger": st.error, "warn": st.warning, "info": st.info}[fl["level"]]("🚨 " + fl["text"])
                 st.write(f"**Laufleistung:** {r['mileage_km'] or '?'} km")
                 st.write(f"**Erstzulassung:** {r['first_reg'] or '?'}")
                 st.write(f"**Ort:** {r['location'] or '-'} (PLZ {r['plz'] or '-'})"
@@ -372,6 +384,7 @@ def render_category(model, cat: str) -> None:
                 if st.button("🔍 Dieses konkrete Auto prüfen", key=f"chkbtn_{r['id']}", width="stretch"):
                     st.session_state._sel_listing_km = r["mileage_km"]
                     st.session_state._sel_listing_reg = r["first_reg"]
+                    st.session_state._sel_listing_price = r["price"]
                     st.session_state._sel_listing_model = mid
                     st.session_state.cat = "check"
                     st.rerun()
@@ -513,25 +526,56 @@ def render_category(model, cat: str) -> None:
         } for it in items]), hide_index=True, width="stretch")
 
     elif cat == "check":
-        from autobewertung.checks import (CHECKLIST, carvertical_url, due_soon,
-                                          mileage_plausibility, wear_status)
+        from autobewertung import fairprice
+        from autobewertung.checks import (CHECKLIST, SCAM_PATTERNS, carvertical_url,
+                                          due_soon, mileage_plausibility, scam_flags, wear_status)
         from autobewertung.wear import load_items
-        st.markdown("#### 🕵️ Kauf-Check – Tacho-Betrug & Plausibilität")
+        st.markdown("#### 🕵️ Kauf-Check – Betrug, Tacho & Plausibilität")
 
         # Vorbelegung: konkret angeklicktes Inserat, sonst guenstigstes Angebot
         sel_km = st.session_state.get("_sel_listing_km")
         sel_reg = st.session_state.get("_sel_listing_reg")
+        sel_price = st.session_state.get("_sel_listing_price")
         if st.session_state.get("_sel_listing_model") == mid and sel_km:
             st.info(f"🚗 Konkretes Angebot: {sel_km:,.0f} km · EZ {sel_reg or '?'}".replace(",", "."))
             def_km, def_reg = int(sel_km), sel_reg or ""
+            def_price = int(sel_price) if sel_price else int(model.purchase_price or 10000)
         else:
-            lst = conn.execute("SELECT mileage_km, first_reg FROM listing WHERE model_id=? "
+            lst = conn.execute("SELECT mileage_km, first_reg, price FROM listing WHERE model_id=? "
                                "AND active=1 ORDER BY price LIMIT 1", (mid,)).fetchone()
             def_km = int(lst["mileage_km"]) if lst and lst["mileage_km"] else 100000
             def_reg = (lst["first_reg"] if lst else "") or ""
-        c1, c2 = st.columns(2)
-        km = c1.number_input("Laufleistung des Kandidaten (km)", 0, 400000, def_km, 5000, key=f"chk_km_{mid}")
+            def_price = int(lst["price"]) if lst and lst["price"] else int(model.purchase_price or 10000)
+        c1, c2, c3 = st.columns(3)
+        km = c1.number_input("Laufleistung (km)", 0, 400000, def_km, 5000, key=f"chk_km_{mid}")
         reg = c2.text_input("Erstzulassung (YYYY-MM)", value=def_reg, key=f"chk_reg_{mid}")
+        price = c3.number_input("Angebotspreis (€)", 0, 300000, def_price, 500, key=f"chk_price_{mid}")
+
+        # 🚨 Automatischer Betrugs-/Risiko-Check (Fair-Preis-Abgleich + km-Plausibilität)
+        try:
+            _fm = fairprice.fit(conn)
+            _yr = int(str(reg)[:4]) if reg else None
+            _age = (datetime.now(timezone.utc).year - _yr) if _yr else None
+            _fair = _fm.predict(mid, _age, km, None) if (_fm and _age is not None) else None
+        except Exception:
+            _fair = None
+        _flags = scam_flags(price or None, _fair, km, reg)
+        if _fair:
+            _gap = (price - _fair) / _fair * 100 if price else 0
+            st.caption(f"Fair-Preis (Modell) ~{_fair:,.0f} € → dieses Angebot {_gap:+.0f} %".replace(",", "."))
+        if _flags:
+            for fl in _flags:
+                {"danger": st.error, "warn": st.warning, "info": st.info}[fl["level"]]("🚨 " + fl["text"])
+        else:
+            st.success("✅ Preis & km unauffällig. Trotzdem: Maschen unten kennen und Checkliste abarbeiten.")
+
+        with st.expander("📖 Typische Betrugsmaschen erkennen (Kleinanzeigen & Co.)"):
+            st.caption("Ein Auto weit unter Marktwert ist selten ein Schnäppchen – meist "
+                       "verschwiegener Mangel oder Betrug. So erkennst du die Maschen:")
+            for _title, _signal, _protect in SCAM_PATTERNS:
+                st.markdown(f"**{_title}**")
+                st.markdown(f"- 🔍 *Erkennen:* {_signal}")
+                st.markdown(f"- 🛡️ *Schutz:* {_protect}")
 
         # Untermodell (VIN-vorgewaehlt) – wird auch fuer die Warnungen gebraucht
         _vars = sorted({i["variant"] for i in load_items(conn, mid) if i["variant"] != "alle"})

@@ -5,7 +5,8 @@ from datetime import datetime, timezone
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from autobewertung.checks import due_soon, mileage_plausibility, wear_status
+from autobewertung.checks import (
+    SCAM_PATTERNS, due_soon, mileage_plausibility, scam_flags, wear_status)
 from autobewertung.db import init_db
 from autobewertung.sources.seed import SeedSource
 from autobewertung.sources.wear_import import WearImportSource
@@ -63,6 +64,35 @@ def test_due_soon_empty_when_nothing_close():
     mid = conn.execute("SELECT id FROM car_model WHERE model='Golf'").fetchone()["id"]
     # frisch nach Bremsen/Reifen -> in den naechsten 1000 km nichts
     assert due_soon(conn, mid, None, 46000, horizon_km=1000) == []
+
+
+def test_scam_flags_far_below_fair_is_danger():
+    # 12.000 EUR bei fairem Preis 20.000 = -40 % -> danger
+    flags = scam_flags(12000, fair_price=20000, mileage=90000, first_reg="2019-01", ref=REF)
+    assert any(f["level"] == "danger" for f in flags)
+
+
+def test_scam_flags_moderately_below_fair_is_warn():
+    # -22 % -> warn (nicht danger)
+    flags = scam_flags(15600, fair_price=20000, mileage=90000, first_reg="2019-01", ref=REF)
+    levels = {f["level"] for f in flags}
+    assert "warn" in levels and "danger" not in levels
+
+
+def test_scam_flags_fair_price_no_flag():
+    # marktgerecht + plausible km -> keine Preis-/km-Warnung
+    assert scam_flags(19500, fair_price=20000, mileage=105000, first_reg="2019-01", ref=REF) == []
+
+
+def test_scam_flags_low_km_rollback_warn():
+    # 15.000 km bei EZ 2016 -> ~1.500 km/Jahr -> km-Warnung auch ohne Fair-Preis
+    flags = scam_flags(9000, fair_price=None, mileage=15000, first_reg="2016-01", ref=REF)
+    assert any("Tacho" in f["text"] or "km/Jahr" in f["text"] for f in flags)
+
+
+def test_scam_patterns_content_present():
+    assert len(SCAM_PATTERNS) >= 8
+    assert all(len(p) == 3 for p in SCAM_PATTERNS)   # (titel, signal, schutz)
 
 
 if __name__ == "__main__":

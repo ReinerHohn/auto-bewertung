@@ -55,6 +55,82 @@ CHECKLIST = [
 ]
 
 
+# Typische Betrugsmaschen beim Gebrauchtwagenkauf (DE, v.a. Kleinanzeigen/eBay-KA).
+# Je Masche: wie du sie erkennst (signal) und wie du dich schuetzt (protect).
+SCAM_PATTERNS = [
+    ("💸 Preis zu gut, um wahr zu sein",
+     "Auto 20–40 % unter Marktwert, top ausgestattet, wenig km. Der Preis ist der Koeder – "
+     "das Auto existiert oft gar nicht oder hat verschwiegene Schaeden.",
+     "Marktwert vergleichen (dieses Tool: „unter fairem Preis“). >25 % darunter = Alarm. "
+     "Niemals wegen des Preises die Vorsicht ausschalten."),
+    ("🌍 Verkäufer/Fahrzeug angeblich im Ausland",
+     "„Bin beruflich in UK/Irland/Spanien“, Auto stehe im Ausland oder werde „per Spedition geliefert“. "
+     "Oft holprig formuliertes Deutsch, Kommunikation nur per E-Mail/WhatsApp.",
+     "Kein Kauf ohne persoenliche Besichtigung VOR Ort in Deutschland. Auslandslogistik + Vorkasse = Betrug."),
+    ("🏦 Treuhand-/Escrow-Masche",
+     "„Sichere Abwicklung über Treuhänder / eBay-Kaufabwicklung / DHL-Treuhand / PayPal-Schutz“ – "
+     "mit gefälschten E-Mails im Original-Design. Auto komme nach Zahlung an den „Treuhänder“.",
+     "eBay-Kleinanzeigen hat KEINEN Auto-Treuhandservice. Solche Links/Mails IMMER Fake. "
+     "Nur Zahlung Zug um Zug bei Uebergabe."),
+    ("💳 Anzahlung / Reservierung aus der Ferne",
+     "„Andere Interessenten – überweise 10–20 % Anzahlung, dann reserviere ich / liefere ich.“",
+     "NIE anzahlen, bevor du Auto + Papiere + Verkäufer persönlich gesehen hast. Weg = weg."),
+    ("🚫 Keine Besichtigung/Probefahrt möglich",
+     "Auto „schon verpackt/verschifft“, „eingelagert“, „Schlüssel beim Spediteur“ – Ausreden, warum "
+     "du es nicht anschauen kannst.",
+     "Keine Besichtigung = kein Kauf. Punkt."),
+    ("🎁 Zahlung per Gutscheinkarten / Krypto / Western Union / Auslandskonto",
+     "Verlangt Steam-/Amazon-Gutscheincodes, Bitcoin, Bargeldtransfer (Western Union/MoneyGram) "
+     "oder Ueberweisung auf ein Auslands-IBAN (nicht DE).",
+     "Seriös ist NUR: Barzahlung bei Uebergabe oder Echtzeit-Ueberweisung vor Ort. Alles andere = Betrug."),
+    ("😢 Emotionale Dringlichkeits-Story",
+     "Soldat im Einsatz, Trauerfall/Erbstueck, schnelle Auswanderung, Scheidung – „muss schnell weg, "
+     "deshalb billig“. Erzeugt Zeitdruck + Mitleid.",
+     "Story ist Teil der Masche. Zeitdruck ignorieren, nüchtern prüfen wie bei jedem Kauf."),
+    ("🖼️ Gestohlene oder generische Fotos",
+     "Nur Hochglanz-/Prospektbilder, kein Kennzeichen, keine Detail-/Mängelfotos. Gleiches Inserat "
+     "taucht mehrfach/mit anderem Preis auf.",
+     "Bilder-Rückwärtssuche (Google Lens/TinEye). Echte Detailfotos + Video verlangen (mit Zettel/Datum)."),
+    ("🧾 Halter ≠ Verkäufer / keine FIN / fehlende Papiere",
+     "Name im Fahrzeugbrief passt nicht zum Verkäufer, keine FIN im Inserat, „Papiere kommen per Post“, "
+     "Ummeldung sollst DU übernehmen.",
+     "Zulassungsbescheinigung Teil I+II + Ausweis prüfen (Halter=Verkäufer). FIN abgleichen (Tab VIN-Decoder). "
+     "carVertical/AutoDNA-Historie ziehen."),
+    ("🔢 Tacho-Rückdreh",
+     "km wirken zu niedrig fürs Baujahr, Abnutzung (Lenkrad/Pedale/Sitz) passt nicht.",
+     "Siehe Checkliste oben: km in ALLEN Steuergeräten + Fehlerspeicher-km + HU-Historie gegenprüfen."),
+]
+
+
+def scam_flags(price: float | None, fair_price: float | None = None,
+               mileage: int | None = None, first_reg: str | None = None,
+               price_rating: int | None = None, ref=None) -> list[dict]:
+    """Automatische Risiko-/Betrugs-Warnungen fuer EIN Angebot (datengetrieben).
+
+    Kombiniert Fair-Preis-Abstand (zu billig!) und km-Plausibilitaet. Gibt
+    Liste {level, text}; level: 'danger' | 'warn' | 'info'.
+    """
+    out: list[dict] = []
+    if price and fair_price and fair_price > 0:
+        gap = (price - fair_price) / fair_price          # negativ = guenstiger als fair
+        fair_eur = f"{fair_price:,.0f} €".replace(",", ".")
+        if gap <= -0.35:
+            out.append({"level": "danger", "text":
+                f"Preis {abs(gap)*100:.0f} % unter statistischem Marktwert (fair ~{fair_eur}). "
+                "Extrem günstig heißt fast immer: verschwiegener Unfall/Mangel ODER Betrug "
+                "(Vorkasse/Ausland/Treuhand). Nie ohne Besichtigung + Papiere zahlen."})
+        elif gap <= -0.20:
+            out.append({"level": "warn", "text":
+                f"Preis {abs(gap)*100:.0f} % unter Marktwert (fair ~{fair_eur}). Auffällig günstig – "
+                "Grund klären (Mangel? Unfall? Lockangebot?). Besichtigung Pflicht, keine Anzahlung aus der Ferne."})
+    mp = mileage_plausibility(mileage, first_reg, ref)
+    if mp and mp["km_per_year"] < 5000:
+        out.append({"level": "warn", "text":
+            f"Nur ~{mp['km_per_year']:.0f} km/Jahr – Tacho-Rückdreh oder langer Stillstand möglich. "
+            "km in allen Steuergeräten + Fehlerspeicher-km + HU-Historie prüfen."})
+    return out
+
+
 def mileage_plausibility(mileage: int | None, first_reg: str | None, ref=None) -> dict | None:
     """km/Jahr + Verdikt aus Laufleistung und Erstzulassung ('YYYY-MM')."""
     if not mileage or not first_reg:
