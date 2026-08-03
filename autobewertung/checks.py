@@ -52,6 +52,26 @@ CHECKLIST = [
         ("Ölzustand, Kühlmittel, Bremsflüssigkeit, Reifen-DOT geprüft?",
          "Verschlepptes Service + altes Gummi = versteckte Folgekosten."),
     ]),
+    ("📋 Recht, Papiere & Kosten", [
+        ("Gewährleistung geklärt (Privat = keine, Händler = 1 Jahr)?",
+         "Privatkauf schließt Gewährleistung aus – Mängel danach sind dein Problem. "
+         "Beim Händler bleibt die 1-Jahres-Gewährleistung."),
+        ("Schriftlicher Kaufvertrag mit Zusicherungen (ADAC-Muster)?",
+         "Unfallfreiheit, km-Stand, bekannte Mängel, Anzahl Vorbesitzer schriftlich – sonst "
+         "keine Handhabe bei arglistiger Täuschung."),
+        ("Zulassungsbescheinigung Teil I + II (Fahrzeugbrief) vorhanden?",
+         "Fehlt Teil II, läuft oft noch ein Kredit (Bank hält den Brief) → du wirst nicht Eigentümer. "
+         "Halter im Brief = Verkäufer? Ausweis abgleichen."),
+        ("HU/AU gültig – Bericht + Restlaufzeit geprüft?",
+         "HU bald fällig = ~120 € + Risiko teurer Nachbesserung, um durchzukommen. "
+         "Letzten HU-Bericht zeigen lassen (nennt auch km-Stand!)."),
+        ("Alle Schlüssel, Serviceheft, Codekarte & Handbuch dabei?",
+         "Nachbestellung von Schlüssel/Codekarte kostet 100–400 €; lückenloses Scheckheft = Wert."),
+        ("Ummeldung/Zulassung + ggf. Kurzzeitkennzeichen eingeplant (~60–100 €)?",
+         "Einmalkosten für Anmeldung, Kennzeichen, evtl. Überführung – im Budget einrechnen."),
+        ("EU-Reimport? Ausstattung/Tacho (mph) & Garantie prüfen.",
+         "Reimporte sind günstiger, haben aber teils andere Ausstattung/Serviceintervalle."),
+    ]),
 ]
 
 
@@ -129,6 +149,54 @@ def scam_flags(price: float | None, fair_price: float | None = None,
             f"Nur ~{mp['km_per_year']:.0f} km/Jahr – Tacho-Rückdreh oder langer Stillstand möglich. "
             "km in allen Steuergeräten + Fehlerspeicher-km + HU-Historie prüfen."})
     return out
+
+
+def next_hu(first_reg: str | None, ref=None) -> dict | None:
+    """Naechste HU (TÜV) aus der Erstzulassung: erste HU nach 36 Monaten, danach
+    alle 24 (planmaessig angenommen). Gibt {due 'YYYY-MM', months_until, level};
+    level='warn' wenn in <=4 Monaten faellig. Realen HU-Bericht trotzdem pruefen!"""
+    if not first_reg:
+        return None
+    ref = ref or datetime.now(timezone.utc)
+    try:
+        y = int(str(first_reg)[:4])
+        mo = int(str(first_reg)[5:7]) if len(str(first_reg)) >= 7 else 1
+    except (ValueError, TypeError):
+        return None
+    months_since = (ref.year - y) * 12 + (ref.month - mo)
+    if months_since < 36:
+        due_m = 36
+    else:
+        due_m = 36 + 24 * ((months_since - 36 + 23) // 24)   # naechster Termin >= jetzt
+    due_year = y + (mo - 1 + due_m) // 12
+    due_month = (mo - 1 + due_m) % 12 + 1
+    mu = due_m - months_since
+    level = "warn" if mu <= 4 else "info"
+    return {"due": f"{due_year:04d}-{due_month:02d}", "months_until": mu, "level": level}
+
+
+def warranty_note(source: str | None) -> str | None:
+    """Gewaehrleistungs-Hinweis je Quelle (Privat vs. Haendler)."""
+    if source == "kleinanzeigen":
+        return ("Meist **Privatverkauf** → KEINE Gewährleistung („gekauft wie gesehen unter "
+                "Ausschluss jeder Gewährleistung“). Mängel = dein Risiko. Alle Zusagen "
+                "(unfallfrei, km, Mängel) schriftlich in den Kaufvertrag!")
+    if source in ("autoscout24", "watch"):
+        return ("Meist **Händler** → gesetzliche Gewährleistung (bei Gebraucht oft auf **1 Jahr** "
+                "verkürzt). Sachmängel reklamierbar – Kaufvertrag/Rechnung aufheben.")
+    return None
+
+
+def emission_note(drivetrain: str | None, year: int | None) -> tuple[str, str] | None:
+    """Umweltzonen-/Fahrverbots-Hinweis, v.a. fuer aeltere Diesel. (level, text)."""
+    if (drivetrain or "").lower() != "diesel" or not year:
+        return None
+    if year < 2015:
+        return ("warn", "Diesel vor ~2015 ist oft nur Euro 5 oder älter → **Fahrverbote / "
+                "Umweltzonen** in einigen Städten möglich, schlechterer Wiederverkauf. "
+                "Euro-Norm (Feld 14.1 im Schein) prüfen!")
+    return ("info", "Diesel: Euro-Norm (idealerweise Euro 6d) im Fahrzeugschein prüfen – "
+            "relevant für Umweltzonen und Wiederverkauf.")
 
 
 def listing_age_days(first_seen: str | None, ref=None) -> int | None:

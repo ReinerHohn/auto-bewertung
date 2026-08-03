@@ -418,6 +418,7 @@ def render_category(model, cat: str) -> None:
                     st.session_state._sel_listing_km = r["mileage_km"]
                     st.session_state._sel_listing_reg = r["first_reg"]
                     st.session_state._sel_listing_price = r["price"]
+                    st.session_state._sel_listing_source = r["source"]
                     st.session_state._sel_listing_model = mid
                     st.session_state.cat = "check"
                     st.rerun()
@@ -561,7 +562,8 @@ def render_category(model, cat: str) -> None:
     elif cat == "check":
         from autobewertung import fairprice
         from autobewertung.checks import (CHECKLIST, SCAM_PATTERNS, carvertical_url,
-                                          due_soon, mileage_plausibility, scam_flags, wear_status)
+                                          due_soon, emission_note, mileage_plausibility,
+                                          next_hu, scam_flags, warranty_note, wear_status)
         from autobewertung.wear import load_items
         st.markdown("#### 🕵️ Kauf-Check – Betrug, Tacho & Plausibilität")
 
@@ -601,6 +603,22 @@ def render_category(model, cat: str) -> None:
                 {"danger": st.error, "warn": st.warning, "info": st.info}[fl["level"]]("🚨 " + fl["text"])
         else:
             st.success("✅ Preis & km unauffällig. Trotzdem: Maschen unten kennen und Checkliste abarbeiten.")
+
+        # 📋 Pflicht-Checks: HU-Fälligkeit · Gewährleistung · Umweltzone
+        _hu = next_hu(reg)
+        if _hu:
+            (st.warning if _hu["level"] == "warn" else st.info)(
+                f"🔧 **HU/TÜV** planmäßig fällig ~{_hu['due']} (in {_hu['months_until']} Monaten) – "
+                "HU-Bericht + Plakette zeigen lassen (nennt auch den echten km-Stand!).")
+        _src = (st.session_state.get("_sel_listing_source")
+                if st.session_state.get("_sel_listing_model") == mid else None)
+        _wn = warranty_note(_src)
+        if _wn:
+            st.info("📜 " + _wn)
+        _yr = int(str(reg)[:4]) if reg and str(reg)[:4].isdigit() else None
+        _em = emission_note(model.drivetrain, _yr)
+        if _em:
+            (st.warning if _em[0] == "warn" else st.info)("🌍 " + _em[1])
 
         with st.expander("📖 Typische Betrugsmaschen erkennen (Kleinanzeigen & Co.)"):
             st.caption("Ein Auto weit unter Marktwert ist selten ein Schnäppchen – meist "

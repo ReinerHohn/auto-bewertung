@@ -6,8 +6,8 @@ from datetime import datetime, timezone
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from autobewertung.checks import (
-    SCAM_PATTERNS, due_soon, listing_age_days, mileage_plausibility,
-    negotiation_hint, scam_flags, wear_status)
+    CHECKLIST, SCAM_PATTERNS, due_soon, emission_note, listing_age_days,
+    mileage_plausibility, negotiation_hint, next_hu, scam_flags, warranty_note, wear_status)
 from autobewertung.db import init_db
 from autobewertung.sources.seed import SeedSource
 from autobewertung.sources.wear_import import WearImportSource
@@ -94,6 +94,39 @@ def test_scam_flags_low_km_rollback_warn():
 def test_scam_patterns_content_present():
     assert len(SCAM_PATTERNS) >= 8
     assert all(len(p) == 3 for p in SCAM_PATTERNS)   # (titel, signal, schutz)
+
+
+def test_next_hu_young_car():
+    hu = next_hu("2024-01", ref=REF)                 # 24 Monate alt -> erste HU bei 36
+    assert hu["due"] == "2027-01" and hu["months_until"] == 12 and hu["level"] == "info"
+
+
+def test_next_hu_due_soon_is_warn():
+    hu = next_hu("2023-01", ref=REF)                 # genau 36 Monate -> HU jetzt faellig
+    assert hu["months_until"] == 0 and hu["level"] == "warn"
+
+
+def test_next_hu_cycle_every_two_years():
+    hu = next_hu("2020-11", ref=REF)                 # 62 Monate -> naechste bei 84
+    assert hu["due"] == "2027-11" and hu["months_until"] == 22
+
+
+def test_warranty_note_private_vs_dealer():
+    assert "KEINE" in warranty_note("kleinanzeigen")
+    assert "1 Jahr" in warranty_note("autoscout24")
+    assert warranty_note("seed") is None
+
+
+def test_emission_note_old_diesel_warns():
+    assert emission_note("diesel", 2012)[0] == "warn"
+    assert emission_note("diesel", 2019)[0] == "info"
+    assert emission_note("benzin", 2010) is None
+    assert emission_note("elektro", 2015) is None
+
+
+def test_checklist_has_recht_section():
+    titles = [s for s, _ in CHECKLIST]
+    assert any("Recht" in t or "Papiere" in t for t in titles)
 
 
 def test_listing_age_days():
