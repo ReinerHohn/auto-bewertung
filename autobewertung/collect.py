@@ -130,6 +130,24 @@ def cmd_track(args) -> None:
     conn.close()
 
 
+def cmd_dtc(args) -> None:
+    """Fehlercode (OBD/DTC) deuten: Klartext, Ursachen, Schwere, Pruefschritte."""
+    from .dtc import interpret
+    r = interpret(args.code)
+    sev = {"danger": "🔴 ernst / teuer", "warn": "🟡 prüfen", "info": "🟢 meist harmlos"}.get(r["severity"], "")
+    print(f"\n{r['code']}  {sev}\n  {r['title']}")
+    if r["causes"]:
+        print("  Mögliche Ursachen (günstig → teuer):")
+        for t, tier in r["causes"]:
+            print(f"    - {t}  ({tier})")
+    if r["checks"]:
+        print("  So grenzt du es ein:")
+        for c in r["checks"]:
+            print(f"    - {c}")
+    if r["note"]:
+        print(f"  Hinweis: {r['note']}")
+
+
 def cmd_deals(args) -> None:
     """Aktuell unterbewertete Angebote laut Fair-Preis-Modell (Residual in EUR)."""
     from . import fairprice, geo
@@ -261,6 +279,10 @@ def main(argv=None) -> None:
     tr.add_argument("--stale-days", type=int, default=10,
                     help="Angebote nach N Tagen ohne Sichtung als verkauft/inaktiv markieren")
     tr.set_defaults(func=cmd_track)
+
+    dc2 = sub.add_parser("dtc", help="OBD-Fehlercode deuten (z.B. dtc P0087)")
+    dc2.add_argument("code", help="Fehlercode, z.B. P0087")
+    dc2.set_defaults(func=cmd_dtc)
 
     dl = sub.add_parser("deals", help="unterbewertete Angebote laut Fair-Preis-Modell")
     dl.add_argument("--top", type=int, default=15)

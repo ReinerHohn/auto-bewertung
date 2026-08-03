@@ -790,6 +790,27 @@ def render_category(model, cat: str) -> None:
                 for _obs, _mean in _entries:
                     st.markdown(f"- **{_obs}** → {_mean}")
 
+        # 🔧 Fehlercode-Deuter: Code vom Diagnosegeraet eingeben -> Klartext/Kosten
+        _code = st.text_input("🔧 Fehlercode-Deuter – Code vom Diagnosegerät eingeben",
+                              key=f"dtc_{mid}", placeholder="z. B. P0087")
+        if _code.strip():
+            from autobewertung.dtc import interpret
+            _r = interpret(_code)
+            _lbl = {"danger": "🔴 ernst / teuer", "warn": "🟡 prüfen",
+                    "info": "🟢 meist harmlos"}.get(_r["severity"], "")
+            {"danger": st.error, "warn": st.warning, "info": st.info}.get(_r["severity"], st.info)(
+                f"**{_r['code']} — {_r['title']}**  ·  {_lbl}")
+            if _r["causes"]:
+                st.markdown("**Mögliche Ursachen (günstig → teuer):**")
+                for _t, _tier in _r["causes"]:
+                    st.markdown(f"- {_t}  ·  *{_tier}*")
+            if _r["checks"]:
+                st.markdown("**So grenzt du es ein:**")
+                for _c in _r["checks"]:
+                    st.markdown(f"- {_c}")
+            if _r["note"]:
+                st.caption(_r["note"])
+
         st.markdown("### ✅ Profi-Prüf-Checkliste")
         total = checked = 0
         for section, entries in CHECKLIST:
