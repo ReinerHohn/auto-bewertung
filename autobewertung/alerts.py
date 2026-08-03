@@ -11,6 +11,12 @@ from datetime import datetime, timezone
 
 RATING_LABEL = {1: "Sehr guter Preis", 2: "Guter Preis"}
 
+# Fair-Preis-Deal-Band: erst ab FAIR_MIN_PCT unter fair, aber Angebote unter
+# FAIR_FLOOR_PCT (meist Unfall/Bastler/Datenfehler) NICHT als Deal melden.
+FAIR_MIN_PCT = -0.10
+FAIR_FLOOR_PCT = -0.35
+FAIR_MIN_EUR = 1000.0
+
 
 def _add(conn, ts, mid, lid, kind, msg, sig) -> bool:
     cur = conn.execute(
@@ -51,6 +57,30 @@ def scan_alerts(conn: sqlite3.Connection, since_ts: str) -> list[str]:
                + (f" · {r['url']}" if r["url"] else ""))
         if _add(conn, ts, r["model_id"], r["id"], "deal", msg, sig):
             out.append(msg)
+
+    # 1b) NEU aufgetauchte Angebote deutlich UNTER dem statistisch fairen Preis
+    #     (Fair-Preis-Modell kontrolliert Alter/km/kW; robuster als das AS24-Label)
+    from . import fairprice
+    fair = fairprice.estimate_listings(conn)
+    if fair:
+        newly = {r["id"] for r in conn.execute(
+            "SELECT id FROM listing WHERE active=1 AND first_seen>=?", (since_ts,))}
+        for e in sorted(fair.values(), key=lambda x: x.resid_pct):
+            if e.listing_id not in newly:
+                continue
+            if not (FAIR_FLOOR_PCT <= e.resid_pct <= FAIR_MIN_PCT) or e.resid_eur > -FAIR_MIN_EUR:
+                continue
+            r = conn.execute(
+                "SELECT l.price, l.mileage_km, l.first_reg, l.url, cm.make||' '||cm.model AS model "
+                "FROM listing l JOIN car_model cm ON cm.id=l.model_id WHERE l.id=?",
+                (e.listing_id,)).fetchone()
+            sig = f"fair:{e.listing_id}:{int(e.price)}"
+            msg = (f"💸 Unter Marktwert: {r['model']} – {r['price']:,.0f} €".replace(",", ".")
+                   + f" · {-e.resid_eur:,.0f} € unter fair ({e.resid_pct*100:.0f}%)".replace(",", ".")
+                   + f" · {r['mileage_km'] or '?'} km · EZ {r['first_reg'] or '?'}"
+                   + (f" · {r['url']}" if r["url"] else ""))
+            if _add(conn, ts, e.model_id, e.listing_id, "fair", msg, sig):
+                out.append(msg)
 
     # 2) PREISSENKUNGEN auf aktiven Angeboten (letzter Punkt < vorheriger, >=0.5%)
     for r in conn.execute(

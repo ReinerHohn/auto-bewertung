@@ -77,6 +77,26 @@ aus Median, Baujahr-Spanne + Reichweite aus den Angeboten). Neue Modelle sind ü
 `generation='auto-entdeckt'` markiert und können später via Seed/CSV mit Echtdaten
 (Verbrauch, Klasse, Zuverlässigkeit) vertieft werden.
 
+## Fair-Preis-Modell (Deal-Detektor)
+
+```bash
+python -m autobewertung.collect deals --top 15   # Angebote unter fairem Preis
+```
+Statt sich auf das AS24-eigene Preis-Label zu verlassen, schätzt eine globale
+log-lineare Regression aus **deinen echten Angeboten** für jedes Inserat einen
+fairen Marktpreis:
+
+    log(Preis) = Basis[Modell] + b·Alter + b·log(km) + b·kW
+
+Modell-Fixed-Effects fangen Marke/Segment/Ausstattung ab, die Alters-/km-/kW-
+Steigungen sind über alle Modelle gepoolt (robust bei wenig Daten), 2-Pass gegen
+Ausreißer. Pro Angebot fällt ein **Residual in Euro** an („2.300 € unter fair").
+Das speist die `price_value`-Dimension und den 💸-Alarm „unter Marktwert".
+
+Wichtig: **extreme** Unterbewertung (> 35 % unter fair) ist meist ein Problemauto
+(Unfall/Reparaturstau) und wird bewusst **nicht** als Deal gewertet. Ohne `numpy`
+fällt das Signal automatisch auf den Median-Rabatt zurück.
+
 ## Kriterien anpassen
 
 `data/criteria.yaml` – Gewichte, Budget, Klasse, EV-Regeln, TCO-Annahmen

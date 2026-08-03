@@ -19,8 +19,13 @@ import sqlite3
 import statistics
 from dataclasses import dataclass, field
 
+from . import fairprice
 from .config import DIMENSIONS, Criteria
 from .tco import TcoResult, class_rank, compute_tco, ice_reference_running
+
+#: Residuen unter dieser Schwelle gelten als unplausibel (Unfall/Reparaturstau/
+#: Datenfehler statt echtem Deal) -> fuer das Deal-Signal ignoriert.
+FAIR_DEAL_FLOOR_PCT = -0.35
 
 
 @dataclass
@@ -34,6 +39,7 @@ class ModelScore:
     n_listings: int = 0
     purchase_price: float | None = None
     best_deal_discount_pct: float | None = None
+    fair_gap_pct: float | None = None        # bestes Angebot X% unter fairem Preis
     annual_tco: float | None = None
     tco_breakdown: dict[str, float] = field(default_factory=dict)
     resale_value: float | None = None
@@ -194,6 +200,17 @@ def score_models(conn: sqlite3.Connection, crit: Criteria) -> RankResult:
     maint = _maintenance_year(conn)
     listings = _listings_by_model(conn, crit)
 
+    # Fair-Preis-Modell: bestes (plausibles) Residual je Modell = Deal-Signal.
+    # Unplausibel guenstige Angebote (< FAIR_DEAL_FLOOR_PCT, meist Unfall/Bastler)
+    # zaehlen nicht als Deal.
+    best_fair_pct: dict[int, float] = {}
+    for e in fairprice.estimate_listings(conn).values():
+        if e.resid_pct < FAIR_DEAL_FLOOR_PCT:
+            continue
+        cur = best_fair_pct.get(e.model_id)
+        if cur is None or e.resid_pct < cur:
+            best_fair_pct[e.model_id] = e.resid_pct
+
     # --- Kaufpreis + Deal je Modell -----------------------------------------
     price_meta: dict[int, dict] = {}
     for mid, model in models.items():
@@ -208,9 +225,14 @@ def score_models(conn: sqlite3.Connection, crit: Criteria) -> RankResult:
             best = min(sound, key=lambda r: r["price"])
             discount = (median - best["price"]) / median * 100.0 if median else 0.0
             trend = _price_trend(conn, best["id"])
+            # Deal-Signal: Fair-Preis-Residual (kontrolliert Alter/km/kW) wo
+            # verfuegbar, sonst Rabatt ggue. Modell-Median (Fallback).
+            fair_gap = -best_fair_pct[mid] * 100.0 if mid in best_fair_pct else None
+            deal_base = fair_gap if fair_gap is not None else discount
             price_meta[mid] = {
                 "purchase": best["price"], "median": median, "n": len(rows),
-                "discount": discount, "deal_score": discount + max(0.0, -trend) * 2.0,
+                "discount": discount, "fair_gap_pct": fair_gap,
+                "deal_score": deal_base + max(0.0, -trend) * 2.0,
                 "best_id": best["id"], "start_km": best["mileage_km"] or 80000,
             }
         elif typical:
@@ -340,6 +362,7 @@ def score_models(conn: sqlite3.Connection, crit: Criteria) -> RankResult:
             n_listings=pm["n"],
             purchase_price=pm["purchase"],
             best_deal_discount_pct=round(pm["discount"], 1) if pm["discount"] is not None else None,
+            fair_gap_pct=round(pm["fair_gap_pct"], 1) if pm.get("fair_gap_pct") is not None else None,
             annual_tco=round(t.annual_total) if t else None,
             tco_breakdown={k: round(v) for k, v in t.breakdown_year.items()} if t else {},
             resale_value=round(t.resale_value) if t else None,

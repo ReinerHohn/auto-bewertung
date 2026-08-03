@@ -116,6 +116,35 @@ def cmd_track(args) -> None:
     conn.close()
 
 
+def cmd_deals(args) -> None:
+    """Aktuell unterbewertete Angebote laut Fair-Preis-Modell (Residual in EUR)."""
+    from . import fairprice
+    conn = init_db(args.db)
+    model = fairprice.fit(conn)
+    if model is None:
+        print("Fair-Preis-Modell nicht verfuegbar (zu wenig Daten oder numpy fehlt).")
+        return
+    est = fairprice.estimate_listings(conn, model)
+    band = [e for e in est.values()
+            if -0.35 <= e.resid_pct <= -0.05 and e.resid_eur <= -500]
+    band.sort(key=lambda e: e.resid_pct)
+    print(f"Fair-Preis-Modell: {model.n} Angebote, {len(model.model_ids)} Modelle, "
+          f"R2={model.r2:.2f}. Plausibel unter fairem Preis (Top {args.top}):\n")
+    for e in band[: args.top]:
+        r = conn.execute(
+            "SELECT l.mileage_km, l.first_reg, l.url, cm.make||' '||cm.model AS model "
+            "FROM listing l JOIN car_model cm ON cm.id=l.model_id WHERE l.id=?",
+            (e.listing_id,)).fetchone()
+        print(f"  {r['model'][:24]:24} {_eur(e.price):>9}  fair {_eur(e.fair_price):>9}  "
+              f"{e.resid_eur:>+7.0f}€ ({e.resid_pct*100:>+3.0f}%)  "
+              f"{r['mileage_km'] or '?'}km EZ{r['first_reg'] or '?'}")
+        if e.resid_pct <= -0.15 and r["url"]:
+            print(f"      {r['url']}")
+    if not band:
+        print("  (keine Angebote im plausiblen Deal-Band)")
+    conn.close()
+
+
 def cmd_discover(args) -> None:
     """Neue Modelle aus den AS24-Live-Angeboten erkennen und anlegen.
 
@@ -189,6 +218,10 @@ def main(argv=None) -> None:
     tr = sub.add_parser("track", help="Preis-Tracking fuer Cron (AS24 + Watchlist + Snapshot)")
     tr.add_argument("--top", type=int, default=20, help="Anzahl Top-Modelle, die getrackt werden")
     tr.set_defaults(func=cmd_track)
+
+    dl = sub.add_parser("deals", help="unterbewertete Angebote laut Fair-Preis-Modell")
+    dl.add_argument("--top", type=int, default=15)
+    dl.set_defaults(func=cmd_deals)
 
     dc = sub.add_parser("discover", help="neue Modelle aus AS24-Angeboten erkennen + anlegen")
     dc.add_argument("--min", type=int, default=2, help="Mindestzahl Angebote je neuem Modell")

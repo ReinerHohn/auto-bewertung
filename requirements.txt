@@ -6,3 +6,6 @@ pyyaml>=6.0
 requests>=2.31
 # optional fuer HTML-Parser in Live-Adaptern:
 beautifulsoup4>=4.12
+# optional fuer das Fair-Preis-Modell (kommt i.d.R. mit pandas); fehlt es,
+# faellt das Deal-Signal automatisch auf den Median-Rabatt zurueck:
+numpy>=1.24
