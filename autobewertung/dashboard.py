@@ -563,7 +563,8 @@ def render_category(model, cat: str) -> None:
 
     elif cat == "check":
         from autobewertung import fairprice
-        from autobewertung.advice import buy_dossier, model_watchpoints, negotiation_ammo
+        from autobewertung.advice import (ADAC_KAUFVERTRAG_URL, buy_dossier, kaufvertrag,
+                                          model_watchpoints, negotiation_ammo)
         from autobewertung.checks import (CHECKLIST, SCAM_PATTERNS, age_service_checks,
                                           carvertical_url, due_soon, emission_note,
                                           listing_age_days, mileage_plausibility, next_hu,
@@ -704,6 +705,13 @@ def render_category(model, cat: str) -> None:
             st.code(_doss, language="markdown")
             st.download_button("⬇️ Als .md herunterladen", _doss,
                                file_name=f"dossier_{model.label[:30]}.md", key=f"doss_{mid}")
+        _kv = kaufvertrag(model.label, reg, km, price, mid)
+        with st.expander("📝 Kaufvertrag (vorausgefüllt) – ausdrucken & mitnehmen"):
+            st.caption("Privatverkauf, voller Sachmängel-Ausschluss (ohne riskante "
+                       f"Besichtigungsklausel). Offiziell: [ADAC Muster-Kaufvertrag ↗]({ADAC_KAUFVERTRAG_URL})")
+            st.code(_kv)
+            st.download_button("⬇️ Kaufvertrag als .txt", _kv,
+                               file_name=f"kaufvertrag_{model.label[:30]}.txt", key=f"kv_{mid}")
 
         # 🚨 Offizielle Rückrufe (sicherheitskritisch – prüfen ob erledigt!)
         rc = conn.execute("SELECT kba_code, date, description, url FROM recall "

@@ -4,7 +4,8 @@ import sys
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from autobewertung.advice import buy_dossier, model_watchpoints, negotiation_ammo
+from autobewertung.advice import (ADAC_KAUFVERTRAG_URL, buy_dossier, kaufvertrag,
+                                  model_watchpoints, negotiation_ammo)
 from autobewertung.db import init_db
 from autobewertung.sources.seed import SeedSource
 from autobewertung.sources.wear_import import WearImportSource
@@ -57,6 +58,15 @@ def test_dossier_has_sections():
     assert "## Worauf achten" in d and "## Verhandlung" in d
     assert "KEINE Gewährleistung" in d            # Privatverkauf-Hinweis
     assert "https://x" in d
+
+
+def test_kaufvertrag_prefilled():
+    kv = kaufvertrag("VW Golf VII (2012-2019)", "2017-03", 150000, 9899)
+    assert "VW Golf VII (2012-2019)" in kv and "2017-03" in kv
+    assert "150.000 km" in kv                          # km vorausgefuellt
+    assert "Ausschluss jeglicher Sachmängelhaftung" in kv    # Privatverkauf
+    assert "Besichtigungsklausel" in kv                # Warnhinweis drin
+    assert ADAC_KAUFVERTRAG_URL in kv                  # offizielle Vorlage verlinkt
 
 
 if __name__ == "__main__":

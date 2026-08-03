@@ -17,6 +17,68 @@ def _eur(v) -> str:
     return f"{v:,.0f} €".replace(",", ".") if v is not None else "–"
 
 
+#: Offizielle ADAC-Musterkaufvertraege (nur verlinkt, nicht mitgeliefert).
+ADAC_KAUFVERTRAG_URL = ("https://www.adac.de/rund-ums-fahrzeug/auto-kaufen-verkaufen/"
+                        "gebrauchtwagenkauf/kfz-kaufvertrag/")
+ADAC_KAUFVERTRAG_PDF = ("https://assets.adac.de/image/upload/v1706123193/ADAC-eV/KOR/Text/PDF/"
+                        "kaufvertrag-privat-an-privat_gbsh2r.pdf")
+
+
+def kaufvertrag(label: str, first_reg: str | None, mileage: int | None,
+                price: float | None, model_id: int | None = None) -> str:
+    """Vorausgefuellter Muster-Kaufvertrag (Privatverkauf) als Text zum Ausdrucken.
+    Fahrzeugdaten aus dem Tool eingesetzt, Rest als Ausfuellfelder. Eigener Text
+    (keine ADAC-Kopie); voller Sachmaengel-Ausschluss ohne Besichtigungsklausel."""
+    _b = "_______________________"
+    L = [
+        "KAUFVERTRAG für einen gebrauchten Pkw – Verkauf von privat an privat",
+        "",
+        f"Verkäufer/in:  Name {_b}  Anschrift {_b}",
+        f"               Personalausweis-Nr. {_b}",
+        f"Käufer/in:     Name {_b}  Anschrift {_b}",
+        f"               Personalausweis-Nr. {_b}",
+        "",
+        "FAHRZEUG",
+        f"  Marke / Modell:            {label}",
+        f"  Fahrzeug-Identnr. (FIN):   {_b}",
+        f"  Erstzulassung:             {first_reg or _b}",
+        f"  Amtl. Kennzeichen:         {_b}",
+        f"  Kilometerstand (abgelesen):{f' {mileage:,} km'.replace(',', '.') if mileage else '  ' + _b}",
+        f"  Anzahl Schlüssel:          {_b}   Vorbesitzer lt. ZB II: {_b}",
+        f"  HU/TÜV gültig bis:         {_b}   Serviceheft: ☐ ja ☐ nein",
+        "",
+        f"KAUFPREIS:  {_eur(price)}   (in Worten: {_b} Euro)",
+        "",
+        "ZUSICHERUNGEN DES VERKÄUFERS",
+        "  ☐ Das Fahrzeug ist unfallfrei.  ☐ Es hatte folgende (reparierte) Unfallschäden:",
+        f"     {_b}",
+        "  ☐ Der abgelesene Kilometerstand entspricht der tatsächlichen Gesamtfahrleistung,",
+        "     soweit dem Verkäufer bekannt.",
+        f"  ☐ Dem Verkäufer bekannte Mängel: {_b}",
+        "  ☐ Das Fahrzeug ist frei von Rechten Dritter (kein laufender Kredit / Leasing);",
+        "     die Zulassungsbescheinigung Teil II (Fahrzeugbrief) liegt im Original vor.",
+        "",
+        "GEWÄHRLEISTUNG",
+        "  Das Fahrzeug wird von privat unter Ausschluss jeglicher Sachmängelhaftung verkauft.",
+        "  Der Ausschluss gilt NICHT für Schäden aus der Verletzung von Leben, Körper oder",
+        "  Gesundheit, für grob fahrlässig oder vorsätzlich verursachte Schäden, für arglistig",
+        "  verschwiegene Mängel sowie für ausdrücklich zugesicherte Eigenschaften (siehe oben).",
+        "",
+        "ÜBERGABE",
+        "  Übergeben werden: Fahrzeug, alle Schlüssel, Zulassungsbescheinigung Teil I und II,",
+        "  Serviceheft, letzte HU-Bescheinigung sowie alle vorhandenen Unterlagen.",
+        f"  Übergabe am {_b} in {_b}.  Kaufpreis erhalten: ☐ bar  ☐ überwiesen",
+        "",
+        f"Ort, Datum: {_b}",
+        "",
+        f"Unterschrift Verkäufer/in: {_b}    Unterschrift Käufer/in: {_b}",
+        "",
+        "Hinweis: KEINE „Besichtigungsklausel“ verwenden – sie schwächt den Haftungsausschluss.",
+        f"Offizielle ADAC-Vorlage (PDF): {ADAC_KAUFVERTRAG_URL}",
+    ]
+    return "\n".join(L)
+
+
 def model_watchpoints(conn: sqlite3.Connection, model_id: int,
                       variant: str | None = None, top: int = 5) -> tuple[list[dict], int]:
     """Worauf man bei DIESEM Modell zuerst achten sollte (Schwachstellen + teurer
