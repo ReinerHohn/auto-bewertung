@@ -28,6 +28,7 @@ from autobewertung import geo
 from autobewertung.config import DEFAULT_WEIGHTS, DIMENSIONS, Criteria
 from autobewertung.db import DEFAULT_DB, init_db
 from autobewertung.scoring import score_models
+from autobewertung.tracking import price_floor
 from autobewertung.tco import CLASS_RANK, TcoAssumptions
 
 # Spaltenlabels der sechs Score-Dimensionen (0..100)
@@ -348,6 +349,14 @@ def render_category(model, cat: str) -> None:
             if model.purchase_price:
                 st.metric("Geschätzter Marktpreis", f"{model.purchase_price:,.0f} €".replace(",", "."))
             return
+
+        # Preis-Boden: aktueller Marktpreis vs. 90-Tage-Tief (aus dem Snapshot-Verlauf)
+        _pf = price_floor(conn, mid)
+        if _pf and _pf["n"] >= 3:
+            tief = ("🔻 **auf dem 90-Tage-Tief!**" if _pf["pct_above_low"] < 2
+                    else f"**{_pf['pct_above_low']:.0f} %** über dem 90-Tage-Tief "
+                         f"({_pf['low']:,.0f} €)".replace(",", "."))
+            st.caption(f"📉 Marktpreis (Median) aktuell {_pf['current']:,.0f} € · {tief}".replace(",", "."))
 
         # Klickbare Angebotsliste: jeder Button oeffnet DAS Inserat auf AutoScout24
         n_as24 = sum(1 for r in rows if r["source"] == "autoscout24")
@@ -829,6 +838,9 @@ if _deals:
         room = (f" · 💬 Ziel ~{neg['target']:,.0f} €".replace(",", ".")
                 if neg and neg["room_eur"] >= 200 else "")
         qual = (f"Score **{ms.total:.0f}** · Zuverl {ms.dims['reliability']:.0f} · " if ms else "")
+        pf = price_floor(conn, e.model_id)
+        tief = (" 🔻**Tiefstand**" if pf and pf["n"] >= 8 and pf["low_min"]
+                and e.price <= pf["low_min"] * 1.03 else "")
         dist = geo.distance_km(home_plz, r["plz"])
         if dist is not None:
             net = geo.net_saving_eur(e.resid_eur, r["plz"], home_plz)
@@ -836,7 +848,7 @@ if _deals:
                     if net is not None else f" · 📍 {dist:.0f} km")
         else:
             near = ""
-        lbl = (f"{r['model']} – **{e.price:,.0f} €** · {e.resid_pct*100:+.0f} % vs. fair · "
+        lbl = (f"{r['model']} – **{e.price:,.0f} €** · {e.resid_pct*100:+.0f} % vs. fair{tief} · "
                f"{qual}{r['mileage_km'] or '?'} km · EZ {r['first_reg'] or '?'}{near}{stand}{room}").replace(",", ".")
         st.markdown(f"- [{lbl}]({r['url']})" if r["url"] else f"- {lbl}")
 

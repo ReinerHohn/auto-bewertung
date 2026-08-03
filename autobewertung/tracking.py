@@ -31,6 +31,24 @@ def deactivate_stale(conn: sqlite3.Connection, max_age_days: int = 10) -> int:
     return cur.rowcount
 
 
+def price_floor(conn: sqlite3.Connection, model_id: int, days: int = 90) -> dict | None:
+    """Preis-Boden je Modell aus dem Snapshot-Verlauf: aktueller Median-Marktpreis
+    vs. das Tief der letzten `days` Tage. Erkennt echte Tiefpunkte zum Zuschlagen.
+    Gibt {current, low, low_min, pct_above_low, n, days} oder None (keine Historie)."""
+    cutoff = (datetime.now(timezone.utc) - timedelta(days=days)).isoformat()
+    rows = conn.execute(
+        "SELECT median_price, min_price FROM model_price_snapshot "
+        "WHERE model_id=? AND ts>=? ORDER BY ts", (model_id, cutoff)).fetchall()
+    meds = [r["median_price"] for r in rows if r["median_price"]]
+    mins = [r["min_price"] for r in rows if r["min_price"]]
+    if not meds:
+        return None
+    current, low = meds[-1], min(meds)
+    return {"current": current, "low": low, "low_min": min(mins) if mins else None,
+            "pct_above_low": (current - low) / low * 100 if low else 0.0,
+            "n": len(rows), "days": days}
+
+
 def snapshot_model_prices(conn: sqlite3.Connection) -> int:
     """Ein Marktpreis-Snapshot je Modell (nur bei Aenderung). Gibt Anzahl neuer Punkte."""
     ts = datetime.now(timezone.utc).isoformat()

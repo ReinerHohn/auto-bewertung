@@ -6,7 +6,7 @@ from datetime import datetime, timedelta, timezone
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from autobewertung.db import init_db
-from autobewertung.tracking import deactivate_stale
+from autobewertung.tracking import deactivate_stale, price_floor
 
 
 def _add(conn, ref, source, days_ago):
@@ -50,6 +50,21 @@ def test_threshold_configurable():
     assert deactivate_stale(conn, max_age_days=5) == 1     # 8 > 5 -> raus
     conn.execute("UPDATE listing SET active=1")            # zuruecksetzen
     assert deactivate_stale(conn, max_age_days=14) == 0    # 8 < 14 -> bleibt
+
+
+def test_price_floor_from_snapshots():
+    conn = _conn()
+    now = datetime.now(timezone.utc)
+    for i, (med, mn) in enumerate([(12000, 11000), (11000, 10000), (11500, 10500)]):
+        ts = (now - timedelta(days=10 - i * 3)).isoformat()
+        conn.execute("INSERT INTO model_price_snapshot(model_id,ts,median_price,min_price,max_price,n) "
+                     "VALUES (1,?,?,?,?,5)", (ts, med, mn, med + 2000))
+    conn.commit()
+    pf = price_floor(conn, 1, days=90)
+    assert pf["current"] == 11500 and pf["low"] == 11000 and pf["low_min"] == 10000
+    assert abs(pf["pct_above_low"] - (11500 - 11000) / 11000 * 100) < 1e-6
+    assert price_floor(conn, 1, days=1) is None      # nichts im 1-Tage-Fenster
+    assert price_floor(conn, 2) is None              # Modell ohne Historie
 
 
 if __name__ == "__main__":
