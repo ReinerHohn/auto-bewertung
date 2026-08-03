@@ -132,19 +132,30 @@ def cmd_track(args) -> None:
 
 def cmd_deals(args) -> None:
     """Aktuell unterbewertete Angebote laut Fair-Preis-Modell (Residual in EUR)."""
-    from . import fairprice
+    from . import fairprice, geo
+    from .config import load_criteria
     conn = init_db(args.db)
     model = fairprice.fit(conn)
     if model is None:
         print("Fair-Preis-Modell nicht verfuegbar (zu wenig Daten oder numpy fehlt).")
         return
-    band = fairprice.top_per_model(fairprice.bargains(conn, model), per_model=2, limit=args.top)
+    home = load_criteria().home_plz
+    raw = fairprice.bargains(conn, model)
+    if args.max_km and home:
+        def _near(e):
+            p = conn.execute("SELECT plz FROM listing WHERE id=?", (e.listing_id,)).fetchone()
+            d = geo.distance_km(home, p["plz"] if p else None)
+            return d is None or d <= args.max_km
+        raw = [e for e in raw if _near(e)]
+    band = fairprice.top_per_model(raw, per_model=2, limit=args.top)
+    within = f", max. {args.max_km} km ab {home}" if args.max_km else ""
     print(f"Fair-Preis-Modell: {model.n} Angebote, {len(model.model_ids)} Modelle, "
-          f"R2={model.r2:.2f}. Plausible Schnaeppchen (max. 2 je Modell, Top {args.top}):\n")
+          f"R2={model.r2:.2f}. Plausible Schnaeppchen (max. 2 je Modell{within}, Top {args.top}):\n")
     from .checks import listing_age_days, negotiation_hint
     for e in band:
         r = conn.execute(
-            "SELECT l.mileage_km, l.first_reg, l.url, l.first_seen, cm.make||' '||cm.model AS model "
+            "SELECT l.mileage_km, l.first_reg, l.url, l.first_seen, l.plz, "
+            "cm.make||' '||cm.model AS model "
             "FROM listing l JOIN car_model cm ON cm.id=l.model_id WHERE l.id=?",
             (e.listing_id,)).fetchone()
         days = listing_age_days(r["first_seen"])
@@ -152,10 +163,13 @@ def cmd_deals(args) -> None:
         print(f"  {r['model'][:22]:22} {_eur(e.price):>9}  fair {_eur(e.fair_price):>9}  "
               f"{e.resid_eur:>+7.0f}€ ({e.resid_pct*100:>+3.0f}%)  "
               f"{(str(r['mileage_km'] or '?')+'km'):>9} EZ{r['first_reg'] or '?':7} {stand:>10}")
+        dist = geo.distance_km(home, r["plz"]) if home else None
+        if dist is not None:
+            net = geo.net_saving_eur(e.resid_eur, r["plz"], home)
+            print(f"      📍 {dist:.0f} km ab {home} → netto ~{_eur(net)} nach Anfahrt")
         neg = negotiation_hint(e.price, e.fair_price, days)
         if neg and neg["room_eur"] >= 200:
-            print(f"      💬 Zielpreis ~{_eur(neg['target'])} (Spielraum ~{_eur(neg['room_eur'])})"
-                  + (f" · {' · '.join(neg['args'])}" if neg["args"] else ""))
+            print(f"      💬 Zielpreis ~{_eur(neg['target'])} (Spielraum ~{_eur(neg['room_eur'])})")
         if e.resid_pct <= -0.15 and r["url"]:
             print(f"      {r['url']}")
     if not band:
@@ -248,6 +262,7 @@ def main(argv=None) -> None:
 
     dl = sub.add_parser("deals", help="unterbewertete Angebote laut Fair-Preis-Modell")
     dl.add_argument("--top", type=int, default=15)
+    dl.add_argument("--max-km", type=int, default=0, help="nur Angebote bis N km ab home_plz")
     dl.set_defaults(func=cmd_deals)
 
     dc = sub.add_parser("discover", help="neue Modelle aus AS24-Angeboten erkennen + anlegen")

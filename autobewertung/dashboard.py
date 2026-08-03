@@ -24,6 +24,7 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 import pandas as pd
 import streamlit as st
 
+from autobewertung import geo
 from autobewertung.config import DEFAULT_WEIGHTS, DIMENSIONS, Criteria
 from autobewertung.db import DEFAULT_DB, init_db
 from autobewertung.scoring import score_models
@@ -755,7 +756,10 @@ _rdef = "Toyota Auris" if "Toyota Auris" in _ropts else (_ropts[0] if _ropts els
 ref_choice = st.sidebar.selectbox("Dein aktuelles Auto (Größen-Vergleich)", _ropts,
                                   index=_ropts.index(_rdef) if _rdef else 0) if _ropts else None
 ref_l, ref_w = _rdims.get(ref_choice, (None, None))
-home_plz = st.sidebar.text_input("Deine PLZ (Werkstattnaehe)", "79100")
+home_plz = st.sidebar.text_input("Deine PLZ (Werkstattnaehe / Anfahrt)", "79100")
+max_dist = st.sidebar.number_input("🔥 Schnäppchen max. Entfernung (km, 0 = egal)", 0, 1000, 0, step=25,
+                                   help="Blendet weit entfernte Deals aus. Anfahrt wird ohnehin "
+                                        "in den Netto-Vorteil eingerechnet (Sprit/Zeit).")
 
 st.sidebar.header("TCO-Annahmen")
 annual_km = st.sidebar.number_input("km / Jahr", 1000, 60000, 15000, step=1000)
@@ -815,7 +819,7 @@ if _deals:
 
     def _render_deal(e, ms):
         r = conn.execute(
-            "SELECT l.mileage_km, l.first_reg, l.url, l.first_seen, "
+            "SELECT l.mileage_km, l.first_reg, l.url, l.first_seen, l.plz, "
             "cm.make||' '||cm.model AS model FROM listing l "
             "JOIN car_model cm ON cm.id=l.model_id WHERE l.id=?", (e.listing_id,)).fetchone()
         days = _lad(r["first_seen"])
@@ -824,17 +828,34 @@ if _deals:
         neg = _nh(e.price, e.fair_price, days)
         room = (f" · 💬 Ziel ~{neg['target']:,.0f} €".replace(",", ".")
                 if neg and neg["room_eur"] >= 200 else "")
-        qual = (f"Score **{ms.total:.0f}** · Zuverl {ms.dims['reliability']:.0f} · "
-                f"TCO {ms.annual_tco:,.0f} €/J · " if ms else "")
+        qual = (f"Score **{ms.total:.0f}** · Zuverl {ms.dims['reliability']:.0f} · " if ms else "")
+        dist = geo.distance_km(home_plz, r["plz"])
+        if dist is not None:
+            net = geo.net_saving_eur(e.resid_eur, r["plz"], home_plz)
+            near = (f" · 📍 {dist:.0f} km → **netto ~{net:,.0f} €** nach Anfahrt".replace(",", ".")
+                    if net is not None else f" · 📍 {dist:.0f} km")
+        else:
+            near = ""
         lbl = (f"{r['model']} – **{e.price:,.0f} €** · {e.resid_pct*100:+.0f} % vs. fair · "
-               f"{qual}{r['mileage_km'] or '?'} km · EZ {r['first_reg'] or '?'}{stand}{room}").replace(",", ".")
+               f"{qual}{r['mileage_km'] or '?'} km · EZ {r['first_reg'] or '?'}{near}{stand}{room}").replace(",", ".")
         st.markdown(f"- [{lbl}]({r['url']})" if r["url"] else f"- {lbl}")
 
+    def _within(deals):
+        if not max_dist:
+            return deals
+        keep = []
+        for e in deals:
+            p = conn.execute("SELECT plz FROM listing WHERE id=?", (e.listing_id,)).fetchone()
+            d = geo.distance_km(home_plz, p["plz"] if p else None)
+            if d is None or d <= max_dist:      # unbekannte Entfernung durchlassen
+                keep.append(e)
+        return keep
+
     # Kombi-Rang: Modell-Qualitaet (Score) + Preisvorteil -> billig UND geil
-    _good = sorted((e for e in _deals if e.model_id in _by_model),
-                   key=lambda e: _by_model[e.model_id].total + (-e.resid_pct * 100) * 0.8,
-                   reverse=True)
-    _rest = [e for e in _deals if e.model_id not in _by_model]
+    _good = _within(sorted((e for e in _deals if e.model_id in _by_model),
+                           key=lambda e: _by_model[e.model_id].total + (-e.resid_pct * 100) * 0.8,
+                           reverse=True))
+    _rest = _within([e for e in _deals if e.model_id not in _by_model])
     if _good:
         with st.expander(f"🔥 **Beste Angebote – günstig UND gutes Auto ({len(_good)})**", expanded=True):
             st.caption("Schnäppchen (unter fairem Preis) auf Modellen, die deine Kriterien erfüllen – "
