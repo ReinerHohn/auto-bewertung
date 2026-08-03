@@ -811,24 +811,41 @@ from autobewertung import fairprice as _fp
 from autobewertung.checks import listing_age_days as _lad, negotiation_hint as _nh
 _deals = _fp.bargains(conn)
 if _deals:
-    with st.expander(f"🔥 **Top-Schnäppchen jetzt ({len(_deals)})** – unter fairem Marktwert", expanded=True):
-        st.caption("Modellübergreifend nach Fair-Preis-Abstand. ⚠️ Sehr weit unter fair = evtl. "
-                   "verschwiegener Mangel/Unfall oder Betrug – vor Kauf den 🕵️ Kauf-Check nutzen.")
-        for e in _deals[:15]:
-            r = conn.execute(
-                "SELECT l.mileage_km, l.first_reg, l.url, l.first_seen, "
-                "cm.make||' '||cm.model AS model FROM listing l "
-                "JOIN car_model cm ON cm.id=l.model_id WHERE l.id=?", (e.listing_id,)).fetchone()
-            days = _lad(r["first_seen"])
-            stand = (f" · 🕰️ {days} T online" if days is not None and days >= 45
-                     else (f" · {days} T online" if days is not None else ""))
-            neg = _nh(e.price, e.fair_price, days)
-            room = (f" · 💬 Ziel ~{neg['target']:,.0f} €".replace(",", ".")
-                    if neg and neg["room_eur"] >= 200 else "")
-            lbl = (f"{r['model']} – {e.price:,.0f} € · {e.resid_pct*100:+.0f} % vs. fair "
-                   f"(~{e.fair_price:,.0f} €) · {r['mileage_km'] or '?'} km · "
-                   f"EZ {r['first_reg'] or '?'}{stand}{room}").replace(",", ".")
-            st.markdown(f"- [{lbl}]({r['url']})" if r["url"] else f"- {lbl}")
+    _by_model = {m.model_id: m for m in ranked}          # nur qualifizierte Modelle
+
+    def _render_deal(e, ms):
+        r = conn.execute(
+            "SELECT l.mileage_km, l.first_reg, l.url, l.first_seen, "
+            "cm.make||' '||cm.model AS model FROM listing l "
+            "JOIN car_model cm ON cm.id=l.model_id WHERE l.id=?", (e.listing_id,)).fetchone()
+        days = _lad(r["first_seen"])
+        stand = (f" · 🕰️ {days} T online" if days is not None and days >= 45
+                 else (f" · {days} T online" if days is not None else ""))
+        neg = _nh(e.price, e.fair_price, days)
+        room = (f" · 💬 Ziel ~{neg['target']:,.0f} €".replace(",", ".")
+                if neg and neg["room_eur"] >= 200 else "")
+        qual = (f"Score **{ms.total:.0f}** · Zuverl {ms.dims['reliability']:.0f} · "
+                f"TCO {ms.annual_tco:,.0f} €/J · " if ms else "")
+        lbl = (f"{r['model']} – **{e.price:,.0f} €** · {e.resid_pct*100:+.0f} % vs. fair · "
+               f"{qual}{r['mileage_km'] or '?'} km · EZ {r['first_reg'] or '?'}{stand}{room}").replace(",", ".")
+        st.markdown(f"- [{lbl}]({r['url']})" if r["url"] else f"- {lbl}")
+
+    # Kombi-Rang: Modell-Qualitaet (Score) + Preisvorteil -> billig UND geil
+    _good = sorted((e for e in _deals if e.model_id in _by_model),
+                   key=lambda e: _by_model[e.model_id].total + (-e.resid_pct * 100) * 0.8,
+                   reverse=True)
+    _rest = [e for e in _deals if e.model_id not in _by_model]
+    if _good:
+        with st.expander(f"🔥 **Beste Angebote – günstig UND gutes Auto ({len(_good)})**", expanded=True):
+            st.caption("Schnäppchen (unter fairem Preis) auf Modellen, die deine Kriterien erfüllen – "
+                       "sortiert nach Modell-Score + Preisvorteil. ⚠️ Sehr weit unter fair → 🕵️ Kauf-Check.")
+            for e in _good[:15]:
+                _render_deal(e, _by_model[e.model_id])
+    if _rest:
+        with st.expander(f"💸 Weitere Schnäppchen außerhalb deiner Kriterien ({len(_rest)}) "
+                         "– z. B. über Budget / andere Klasse"):
+            for e in _rest[:12]:
+                _render_deal(e, None)
 
 # --- Gesamtkosten fuer 5 UND 10 Jahre (jeweils exakt mit eigener Wertverlust-/
 #     Verschleiss-Rechnung ueber die Haltedauer) --------------------------------
