@@ -52,3 +52,9 @@ Tesla,Model Y,ADAC,pannen_pro_1000,0.9,2025,2,https://assets.adac.de/image/uploa
 VW,ID.4,ADAC,pannen_pro_1000,1.0,2025,2,https://assets.adac.de/image/upload/v1744788916/ADAC-eV/KOR/Text/PDF/Pannenstatistik_2025_final_nrmvls.pdf,EZ2022 sehr zuverlaessig
 Tesla,Model Y,TUEV,maengelquote_pct,17.3,2026,3,https://www.meinauto.de/news/2025/11/tuev-report-2026-maengelquote-steigt-weiter-an,TUEV-Report 2026 Altersklasse 2-3 Jahre (Schlusslicht Klasse)
 VW,ID.4,TUEV,maengelquote_pct,6.1,2026,3,https://www.meinauto.de/news/2025/11/tuev-report-2026-maengelquote-steigt-weiter-an,TUEV-Report 2026 Altersklasse 2-3 Jahre (Wert gilt fuer ID.4/ID.5 zusammen)
+# --- Charge 2: SUVs/Mittelklasse, ADAC-Pannenstatistik 2025 ---
+Dacia,Duster,ADAC,pannen_pro_1000,8.1,2025,4,https://assets.adac.de/image/upload/v1744788916/ADAC-eV/KOR/Text/PDF/Pannenstatistik_2025_final_nrmvls.pdf,EZ2020 (Duster II) - Reihe 2017-2020 eher hoch
+VW,T-Roc,ADAC,pannen_pro_1000,2.6,2025,4,https://assets.adac.de/image/upload/v1744788916/ADAC-eV/KOR/Text/PDF/Pannenstatistik_2025_final_nrmvls.pdf,EZ2020 sehr niedrig (EZ2022=1.5 bis EZ2018=4.7)
+Kia,Sportage,ADAC,pannen_pro_1000,9.7,2025,6,https://assets.adac.de/image/upload/v1744788916/ADAC-eV/KOR/Text/PDF/Pannenstatistik_2025_final_nrmvls.pdf,EZ2018 (QL) - aeltere Jahrgaenge deutlich hoeher (EZ2016=21.8)
+Hyundai,Tucson,ADAC,pannen_pro_1000,11.1,2025,7,https://assets.adac.de/image/upload/v1744788916/ADAC-eV/KOR/Text/PDF/Pannenstatistik_2025_final_nrmvls.pdf,EZ2017 (TL) - EZ2015=18.2 EZ2019=5.3
+Toyota,C-HR,ADAC,pannen_pro_1000,46.8,2025,5,https://assets.adac.de/image/upload/v1744788916/ADAC-eV/KOR/Text/PDF/Pannenstatistik_2025_final_nrmvls.pdf,EZ2019 (Gen I Hybrid) - Schlusslicht sehr hoch (EZ2020=63.1)

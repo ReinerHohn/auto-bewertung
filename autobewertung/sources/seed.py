@@ -609,6 +609,92 @@ WORKSHOPS += [
     ("Nissan", "Nissan Autohaus Freiburg", "79111", "Freiburg", 1),
 ]
 
+# --- Beliebte Kompakt-/Mittelklasse-SUVs + Mazda 6 (Segment-Abdeckung) --------
+MODELS += [
+    ("Dacia", "Duster", "II (2018-2024)", 2018, 2024, "SUV", "Benzin"),
+    ("VW", "T-Roc", "(2017-2024)", 2017, 2024, "SUV", "Benzin"),
+    ("Kia", "Sportage", "IV QL (2016-2021)", 2016, 2021, "SUV", "Diesel"),
+    ("Hyundai", "Tucson", "III TL (2015-2020)", 2015, 2020, "SUV", "Diesel"),
+    ("Toyota", "C-HR", "(2016-2023)", 2016, 2023, "SUV", "Hybrid"),
+    ("Mazda", "6", "GJ (2013-2023)", 2013, 2023, "Kombi", "Benzin"),
+]
+SPECS.update({
+    "Dacia Duster":   ("benzin",  "suv",          6.8, None, None, None, None, None, 420, 130, 12500),
+    "VW T-Roc":       ("benzin",  "suv",          6.5, None, None, None, None, None, 500, 140, 14900),
+    "Kia Sportage":   ("diesel",  "suv",          5.6, None, None, None, None, None, 500, 220, 13900),
+    "Hyundai Tucson": ("diesel",  "suv",          5.6, None, None, None, None, None, 500, 220, 13500),
+    "Toyota C-HR":    ("hybrid",  "suv",          4.5, None, None, None, None, None, 460,  40, 14900),
+    "Mazda 6":        ("benzin",  "mittelklasse", 6.5, None, None, None, None, None, 520, 150, 14000),
+})
+# Seed-Schaetzung (pannen wird fuer 5 Modelle von reliability_real.csv ueberschrieben;
+# Mazda 6 steht in keiner Statistik -> bleibt Schaetzung/🟡)
+RELIABILITY.update({"Dacia Duster": 10.0, "VW T-Roc": 4.0, "Kia Sportage": 9.0,
+                    "Hyundai Tucson": 10.0, "Toyota C-HR": 30.0, "Mazda 6": 6.0})
+MAENGEL.update({"Dacia Duster": 7.0, "VW T-Roc": 5.0, "Kia Sportage": 5.5,
+                "Hyundai Tucson": 5.5, "Toyota C-HR": 4.5, "Mazda 6": 4.5})
+DEPR.update({"Dacia Duster": 0.12, "VW T-Roc": 0.12, "Kia Sportage": 0.12,
+             "Hyundai Tucson": 0.13, "Toyota C-HR": 0.11, "Mazda 6": 0.12})
+WEAK.update({
+    "Dacia Duster": [("Kupplung", "Verschleiss bei hoher Laufleistung", 1, 700),
+                     ("Innenraum", "einfache Materialien/Klappern", 1, 0)],
+    "VW T-Roc": [("DSG", "DQ200 Trockenkupplung", 2, 1500),
+                 ("Einspritzung", "1.0 TSI Injektoren (Rueckruf)", 2, 600)],
+    "Kia Sportage": [("DPF/AGR", "Diesel DPF-Regeneration bei Kurzstrecke", 2, 900),
+                     ("DCT", "7-Gang-DCT (falls Automatik)", 2, 1500)],
+    "Hyundai Tucson": [("Oelpumpe", "1.6 Antriebsriemen-Fasern verstopfen Oelfilter (Rueckruf)", 3, 900),
+                       ("DPF/AGR", "Diesel DPF", 2, 900),
+                       ("DCT", "7-Gang-DCT ruckelt", 2, 1500)],
+    "Toyota C-HR": [("Hybrid-12V", "12V-Batterie schwach -> haeufige Pannenursache (ADAC)", 2, 200),
+                    ("Sicht", "schlechte Rundumsicht/kleine Heckscheibe", 1, 0)],
+    "Mazda 6": [("Rost", "Bremsleitungen/Radlaeufe Korrosion", 2, 600),
+                ("Einspritzung", "Skyactiv-G Injektoren (Rueckruf)", 2, 600)],
+})
+REPAIR.update({
+    "Dacia Duster": [("inspektion", 280, "pro_jahr")],
+    "VW T-Roc": [("inspektion", 340, "pro_jahr")],
+    "Kia Sportage": [("inspektion", 300, "pro_jahr"), ("zahnriemen", 500, "pro_intervall")],
+    "Hyundai Tucson": [("inspektion", 300, "pro_jahr")],
+    "Toyota C-HR": [("inspektion", 300, "pro_jahr")],
+    "Mazda 6": [("inspektion", 340, "pro_jahr")],
+})
+PARTS.update({"Dacia Duster": (80, 78), "VW T-Roc": (94, 95), "Kia Sportage": (78, 95),
+              "Hyundai Tucson": (80, 95), "Toyota C-HR": (82, 100), "Mazda 6": (75, 105)})
+LISTINGS.update({
+    "Dacia Duster": [(12500, 70000, "2019-05", "79100", "Freiburg"),
+                     (11500, 95000, "2018-08", "79312", "Emmendingen")],
+    "VW T-Roc": [(14900, 65000, "2018-06", "79100", "Freiburg"),
+                 (15900, 45000, "2019-09", "79106", "Freiburg")],
+    "Kia Sportage": [(13900, 90000, "2017-05", "79100", "Freiburg"),
+                     (12900, 110000, "2016-09", "77933", "Lahr")],
+    "Hyundai Tucson": [(13500, 95000, "2017-04", "79100", "Freiburg"),
+                       (12500, 120000, "2016-06", "79312", "Emmendingen")],
+    "Toyota C-HR": [(14900, 75000, "2018-05", "79100", "Freiburg"),
+                    (15900, 55000, "2019-08", "79104", "Freiburg")],
+    "Mazda 6": [(14000, 105000, "2016-05", "79100", "Freiburg"),
+                (12900, 130000, "2015-03", "77652", "Offenburg")],
+})
+DIMS.update({
+    "Dacia Duster": (4341, 1804), "VW T-Roc": (4234, 1819), "Kia Sportage": (4480, 1855),
+    "Hyundai Tucson": (4475, 1850), "Toyota C-HR": (4360, 1795), "Mazda 6": (4805, 1840),
+})
+TURN.update({
+    "Dacia Duster": 10.4, "VW T-Roc": 10.9, "Kia Sportage": 10.9,
+    "Hyundai Tucson": 10.6, "Toyota C-HR": 10.4, "Mazda 6": 11.4,
+})
+TIRE_COST.update({
+    "Dacia Duster": 450, "VW T-Roc": 520, "Kia Sportage": 560,
+    "Hyundai Tucson": 560, "Toyota C-HR": 520, "Mazda 6": 560,
+})
+EQUIP["Dacia Duster"] = {"einparkhilfe", "rueckfahrkamera"}  # Basis ohne AEB/Spurhalte
+WEAR_SPECIFIC.update({
+    "Kia Sportage": [("Zahnriemen/DPF", 120000, 0, 900)],
+    "Hyundai Tucson": [("Oelpumpe 1.6 (Riemen)", 100000, 0, 900), ("DPF", 120000, 0, 900)],
+    "Mazda 6": [("Bremsleitungen (Rost)", 130000, 0, 600)],
+})
+WORKSHOPS += [
+    ("Dacia", "Dacia/Renault Zentrum Freiburg", "79111", "Freiburg", 1),
+]
+
 
 class SeedSource(Source):
     name = "seed"
