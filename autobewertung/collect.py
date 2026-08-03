@@ -79,6 +79,7 @@ def cmd_track(args) -> None:
     from .scoring import score_models
     from .sources import default_sources
     from .sources.autoscout24 import AutoScout24Source
+    from .sources.kleinanzeigen import KleinanzeigenSource
     from .sources.watchlist import WatchlistSource
     from .tracking import snapshot_model_prices
 
@@ -97,18 +98,25 @@ def cmd_track(args) -> None:
         targets = [conn.execute("SELECT id AS model_id, make, model FROM car_model WHERE id=?",
                                 (m.model_id,)).fetchone() for m in ranked]
     as24 = AutoScout24Source()
-    got = 0
+    ka = None if getattr(args, "no_ka", False) else KleinanzeigenSource()
+    got = got_ka = 0
     for m in targets:
         try:
             n, _ = as24.fetch_model(conn, m["model_id"], m["make"], m["model"])
             got += n
         except Exception:
             pass
+        if ka is not None:
+            try:
+                nk, _ = ka.fetch_model(conn, m["model_id"], m["make"], m["model"])
+                got_ka += nk
+            except Exception:
+                pass
     wres = WatchlistSource().collect(conn)
     snaps = snapshot_model_prices(conn)
     alerts = scan_alerts(conn, since_ts)
     ts = datetime.now().strftime("%Y-%m-%d %H:%M")
-    print(f"[{ts}] track: {got} AS24-Angebote ({len(targets)} Modelle), "
+    print(f"[{ts}] track: {got} AS24 + {got_ka} Kleinanzeigen-Angebote ({len(targets)} Modelle), "
           f"Watchlist: {wres.notes}, {snaps} Modell-Preispunkte, {len(alerts)} Schnaeppchen-Alarm(e)")
     if alerts:
         logf = Path(args.db).resolve().parent.parent / "alerts.log"
@@ -231,6 +239,7 @@ def main(argv=None) -> None:
     tr = sub.add_parser("track", help="Preis-Tracking fuer Cron (AS24 + Watchlist + Snapshot)")
     tr.add_argument("--top", type=int, default=20, help="Anzahl Top-Modelle, die getrackt werden")
     tr.add_argument("--all", action="store_true", help="ALLE Modelle tracken (mehr Angebote, langsamer)")
+    tr.add_argument("--no-ka", action="store_true", help="Kleinanzeigen NICHT mit-tracken (nur AS24)")
     tr.set_defaults(func=cmd_track)
 
     dl = sub.add_parser("deals", help="unterbewertete Angebote laut Fair-Preis-Modell")

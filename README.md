@@ -45,6 +45,9 @@ Das Tool trennt sauber **echte, quellenbelegte Daten** von markierten Schätzung
 - **AutoScout24** – echte Angebote (Preis/km/EZ/kW/Bewertung), gefiltert nach
   Kraftstoff, Baujahr-Generation, Akku-Variante (Reichweite) und Unfall-Flag.
   `data/` – kein Login, nur kanonische `/lst/marke/modell`-Seiten. mobile.de blockt (403).
+- **Kleinanzeigen** – echte (v.a. private) Angebote, oft günstiger. Nur die laut
+  robots.txt erlaubte kanonische Modell-Seite (Seite 1, ohne Filter), Baujahr-
+  gefiltert je Modell. Wird von `track` neben AS24 mitgeholt (`--no-ka` schaltet ab).
 - **TÜV-Report / ADAC-Pannenstatistik** – `data/reliability_real.csv` (quellenbelegt).
 - **KBA-/Hersteller-Rückrufe** – `data/recalls_real.csv` (+ NHTSA-API optional).
 - **Verschleiß** – `data/wear_real.csv` (recherchierte Defekt-km + Kosten je Untermodell).

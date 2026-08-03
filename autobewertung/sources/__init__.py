@@ -8,6 +8,7 @@ from .autoscout24 import AutoScout24Source
 from .base import CollectResult, Source
 from .discover import DiscoverSource
 from .inserate import InserateSource
+from .kleinanzeigen import KleinanzeigenSource
 from .recalls import NhtsaRecallSource, RecallImportSource
 from .reliability_import import ReliabilityImportSource
 from .seed import SeedSource
@@ -24,13 +25,13 @@ def default_sources() -> list[Source]:
 
 
 def all_sources() -> list[Source]:
-    # DiscoverSource (Netz, langsam) nicht im Default -> via `collect discover`.
-    return default_sources() + [NhtsaRecallSource(), DiscoverSource()]
+    # Netz-Quellen (langsam) nicht im Default -> via `collect track` / `--only`.
+    return default_sources() + [NhtsaRecallSource(), DiscoverSource(), KleinanzeigenSource()]
 
 
 __all__ = [
     "Source", "CollectResult", "SeedSource", "ReliabilityImportSource",
     "WearImportSource", "RecallImportSource", "NhtsaRecallSource",
     "WatchlistSource", "InserateSource", "DiscoverSource", "SpecImportSource",
-    "default_sources", "all_sources",
+    "KleinanzeigenSource", "default_sources", "all_sources",
 ]
