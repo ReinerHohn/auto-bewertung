@@ -5,13 +5,13 @@
 make,model,source,metric,value,report_year,vehicle_age,source_url,note
 Toyota,Auris,TUEV,maengelquote_pct,11.3,2025,4,https://www.t-online.de/mobilitaet/aktuelles/id_100543260/,Altersklasse 4-5 Jahre
 Skoda,Octavia,TUEV,maengelquote_pct,9.4,2025,2,https://www.t-online.de/mobilitaet/aktuelles/id_100543260/,Altersklasse 2-3 Jahre
-Ford,Focus,TUEV,maengelquote_pct,10.6,2025,2,https://www.t-online.de/mobilitaet/aktuelles/id_100543260/,Altersklasse 2-3 Jahre
+Ford,Focus,TUEV,maengelquote_pct,30.0,2025,10,https://www.t-online.de/mobilitaet/aktuelles/id_100543260/tuev-report-das-sind-die-schlechtesten-kompakten-gebrauchten.html,Altersklasse 10-11 Jahre (median-alt korrekt)
 Mazda,3,TUEV,maengelquote_pct,4.8,2025,2,https://www.t-online.de/mobilitaet/aktuelles/id_100543260/,bester Kompakter 2-3 Jahre
-Opel,Astra,TUEV,maengelquote_pct,8.2,2025,2,https://www.t-online.de/mobilitaet/aktuelles/id_100543260/,Altersklasse 2-3 Jahre
-Seat,Leon,TUEV,maengelquote_pct,8.7,2025,2,https://www.t-online.de/mobilitaet/aktuelles/id_100543260/,Altersklasse 2-3 Jahre
+Opel,Astra,TUEV,maengelquote_pct,15.8,2026,8,https://www.autobild.de/artikel/opel-astra-gebrauchtwagen-check-schwachstellen-und-maengel-laut-tuev-report-28118347.html,Altersklasse 8-9 Jahre TUEV-Report 2026 (median-alt korrekt)
+Seat,Leon,TUEV,maengelquote_pct,15.9,2026,8,https://www.autobild.de/artikel/seat-cupra-leon-gebraucht-tuev-report-2026-28090849.html,Altersklasse 8-9 Jahre TUEV-Report 2026 (median-alt korrekt)
 Audi,A3,TUEV,maengelquote_pct,4.9,2025,2,https://www.t-online.de/mobilitaet/aktuelles/id_100543260/,Top-Gruppe 2-3 Jahre
 Hyundai,i30,TUEV,maengelquote_pct,18.4,2025,6,https://www.t-online.de/mobilitaet/aktuelles/id_100543260/,Altersklasse 6-7 Jahre (aeltere Klasse!)
-Peugeot,308,TUEV,maengelquote_pct,12.0,2025,4,https://www.t-online.de/mobilitaet/aktuelles/id_100543260/,Altersklasse 4-5 Jahre
+Peugeot,308,TUEV,maengelquote_pct,20.0,2025,8,https://www.t-online.de/mobilitaet/aktuelles/id_100543260/tuev-report-das-sind-die-schlechtesten-kompakten-gebrauchten.html,Altersklasse 8-9 Jahre (median-alt korrekt)
 Renault,Megane,TUEV,maengelquote_pct,11.2,2025,4,https://www.t-online.de/mobilitaet/aktuelles/id_100543260/,Altersklasse 4-5 Jahre
 Tesla,Model 3,TUEV,maengelquote_pct,14.2,2025,2,https://www.tuev-verband.de/pressemitteilungen/tuev-report-2025-elektroautos,Letzter Platz TUEV-Report 2025 (2-3 Jahre)
 VW,ID.3 Pro,TUEV,maengelquote_pct,5.0,2025,2,https://www.goingelectric.de/2024/11/22/news/tuev-report-2025/,Altersklasse 2-3 Jahre
@@ -23,3 +23,32 @@ VW,ID.3 Pro,ADAC,pannen_pro_1000,0.7,2024,3,https://www.autobild.de/artikel/elek
 VW,ID.3 Pro S,ADAC,pannen_pro_1000,0.7,2024,3,https://www.autobild.de/artikel/elektroautos-in-der-adac-pannenstatistik-21223871.html,niedrige Pannenrate
 Renault,Zoe,ADAC,pannen_pro_1000,2.4,2024,3,https://www.autobild.de/artikel/elektroautos-in-der-adac-pannenstatistik-21223871.html,12V-Starterbatterie auffaellig
 Hyundai,Ioniq 5,ADAC,pannen_pro_1000,22.4,2024,3,https://www.autofachmann-autokaufmann.de/,hohe Pannenrate ICCU/12V-Batterie
+# --- ADAC-Pannenstatistik 2025 (offizielle PDF, Erhebung 2024); EZ-Kohorte im Baujahr-Bereich des Modells ---
+Audi,A3,ADAC,pannen_pro_1000,4.2,2025,5,https://assets.adac.de/image/upload/v1744788916/ADAC-eV/KOR/Text/PDF/Pannenstatistik_2025_final_nrmvls.pdf,EZ2019 untere Mittelklasse zuverlaessig
+Ford,Focus,ADAC,pannen_pro_1000,18.8,2025,6,https://assets.adac.de/image/upload/v1744788916/ADAC-eV/KOR/Text/PDF/Pannenstatistik_2025_final_nrmvls.pdf,EZ2018 Starterbatterie auffaellig
+Hyundai,i30,ADAC,pannen_pro_1000,13.7,2025,5,https://assets.adac.de/image/upload/v1744788916/ADAC-eV/KOR/Text/PDF/Pannenstatistik_2025_final_nrmvls.pdf,EZ2019 Starterbatterie 2015-2019
+Kia,Ceed,ADAC,pannen_pro_1000,6.2,2025,4,https://assets.adac.de/image/upload/v1744788916/ADAC-eV/KOR/Text/PDF/Pannenstatistik_2025_final_nrmvls.pdf,EZ2020 Ceed/XCeed
+Mazda,3,ADAC,pannen_pro_1000,34.4,2025,5,https://assets.adac.de/image/upload/v1744788916/ADAC-eV/KOR/Text/PDF/Pannenstatistik_2025_final_nrmvls.pdf,EZ2019 Ausreisser Starterbatterie
+Opel,Astra,ADAC,pannen_pro_1000,10.1,2025,5,https://assets.adac.de/image/upload/v1744788916/ADAC-eV/KOR/Text/PDF/Pannenstatistik_2025_final_nrmvls.pdf,EZ2019 untere Mittelklasse
+Peugeot,308,ADAC,pannen_pro_1000,13.3,2025,5,https://assets.adac.de/image/upload/v1744788916/ADAC-eV/KOR/Text/PDF/Pannenstatistik_2025_final_nrmvls.pdf,EZ2019
+Renault,Megane,ADAC,pannen_pro_1000,14.7,2025,5,https://assets.adac.de/image/upload/v1744788916/ADAC-eV/KOR/Text/PDF/Pannenstatistik_2025_final_nrmvls.pdf,EZ2019 aeltere Jahrgaenge auffaellig
+Seat,Leon,ADAC,pannen_pro_1000,4.7,2025,5,https://assets.adac.de/image/upload/v1744788916/ADAC-eV/KOR/Text/PDF/Pannenstatistik_2025_final_nrmvls.pdf,EZ2019 zuverlaessig
+Skoda,Octavia,ADAC,pannen_pro_1000,8.9,2025,5,https://assets.adac.de/image/upload/v1744788916/ADAC-eV/KOR/Text/PDF/Pannenstatistik_2025_final_nrmvls.pdf,EZ2019 Starterbatterie
+VW,Golf,ADAC,pannen_pro_1000,5.2,2025,5,https://assets.adac.de/image/upload/v1744788916/ADAC-eV/KOR/Text/PDF/Pannenstatistik_2025_final_nrmvls.pdf,EZ2019 untere Mittelklasse zuverlaessig
+BMW,3er,ADAC,pannen_pro_1000,5.3,2025,5,https://assets.adac.de/image/upload/v1744788916/ADAC-eV/KOR/Text/PDF/Pannenstatistik_2025_final_nrmvls.pdf,EZ2019 Mittelklasse zuverlaessig
+Toyota,Auris,ADAC,pannen_pro_1000,16.8,2025,6,https://assets.adac.de/image/upload/v1744788916/ADAC-eV/KOR/Text/PDF/Pannenstatistik_2025_final_nrmvls.pdf,EZ2018 Starterbatterie
+Toyota,Corolla,ADAC,pannen_pro_1000,15.0,2025,4,https://assets.adac.de/image/upload/v1744788916/ADAC-eV/KOR/Text/PDF/Pannenstatistik_2025_final_nrmvls.pdf,EZ2020 Starterbatterie auffaellig
+BMW,i3,ADAC,pannen_pro_1000,0.2,2025,4,https://assets.adac.de/image/upload/v1744788916/ADAC-eV/KOR/Text/PDF/Pannenstatistik_2025_final_nrmvls.pdf,EZ2020 Bestnote Kleinwagen
+Cupra,Born,ADAC,pannen_pro_1000,0.6,2025,2,https://assets.adac.de/image/upload/v1744788916/ADAC-eV/KOR/Text/PDF/Pannenstatistik_2025_final_nrmvls.pdf,EZ2022 untere Mittelklasse sehr zuverlaessig
+# --- TUEV-Report 2025: weitere belegte Maengelquoten (altersklassen-korrekt zum Baujahr) ---
+Kia,Ceed,TUEV,maengelquote_pct,23.1,2025,8,https://www.t-online.de/mobilitaet/aktuelles/id_100543260/tuev-report-das-sind-die-schlechtesten-kompakten-gebrauchten.html,Altersklasse 8-9 Jahre
+VW,e-Golf,TUEV,maengelquote_pct,3.4,2025,2,https://www.goingelectric.de/2024/11/22/news/tuev-report-2025-wie-schlagen-sich-elektroautos-bei-der-hu/,Altersklasse 2-3 Jahre Sieger Kompaktklasse
+# --- Neu aufgenommene Modelle (Mittelklasse-Kombis + SUVs + EV-SUVs), ADAC-Pannenstatistik 2025 ---
+VW,Passat,ADAC,pannen_pro_1000,6.9,2025,4,https://assets.adac.de/image/upload/v1744788916/ADAC-eV/KOR/Text/PDF/Pannenstatistik_2025_final_nrmvls.pdf,EZ2020 Mittelklasse (Kalenderjahr 2024)
+Skoda,Superb,ADAC,pannen_pro_1000,9.6,2025,4,https://assets.adac.de/image/upload/v1744788916/ADAC-eV/KOR/Text/PDF/Pannenstatistik_2025_final_nrmvls.pdf,EZ2020 obere Mittelklasse
+Nissan,Qashqai,ADAC,pannen_pro_1000,24.1,2025,4,https://assets.adac.de/image/upload/v1744788916/ADAC-eV/KOR/Text/PDF/Pannenstatistik_2025_final_nrmvls.pdf,EZ2020 auffaellig (Starterbatterie/Elektrik)
+Ford,Kuga,ADAC,pannen_pro_1000,29.7,2025,4,https://assets.adac.de/image/upload/v1744788916/ADAC-eV/KOR/Text/PDF/Pannenstatistik_2025_final_nrmvls.pdf,EZ2020 hohe Pannenrate
+Tesla,Model Y,ADAC,pannen_pro_1000,0.9,2025,2,https://assets.adac.de/image/upload/v1744788916/ADAC-eV/KOR/Text/PDF/Pannenstatistik_2025_final_nrmvls.pdf,EZ2022 sehr zuverlaessig
+VW,ID.4,ADAC,pannen_pro_1000,1.0,2025,2,https://assets.adac.de/image/upload/v1744788916/ADAC-eV/KOR/Text/PDF/Pannenstatistik_2025_final_nrmvls.pdf,EZ2022 sehr zuverlaessig
+Tesla,Model Y,TUEV,maengelquote_pct,17.3,2026,3,https://www.meinauto.de/news/2025/11/tuev-report-2026-maengelquote-steigt-weiter-an,TUEV-Report 2026 Altersklasse 2-3 Jahre (Schlusslicht Klasse)
+VW,ID.4,TUEV,maengelquote_pct,6.1,2026,3,https://www.meinauto.de/news/2025/11/tuev-report-2026-maengelquote-steigt-weiter-an,TUEV-Report 2026 Altersklasse 2-3 Jahre (Wert gilt fuer ID.4/ID.5 zusammen)

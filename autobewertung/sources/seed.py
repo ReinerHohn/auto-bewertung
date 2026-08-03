@@ -516,6 +516,99 @@ LISTINGS.update({
 DEPR.update({"MG ZS EV": 0.17, "MG 5 EV": 0.17, "Fiat 600e": 0.16, "Peugeot e-2008": 0.16,
              "Citroen e-C4": 0.17, "Mazda MX-30": 0.18, "Opel Corsa-e": 0.16})
 
+# --- Mittelklasse-Kombis + beliebte SUVs + Volumen-EV-SUVs (Abdeckung) --------
+MODELS += [
+    ("VW", "Passat", "B8 (2014-2023)", 2014, 2023, "Kombi", "Diesel"),
+    ("Skoda", "Superb", "III (2015-2023)", 2015, 2023, "Kombi", "Diesel"),
+    ("Nissan", "Qashqai", "J11 (2014-2021)", 2014, 2021, "SUV", "Benzin"),
+    ("Ford", "Kuga", "II (2013-2019)", 2013, 2019, "SUV", "Diesel"),
+    ("Tesla", "Model Y", "(2021-)", 2021, 2025, "SUV", "Elektro"),
+    ("VW", "ID.4", "77 kWh (2020-)", 2020, 2025, "SUV", "Elektro"),
+]
+SPECS.update({
+    "VW Passat":      ("diesel",  "mittelklasse", 5.0,  None, None, None, None, None, 600, 260, 13500),
+    "Skoda Superb":   ("diesel",  "mittelklasse", 5.0,  None, None, None, None, None, 580, 250, 14000),
+    "Nissan Qashqai": ("benzin",  "suv",          6.8,  None, None, None, None, None, 500, 150, 12500),
+    "Ford Kuga":      ("diesel",  "suv",          5.6,  None, None, None, None, None, 520, 220, 11500),
+    "Tesla Model Y":  ("elektro", "suv",  None, 16.9, 60.0, 435, 175, 330, 560, 0, 33000),
+    "VW ID.4":        ("elektro", "suv",  None, 17.5, 77.0, 400, 135, 260, 540, 0, 27000),
+})
+# Seed-Schaetzung (wird fuer diese Modelle von reliability_real.csv ueberschrieben)
+RELIABILITY.update({"VW Passat": 7.0, "Skoda Superb": 8.0, "Nissan Qashqai": 12.0,
+                    "Ford Kuga": 14.0, "Tesla Model Y": 6.0, "VW ID.4": 7.0})
+MAENGEL.update({"VW Passat": 6.5, "Skoda Superb": 6.0, "Nissan Qashqai": 8.0,
+                "Ford Kuga": 8.5, "Tesla Model Y": 15.0, "VW ID.4": 5.5})
+DEPR.update({"VW Passat": 0.12, "Skoda Superb": 0.12, "Nissan Qashqai": 0.13,
+             "Ford Kuga": 0.14, "Tesla Model Y": 0.16, "VW ID.4": 0.17})
+WEAK.update({
+    "VW Passat": [("DSG", "DQ381/DQ250 Mechatronik/Kupplung", 2, 1500),
+                  ("AGR/DPF", "AGR-Kuehler undicht + DPF (2.0 TDI)", 2, 900),
+                  ("Wasserpumpe", "undicht 1.8/2.0 TSI", 2, 500)],
+    "Skoda Superb": [("DSG", "DQ381 Mechatronik", 2, 1500),
+                     ("AGR/DPF", "AGR/DPF 2.0 TDI", 2, 900)],
+    "Nissan Qashqai": [("Steuerkette", "1.2/1.6 DIG-T Kettenlaengung", 3, 1200),
+                       ("Turbo", "1.2/1.6 DIG-T Turbolader", 2, 900),
+                       ("CVT", "Xtronic-Automatik (falls vorhanden)", 3, 2500)],
+    "Ford Kuga": [("DPF/AGR", "2.0 TDCi DPF-/AGR-Probleme", 2, 900),
+                  ("Wasserpumpe", "undicht", 2, 500),
+                  ("Kupplung", "Handschalter-Verschleiss", 2, 900)],
+    "Tesla Model Y": [("Querlenker/Achse", "Fahrwerk/Buchsen Verschleiss (HU Achsaufhaengung)", 2, 750),
+                      ("Bremsen", "Bremsscheiben-Korrosion (Rekuperation)", 2, 400),
+                      ("Verarbeitung", "Spaltmasse/Windgeraeusche Fruehserien", 1, 200)],
+    "VW ID.4": [("Software", "MEB-Infotainment-Bugs Fruehserien", 2, 0),
+                ("Antrieb", "Heckmotor-Ausfaelle Fruehserien (oft Garantie)", 2, 0)],
+})
+REPAIR.update({
+    "VW Passat": [("inspektion", 380, "pro_jahr"), ("zahnriemen", 650, "pro_intervall")],
+    "Skoda Superb": [("inspektion", 360, "pro_jahr"), ("zahnriemen", 600, "pro_intervall")],
+    "Nissan Qashqai": [("inspektion", 340, "pro_jahr")],
+    "Ford Kuga": [("inspektion", 340, "pro_jahr"), ("zahnriemen", 600, "pro_intervall")],
+    "Tesla Model Y": [("inspektion", 200, "pro_jahr"), ("bremsfluessigkeit", 120, "pro_intervall")],
+    "VW ID.4": [("inspektion", 210, "pro_jahr"), ("bremsfluessigkeit", 120, "pro_intervall")],
+})
+PARTS.update({"VW Passat": (95, 100), "Skoda Superb": (94, 95), "Nissan Qashqai": (82, 95),
+              "Ford Kuga": (88, 92), "Tesla Model Y": (70, 110), "VW ID.4": (88, 95)})
+LISTINGS.update({
+    "VW Passat": [(13500, 120000, "2016-05", "79100", "Freiburg"),
+                  (14900, 90000, "2017-09", "79106", "Freiburg")],
+    "Skoda Superb": [(13900, 115000, "2016-06", "79100", "Freiburg"),
+                     (14900, 88000, "2017-08", "77652", "Offenburg")],
+    "Nissan Qashqai": [(11900, 105000, "2016-04", "79100", "Freiburg"),
+                       (13500, 80000, "2018-03", "79312", "Emmendingen")],
+    "Ford Kuga": [(10900, 120000, "2015-05", "79098", "Freiburg"),
+                  (12900, 90000, "2017-06", "79106", "Freiburg")],
+    "Tesla Model Y": [(33900, 45000, "2022-03", "79100", "Freiburg"),
+                      (31900, 60000, "2021-09", "79104", "Freiburg")],
+    "VW ID.4": [(27900, 50000, "2021-05", "79100", "Freiburg"),
+                (29900, 35000, "2022-02", "79106", "Freiburg")],
+})
+DIMS.update({
+    "VW Passat": (4767, 1832), "Skoda Superb": (4862, 1864), "Nissan Qashqai": (4377, 1806),
+    "Ford Kuga": (4524, 1838), "Tesla Model Y": (4751, 1921), "VW ID.4": (4584, 1852),
+})
+TURN.update({
+    "VW Passat": 11.4, "Skoda Superb": 11.1, "Nissan Qashqai": 11.1,
+    "Ford Kuga": 11.4, "Tesla Model Y": 12.1, "VW ID.4": 10.2,
+})
+TIRE_COST.update({
+    "VW Passat": 620, "Skoda Superb": 620, "Nissan Qashqai": 540,
+    "Ford Kuga": 560, "Tesla Model Y": 850, "VW ID.4": 640,
+})
+TIRE_FAST.add("Tesla Model Y")
+ALU_BODY.add("Tesla Model Y")
+EQUIP["Ford Kuga"] = {"einparkhilfe", "rueckfahrkamera", "notbremsassistent"}  # Spurhalte selten Basis
+WEAR_SPECIFIC.update({
+    "VW Passat": [("Zahnriemen", 210000, 210000, 650), ("DSG-Kupplung", 150000, 0, 1500),
+                  ("AGR-Kuehler", 130000, 0, 900)],
+    "Skoda Superb": [("Zahnriemen", 210000, 210000, 600), ("DSG-Kupplung", 150000, 0, 1500)],
+    "Nissan Qashqai": [("Steuerkette 1.2/1.6 DIG-T", 120000, 0, 1200)],
+    "Ford Kuga": [("DPF-Regeneration/AGR", 120000, 0, 900)],
+    "Tesla Model Y": [("Querlenker/Achse", 80000, 0, 750)],
+})
+WORKSHOPS += [
+    ("Nissan", "Nissan Autohaus Freiburg", "79111", "Freiburg", 1),
+]
+
 
 class SeedSource(Source):
     name = "seed"
