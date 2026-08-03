@@ -805,6 +805,33 @@ if _alerts:
             conn.commit()
             st.rerun()
 
+# 🔥 Top-Schnäppchen JETZT – modellübergreifend alle Live-Angebote unter fairem
+# Marktwert (Fair-Preis-Modell), sortiert nach Abstand, mit Standzeit + Zielpreis.
+from autobewertung import fairprice as _fp
+from autobewertung.checks import listing_age_days as _lad, negotiation_hint as _nh
+_deals = [e for e in _fp.estimate_listings(conn).values()
+          if -0.35 <= e.resid_pct <= -0.08 and e.resid_eur <= -700]
+_deals.sort(key=lambda e: e.resid_pct)
+if _deals:
+    with st.expander(f"🔥 **Top-Schnäppchen jetzt ({len(_deals)})** – unter fairem Marktwert", expanded=True):
+        st.caption("Modellübergreifend nach Fair-Preis-Abstand. ⚠️ Sehr weit unter fair = evtl. "
+                   "verschwiegener Mangel/Unfall oder Betrug – vor Kauf den 🕵️ Kauf-Check nutzen.")
+        for e in _deals[:15]:
+            r = conn.execute(
+                "SELECT l.mileage_km, l.first_reg, l.url, l.first_seen, "
+                "cm.make||' '||cm.model AS model FROM listing l "
+                "JOIN car_model cm ON cm.id=l.model_id WHERE l.id=?", (e.listing_id,)).fetchone()
+            days = _lad(r["first_seen"])
+            stand = (f" · 🕰️ {days} T online" if days is not None and days >= 45
+                     else (f" · {days} T online" if days is not None else ""))
+            neg = _nh(e.price, e.fair_price, days)
+            room = (f" · 💬 Ziel ~{neg['target']:,.0f} €".replace(",", ".")
+                    if neg and neg["room_eur"] >= 200 else "")
+            lbl = (f"{r['model']} – {e.price:,.0f} € · {e.resid_pct*100:+.0f} % vs. fair "
+                   f"(~{e.fair_price:,.0f} €) · {r['mileage_km'] or '?'} km · "
+                   f"EZ {r['first_reg'] or '?'}{stand}{room}").replace(",", ".")
+            st.markdown(f"- [{lbl}]({r['url']})" if r["url"] else f"- {lbl}")
+
 # --- Gesamtkosten fuer 5 UND 10 Jahre (jeweils exakt mit eigener Wertverlust-/
 #     Verschleiss-Rechnung ueber die Haltedauer) --------------------------------
 import dataclasses as _dc
