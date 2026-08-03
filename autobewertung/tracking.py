@@ -11,7 +11,24 @@ from __future__ import annotations
 
 import sqlite3
 import statistics
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
+
+
+def deactivate_stale(conn: sqlite3.Connection, max_age_days: int = 10) -> int:
+    """Angebote, die seit `max_age_days` in keinem Lauf mehr gesehen wurden
+    (= verkauft / vom Markt genommen), auf active=0 setzen.
+
+    Sie bleiben in der DB und fuettern weiter das Fair-Preis-Modell (ihr letzter
+    Preis ist echtes Marktsignal), tauchen aber nicht mehr als KAUFBARES Angebot
+    oder Schnaeppchen auf. Nur Scraper-Quellen; verfolgte URLs (watch) + Seed
+    bleiben unangetastet.
+    """
+    cutoff = (datetime.now(timezone.utc) - timedelta(days=max_age_days)).isoformat(timespec="seconds")
+    cur = conn.execute(
+        "UPDATE listing SET active=0 WHERE active=1 "
+        "AND source IN ('autoscout24','kleinanzeigen') AND last_seen < ?", (cutoff,))
+    conn.commit()
+    return cur.rowcount
 
 
 def snapshot_model_prices(conn: sqlite3.Connection) -> int:

@@ -81,7 +81,7 @@ def cmd_track(args) -> None:
     from .sources.autoscout24 import AutoScout24Source
     from .sources.kleinanzeigen import KleinanzeigenSource
     from .sources.watchlist import WatchlistSource
-    from .tracking import snapshot_model_prices
+    from .tracking import deactivate_stale, snapshot_model_prices
 
     conn = init_db(args.db)
     since_ts = datetime.now(timezone.utc).isoformat(timespec="seconds")   # Alarm-Fenster
@@ -113,11 +113,13 @@ def cmd_track(args) -> None:
             except Exception:
                 pass
     wres = WatchlistSource().collect(conn)
+    stale = deactivate_stale(conn, max_age_days=args.stale_days)
     snaps = snapshot_model_prices(conn)
     alerts = scan_alerts(conn, since_ts)
     ts = datetime.now().strftime("%Y-%m-%d %H:%M")
     print(f"[{ts}] track: {got} AS24 + {got_ka} Kleinanzeigen-Angebote ({len(targets)} Modelle), "
-          f"Watchlist: {wres.notes}, {snaps} Modell-Preispunkte, {len(alerts)} Schnaeppchen-Alarm(e)")
+          f"Watchlist: {wres.notes}, {stale} verkauft/inaktiv, {snaps} Modell-Preispunkte, "
+          f"{len(alerts)} Schnaeppchen-Alarm(e)")
     if alerts:
         logf = Path(args.db).resolve().parent.parent / "alerts.log"
         with open(logf, "a", encoding="utf-8") as f:
@@ -240,6 +242,8 @@ def main(argv=None) -> None:
     tr.add_argument("--top", type=int, default=20, help="Anzahl Top-Modelle, die getrackt werden")
     tr.add_argument("--all", action="store_true", help="ALLE Modelle tracken (mehr Angebote, langsamer)")
     tr.add_argument("--no-ka", action="store_true", help="Kleinanzeigen NICHT mit-tracken (nur AS24)")
+    tr.add_argument("--stale-days", type=int, default=10,
+                    help="Angebote nach N Tagen ohne Sichtung als verkauft/inaktiv markieren")
     tr.set_defaults(func=cmd_track)
 
     dl = sub.add_parser("deals", help="unterbewertete Angebote laut Fair-Preis-Modell")

@@ -63,6 +63,9 @@ python -m autobewertung.collect track --all       # ALLE Modelle (mehr Angebote,
 Holt echte AS24-Preise, aktualisiert verfolgte Angebote, schreibt Modell-Preis-
 Snapshots und erkennt Schnäppchen (`alerts.log`). Mehr getrackte Modelle =
 mehr echte Angebote fürs Fair-Preis-Modell und mehr Schnäppchen-Kandidaten.
+Angebote, die seit `--stale-days` (Default 10) nicht mehr gesehen wurden, gelten
+als **verkauft** und werden `active=0` – sie verschwinden aus Deals/Alarm, bleiben
+aber als **Marktpreis-Signal** im Fair-Preis-Modell (letzter Preis = was der Markt zahlt).
 Als Cron (z. B. alle 6 h, alle Modelle):
 ```
 0 */6 * * * cd /pfad/auto-bewertung && .venv/bin/python -m autobewertung.collect track --all >> track.log 2>&1

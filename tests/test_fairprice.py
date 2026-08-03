@@ -77,6 +77,18 @@ def test_sparse_model_has_no_estimate():
     assert all(lid not in est for lid in c_listings)
 
 
+def test_sold_listing_feeds_fit_not_deals():
+    """Verkauftes (inaktives) Angebot bleibt Marktdatum im Fit, ist aber kein Deal."""
+    from datetime import datetime, timezone
+    conn, a, b, c, under, over, *_ = _build()
+    recent = datetime.now(timezone.utc).isoformat(timespec="seconds")
+    conn.execute("UPDATE listing SET active=0, last_seen=? WHERE id=?", (recent, under))
+    conn.commit()
+    assert under not in {e.listing_id for e in fairprice.bargains(conn)}         # nicht kaufbar
+    assert under in {r["id"] for r in fairprice._feature_rows(conn, include_sold=True)}   # im Fit
+    assert under not in {r["id"] for r in fairprice._feature_rows(conn, include_sold=False)}
+
+
 def test_bargains_excludes_edge_artifacts():
     conn, a, b, c, under, over, *_ = _build()
     # unterbewertete Rand-Ausreisser: sehr viel km bzw. fast neu

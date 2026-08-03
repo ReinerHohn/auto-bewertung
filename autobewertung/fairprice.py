@@ -26,9 +26,10 @@ import sqlite3
 import statistics
 from collections import Counter
 from dataclasses import dataclass
-from datetime import datetime
+from datetime import datetime, timedelta, timezone
 
 MIN_PER_MODEL = 4          # weniger Angebote -> kein Basiswert (zu wenig Signal)
+FIT_WINDOW_DAYS = 120      # verkaufte Angebote bis hierher zaehlen als Marktdaten
 PRICE_MIN, PRICE_MAX = 1500, 150000
 KM_MAX = 400000
 AGE_MAX = 25
@@ -74,12 +75,20 @@ class FairPriceModel:
         return math.exp(log_fair)
 
 
-def _feature_rows(conn: sqlite3.Connection) -> list[dict]:
+def _feature_rows(conn: sqlite3.Connection, include_sold: bool = False) -> list[dict]:
+    """Merkmalszeilen fuer das Modell. include_sold=True nimmt auch kuerzlich
+    VERKAUFTE (inaktive) Angebote mit – deren letzter Preis ist echtes Marktsignal
+    und macht die Regression robuster. Fuer kaufbare Deals dagegen nur active=1."""
     now_year = datetime.now().year
+    if include_sold:
+        cutoff = (datetime.now(timezone.utc) - timedelta(days=FIT_WINDOW_DAYS)).isoformat(timespec="seconds")
+        where, params = ("price IS NOT NULL AND source!='seed' AND (active=1 OR last_seen>=?)", (cutoff,))
+    else:
+        where, params = ("active=1 AND price IS NOT NULL AND source!='seed'", ())
     out: list[dict] = []
     for r in conn.execute(
         "SELECT id, model_id, price, mileage_km, first_reg, power_kw FROM listing "
-        "WHERE active=1 AND price IS NOT NULL AND source!='seed'"):
+        f"WHERE {where}", params):
         price, km, fr = r["price"], r["mileage_km"], r["first_reg"]
         if not price or km is None or not fr:
             continue
@@ -100,7 +109,7 @@ def fit(conn: sqlite3.Connection) -> FairPriceModel | None:
     except ModuleNotFoundError:
         return None
 
-    rows = _feature_rows(conn)
+    rows = _feature_rows(conn, include_sold=True)   # inkl. verkaufter Angebote (Marktdaten)
     cnt = Counter(r["model_id"] for r in rows)
     keep = {m for m, c in cnt.items() if c >= MIN_PER_MODEL}
     rows = [r for r in rows if r["model_id"] in keep]
