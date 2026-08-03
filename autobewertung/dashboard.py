@@ -565,11 +565,12 @@ def render_category(model, cat: str) -> None:
         from autobewertung import fairprice
         from autobewertung.advice import (ADAC_KAUFVERTRAG_URL, buy_dossier, kaufvertrag,
                                           model_watchpoints, negotiation_ammo)
-        from autobewertung.checks import (CHECKLIST, GOLDEN_RULES, OBD_CHECKS, PRO_INSPECTION,
-                                          SCAM_PATTERNS, age_service_checks, carvertical_url,
-                                          due_soon, emission_note, listing_age_days,
-                                          mileage_plausibility, next_hu, scam_flags,
-                                          warranty_note, wear_status, zahnriemen_time_status)
+        from autobewertung.checks import (CHECKLIST, DIAGNOSE_INTERPRETATION, GOLDEN_RULES,
+                                          OBD_CHECKS, PRO_INSPECTION, SCAM_PATTERNS,
+                                          age_service_checks, carvertical_url, due_soon,
+                                          emission_note, listing_age_days, mileage_plausibility,
+                                          next_hu, scam_flags, warranty_note, wear_status,
+                                          zahnriemen_time_status)
         from autobewertung.wear import load_items
         st.markdown("#### 🕵️ Kauf-Check – Betrug, Tacho & Plausibilität")
         with st.expander("🏆 Goldene Regeln vom Profi – immer im Kopf behalten"):
@@ -780,6 +781,14 @@ def render_category(model, cat: str) -> None:
                 st.markdown(f"**{_cat}**")
                 for _what, _reveals in _entries:
                     st.markdown(f"- **{_what}** → {_reveals}")
+
+        with st.expander("🧠 Diagnose-Ergebnisse DEUTEN (Gutmann/mega macs & Co.)"):
+            st.caption("Du hast einen Profi-Tester, aber der Ausdruck sagt dir nichts? "
+                       "So liest du ihn beim Gebrauchtwagenkauf – Beobachtung → Deutung.")
+            for _step, _entries in DIAGNOSE_INTERPRETATION:
+                st.markdown(f"**{_step}**")
+                for _obs, _mean in _entries:
+                    st.markdown(f"- **{_obs}** → {_mean}")
 
         st.markdown("### ✅ Profi-Prüf-Checkliste")
         total = checked = 0

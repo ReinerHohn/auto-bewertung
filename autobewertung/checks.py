@@ -190,6 +190,65 @@ OBD_CHECKS = [
     ]),
 ]
 
+# Diagnose-Ergebnisse DEUTEN – wie man einen Profi-Scan (z.B. Hella Gutmann
+# mega macs) beim Gebrauchtwagenkauf liest. (schritt, [(beobachtung, deutung)])
+DIAGNOSE_INTERPRETATION = [
+    ("1️⃣ Gesamtabfrage (alle Steuergeräte) überfliegen", [
+        ("Welche Systeme zuerst zählen",
+         "Motor, Getriebe, ABS/ESP, Airbag/SRS – Fehler dort sind teuer oder sicherheitsrelevant. Komfort (Radio, PDC, Licht) ist nachrangig."),
+        ("Wie viele Fehler normal sind",
+         "Ein paar sporadische/historische Einträge sind bei älteren Autos normal. VIELE aktuelle Fehler über mehrere Systeme = vernachlässigt / Problemauto."),
+        ("Verdächtig sauber",
+         "Blitzsauberer Speicher bei altem Auto + „gerade frisch gemacht“ = oft kurz vorher gelöscht, um Fehler zu verstecken."),
+    ]),
+    ("2️⃣ Fehlercode-Status verstehen", [
+        ("statisch / aktuell",
+         "Fehler liegt JETZT an → echtes, aktives Problem. Ernst nehmen."),
+        ("sporadisch / historisch",
+         "War da, ist gerade weg – Wackelkontakt oder Einmal-Effekt. Häufigkeitszähler beachten."),
+        ("Umweltbedingungen / Freeze-Frame zum Code",
+         "Zeigt km-Stand & Bedingungen beim Fehler → mit Tacho abgleichen. km über aktuellem Stand = Betrug."),
+    ]),
+    ("3️⃣ Teuer oder harmlos? (typische Code-Familien)", [
+        ("P0300–P0308 Zündaussetzer",
+         "Zündung/Kompression – günstig (Kerze/Spule) bis teuer (Motor). Zylinder-Zähler ansehen."),
+        ("P0401 / P042x / P24xx – AGR, DPF, Kat",
+         "Diesel-Abgas oder Katalysator – oft vierstellig teuer."),
+        ("P0234 / P229x – Ladedruck",
+         "Turbo/Ladedruck – teuer."),
+        ("P07xx – Getriebe",
+         "Getriebe/Kupplung – teuer, besonders DSG."),
+        ("B-Codes Airbag/SRS (crash-gespeichert)",
+         "Sicherheit – crash-Eintrag = das Auto hatte einen Unfall / ausgelösten Airbag."),
+        ("einzelne Sensor-/Glühkerzen-Codes",
+         "Meist günstig – trotzdem als Verhandlungspunkt notieren."),
+    ]),
+    ("4️⃣ Der wichtigste Check: km-Abgleich", [
+        ("km in mehreren Steuergeräten vergleichen (Kombi, Motor, Gateway)",
+         "Der mega macs liest km aus mehreren ECUs. Weichen sie ab → Tacho zurückgedreht."),
+        ("Serviceintervall-/Wartungshistorie",
+         "Letzter Service-km ist oft hinterlegt – passt er zum aktuellen Tacho?"),
+    ]),
+    ("5️⃣ Istwerte (Live-Daten) richtig lesen", [
+        ("Kraftstoff-Anpassung / Lambda-Regelung (Fuel Trim)",
+         "Grob ±10 % ist ok. Stark positiv = Falschluft / zu mager."),
+        ("Zündaussetzer-Zähler je Zylinder",
+         "Wächst im Leerlauf → Zündung/Einspritzung/Kompression an genau diesem Zylinder."),
+        ("Ladedruck Soll vs. Ist",
+         "Sollten zusammenlaufen; große Abweichung = Turbo undicht/defekt."),
+        ("DPF: Beladung, Regenerationsabstand, Aschemasse",
+         "Hohe Aschemasse / sehr häufige Regeneration = DPF am Ende (teuer)."),
+        ("E-Auto: SoH & Zellspannungen",
+         "SoH <90 % = Reichweite/Wert runter; Ausreißer-Zelle = Akku-Warnung."),
+    ]),
+    ("💡 So holst du das Meiste aus dem mega macs", [
+        ("Integrierte „bekannte Probleme / Reparaturhinweise / SIS“ nutzen",
+         "Der Tester zeigt zum Modell/Code oft die bekannten Ursachen und Prüfschritte – erspart Raten."),
+        ("Exakten Code + Klartext fotografieren",
+         "Dann lässt sich jeder Code gezielt nachschlagen (Kosten, Häufigkeit) statt pauschal zu deuten."),
+    ]),
+]
+
 
 # Typische Betrugsmaschen beim Gebrauchtwagenkauf (DE, v.a. Kleinanzeigen/eBay-KA).
 # Je Masche: wie du sie erkennst (signal) und wie du dich schuetzt (protect).
