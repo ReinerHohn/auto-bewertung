@@ -565,11 +565,11 @@ def render_category(model, cat: str) -> None:
         from autobewertung import fairprice
         from autobewertung.advice import (ADAC_KAUFVERTRAG_URL, buy_dossier, kaufvertrag,
                                           model_watchpoints, negotiation_ammo)
-        from autobewertung.checks import (CHECKLIST, GOLDEN_RULES, PRO_INSPECTION, SCAM_PATTERNS,
-                                          age_service_checks, carvertical_url, due_soon,
-                                          emission_note, listing_age_days, mileage_plausibility,
-                                          next_hu, scam_flags, warranty_note, wear_status,
-                                          zahnriemen_time_status)
+        from autobewertung.checks import (CHECKLIST, GOLDEN_RULES, OBD_CHECKS, PRO_INSPECTION,
+                                          SCAM_PATTERNS, age_service_checks, carvertical_url,
+                                          due_soon, emission_note, listing_age_days,
+                                          mileage_plausibility, next_hu, scam_flags,
+                                          warranty_note, wear_status, zahnriemen_time_status)
         from autobewertung.wear import load_items
         st.markdown("#### 🕵️ Kauf-Check – Betrug, Tacho & Plausibilität")
         with st.expander("🏆 Goldene Regeln vom Profi – immer im Kopf behalten"):
@@ -772,6 +772,14 @@ def render_category(model, cat: str) -> None:
                 st.markdown(f"**{_sys}**")
                 for _tell, _mean in _entries:
                     st.markdown(f"- **{_tell}** → {_mean}")
+
+        with st.expander("🔌 Digital prüfen mit OBD-Diagnose – der Röntgenblick"):
+            st.caption("Ein Diagnosegerät vor dem Warmfahren einstecken verrät mehr als jede Sichtprüfung "
+                       "– und ist dein stärkstes Anti-Tacho-Betrug-Werkzeug.")
+            for _cat, _entries in OBD_CHECKS:
+                st.markdown(f"**{_cat}**")
+                for _what, _reveals in _entries:
+                    st.markdown(f"- **{_what}** → {_reveals}")
 
         st.markdown("### ✅ Profi-Prüf-Checkliste")
         total = checked = 0

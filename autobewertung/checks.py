@@ -155,6 +155,41 @@ PRO_INSPECTION = [
     ]),
 ]
 
+# Digitale Pruefung per OBD-Diagnose: was ein Diagnosegeraet verraet, das man
+# von aussen nicht sieht. (kategorie, [(was pruefen, was es verraet)])
+OBD_CHECKS = [
+    ("🔌 Standard-OBD2 (~10–20 € Bluetooth-Adapter + App: Car Scanner, Torque)", [
+        ("Fehlerspeicher auslesen (aktive + gespeicherte Codes)",
+         "Versteckte Defekte, die (noch) keine Warnleuchte zeigen – vor dem Warmfahren einstecken."),
+        ("Readiness-/Bereitschaftsmonitore prüfen",
+         "Stehen sie auf „nicht bereit“, wurde der Fehlerspeicher KÜRZLICH gelöscht – meist um Fehler/HU zu vertuschen. Starkes Warnsignal."),
+        ("Live-Daten: Kraftstoff-Trims (LTFT), Zündaussetzer, Kühlmitteltemp, Ladedruck",
+         "Hoher Langzeit-Trim = Falschluft/Einspritzung; Aussetzer = Zündung/Kompression; Ladedruck daneben = Turbo."),
+        ("Freeze-Frame (Umgebungsdaten zum Fehler) ansehen",
+         "Enthält oft den km-Stand beim Fehler – direkt mit dem Tacho abgleichen!"),
+        ("12V-Spannung (Ruhe ~12,5 V, laufend ~14 V)",
+         "Schwache/alte Batterie oder defekte Lichtmaschine."),
+    ]),
+    ("🛠️ Marken-Diagnose (OBDeleven/VCDS bei VW-Konzern · BimmerLink BMW · Forscan Ford · Carly)", [
+        ("ALLE Steuergeräte scannen (ABS, Airbag, Getriebe, Gateway)",
+         "Generische Reader sehen nur den Motor – Fehler in ABS/Airbag/Getriebe bleiben sonst verborgen."),
+        ("km-Stand in mehreren Steuergeräten vergleichen (Kombi, Motor, Gateway, Schlüssel)",
+         "DAS Anti-Tacho-Betrug-Werkzeug: weichen die Werte ab → zurückgedreht."),
+        ("Fehlerspeicher-Einträge MIT km-Zeitstempel",
+         "Ein Fehler „bei 210.000 km“ auf einem „130.000-km-Auto“ entlarvt den Betrug."),
+        ("Adaptionswerte (DSG-Kupplung, Injektoren, Drosselklappe)",
+         "Zeigt DSG-Kupplungsverschleiß nahe Grenzwert bzw. verschlissene Komponenten."),
+    ]),
+    ("🔋 E-Auto / Hybrid – der wichtigste Digital-Check", [
+        ("Batterie-Gesundheit (SoH) auslesen (Car Scanner, aviloo, Hersteller-App)",
+         "<90 % SoH mindert Reichweite und Wert massiv – der teuerste Posten am E-Auto."),
+        ("Zellspannungen / Balancing, Ladezyklen",
+         "Ausreißer-Zelle = beginnender Akkudefekt; viele Schnelllade-Zyklen = mehr Alterung."),
+        ("12V-Batterie & DC-DC-/Ladewandler (z. B. ICCU bei Hyundai/Kia)",
+         "Häufige E-Auto-Panne (ADAC) – teils sicherheitskritisch."),
+    ]),
+]
+
 
 # Typische Betrugsmaschen beim Gebrauchtwagenkauf (DE, v.a. Kleinanzeigen/eBay-KA).
 # Je Masche: wie du sie erkennst (signal) und wie du dich schuetzt (protect).
