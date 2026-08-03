@@ -98,6 +98,63 @@ GOLDEN_RULES = [
     ]),
 ]
 
+# Profi-Zustandsbewertung: die konkreten "Tells", auf die Mechaniker/Haendler
+# achten – Beobachtung -> was sie bedeutet. Die letzten Prozent auf Augenhoehe.
+PRO_INSPECTION = [
+    ("🛢️ Motor & Öl", [
+        ("Öleinfülldeckel + Ölpeilstab: heller Schleim / „Mayonnaise“?",
+         "Kühlwasser im Öl → Zylinderkopfdichtung/Kopf. Finger dran: hell-braun-schleimig = Alarm (Motorschaden-Risiko)."),
+        ("Kühlwasser-Ausgleichsbehälter: Ölfilm obenauf oder brauner Schlamm?",
+         "Öl im Kühlwasser → Kopfdichtung. Kühlmittel sollte klar/sauber sein."),
+        ("Abgas beim Gasstoß (KALT): Farbe?",
+         "Blau = Öl verbrennt (Ventilschaftdichtungen/Ringe/Turbo). Weiß & bleibend = Kühlwasser (Kopfdichtung). Schwarz = zu fett/Einspritzung."),
+        ("Ladeluft-/Turboschlauch abziehen: Ölschlamm drin?",
+         "Turbo undicht oder Kurbelgehäuse-Entlüftung zu → teurer Turbo-/Motorschaden im Anmarsch."),
+    ]),
+    ("⚙️ Getriebe & Antrieb", [
+        ("Automatik/DSG bei 10–30 km/h: Ruckeln, Schaltschläge, Gedenksekunde?",
+         "DQ200/DQ381-Mechatronik/Kupplung → 1.500–2.500 €. Im Stop-and-go am deutlichsten."),
+        ("Handschalter: greift die Kupplung erst ganz oben? Im hohen Gang niedrigtourig Vollgas → Drehzahl steigt ohne Schub?",
+         "Kupplung rutscht/verschlissen."),
+        ("Klackern beim Lenkeinschlag + Anfahren (enge Kurve)?",
+         "Antriebswellen-Gleichlaufgelenke – oft weil die Achsmanschette gerissen ist (Fett raus, Dreck rein)."),
+    ]),
+    ("🛞 Fahrwerk & Bremsen", [
+        ("An jeder Ecke kräftig runterdrücken – wippt es mehrfach nach?",
+         "Stoßdämpfer müde. Gesund: 1× zurückfedern, dann steht es."),
+        ("Reifen ungleichmäßig abgefahren (innen vs. außen), alle 4 vergleichen?",
+         "Spur/Achse verstellt (Unfall?) oder Fahrwerk ausgeschlagen."),
+        ("Bremsscheiben-Rand: fühlbarer Grat/Lippe? Beim Bremsen Rubbeln oder Ziehen?",
+         "Scheiben verschlissen/verzogen; Ziehen = Sattel klemmt."),
+        ("Über Bodenwelle / beim Rangieren: Klappern oder Poltern vorn?",
+         "Koppelstangen/Querlenker-Buchsen – oft HU-relevant."),
+    ]),
+    ("🔩 Karosserie & versteckter Rost", [
+        ("Frischer Unterbodenschutz oder frisch gewaschener Motorraum?",
+         "Versteckt Rost bzw. Öl-/Wasser-Lecks. Ein gesundes Auto braucht das nicht – Vorsicht statt Freude."),
+        ("Radläufe innen, Schweller-Unterkante, Bremsleitungen, Domlager, Reserveradmulde?",
+         "Rost-Neststellen. Mulde nass/rostig = undicht oder Heckschaden."),
+        ("Spaltmaße gleichmäßig? Schrauben an Haube/Kotflügel/Türen unberührt?",
+         "Verdrehte/lackierte Schrauben, ungleiche Spalten = Unfallreparatur."),
+        ("Lackschichtdicke rundum messen (Gerät ~20 €)?",
+         "Dicke/ungleiche Werte = nachlackiert/gespachtelt → Unfall verschwiegen."),
+    ]),
+    ("💡 Elektrik & Innenraum", [
+        ("Zündung an (Motor aus): gehen ALLE Warnleuchten kurz an – und wieder aus?",
+         "Fehlt eine (Airbag/ABS/Motor/DPF) → Birne rausgenommen, um einen Fehler zu verstecken! Muss angehen UND ausgehen."),
+        ("Alles einzeln durchklicken: Fenster, Sitzheizung, Spiegel, ZV, Kamera, Assistenz?",
+         "Jede Reparatur teuer und beim Privatkauf danach dein Problem."),
+        ("Muffig/nass? Teppich unter den Matten & Reserveradmulde fühlen, Gurt ganz rausziehen?",
+         "Wasserschaden/Hochwasser → Elektronik-Spätschäden. Nasser Gurt/Schimmelrand = Finger weg."),
+    ]),
+    ("🆔 Identität (fälschungssicher)", [
+        ("FIN an mehreren Stellen vergleichen: Scheibe, Türholm, Motorraum, Brief?",
+         "Alle müssen identisch sein. Abweichung = zusammengeschweißt/gestohlen (Cut-and-Shut)."),
+        ("Typenschild/Plaketten unversehrt, keine überklebten/ersetzten Nieten?",
+         "Manipuliertes Typenschild → andere Identität."),
+    ]),
+]
+
 
 # Typische Betrugsmaschen beim Gebrauchtwagenkauf (DE, v.a. Kleinanzeigen/eBay-KA).
 # Je Masche: wie du sie erkennst (signal) und wie du dich schuetzt (protect).

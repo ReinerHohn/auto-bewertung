@@ -565,7 +565,7 @@ def render_category(model, cat: str) -> None:
         from autobewertung import fairprice
         from autobewertung.advice import (ADAC_KAUFVERTRAG_URL, buy_dossier, kaufvertrag,
                                           model_watchpoints, negotiation_ammo)
-        from autobewertung.checks import (CHECKLIST, GOLDEN_RULES, SCAM_PATTERNS,
+        from autobewertung.checks import (CHECKLIST, GOLDEN_RULES, PRO_INSPECTION, SCAM_PATTERNS,
                                           age_service_checks, carvertical_url, due_soon,
                                           emission_note, listing_age_days, mileage_plausibility,
                                           next_hu, scam_flags, warranty_note, wear_status,
@@ -766,6 +766,13 @@ def render_category(model, cat: str) -> None:
                 "Bei > ~50 % unter Marktwert oder Auslandsbezug ist das fast Pflicht.")
 
         st.divider()
+        with st.expander("🔬 Profi-Wissen – worauf Mechaniker WIRKLICH schauen (die letzten %)"):
+            st.caption("Konkrete „Tells“ zur Zustandsbewertung – Beobachtung → was sie bedeutet.")
+            for _sys, _entries in PRO_INSPECTION:
+                st.markdown(f"**{_sys}**")
+                for _tell, _mean in _entries:
+                    st.markdown(f"- **{_tell}** → {_mean}")
+
         st.markdown("### ✅ Profi-Prüf-Checkliste")
         total = checked = 0
         for section, entries in CHECKLIST:

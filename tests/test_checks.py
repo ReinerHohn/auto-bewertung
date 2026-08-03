@@ -6,7 +6,8 @@ from datetime import datetime, timezone
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from autobewertung.checks import (
-    CHECKLIST, GOLDEN_RULES, SCAM_PATTERNS, age_service_checks, due_soon, emission_note, listing_age_days,
+    CHECKLIST, GOLDEN_RULES, PRO_INSPECTION, SCAM_PATTERNS, age_service_checks, due_soon,
+    emission_note, listing_age_days,
     mileage_plausibility, negotiation_hint, next_hu, scam_flags, warranty_note,
     wear_status, zahnriemen_time_status)
 from autobewertung.db import init_db
@@ -133,6 +134,12 @@ def test_checklist_has_recht_section():
 def test_golden_rules_structure():
     assert len(GOLDEN_RULES) >= 3
     assert all(len(rules) >= 2 for _, rules in GOLDEN_RULES)   # (gruppe, [regeln])
+
+
+def test_pro_inspection_structure():
+    assert len(PRO_INSPECTION) >= 5
+    assert all(entries and all(len(e) == 2 for e in entries)   # (tell, bedeutung)
+               for _, entries in PRO_INSPECTION)
 
 
 def test_zahnriemen_time_status():
