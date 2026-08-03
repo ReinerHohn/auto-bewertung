@@ -251,6 +251,19 @@ def render_category(model, cat: str) -> None:
             with st.expander(f"{TCO_LABELS.get(k, k)}: {v:,.0f} €/Jahr".replace(",", ".")):
                 st.write(TCO_EXPLAIN.get(k, ""))
                 st.metric(f"{TCO_LABELS.get(k, k)} pro Jahr", f"{v:,.0f} €".replace(",", "."))
+                if k == "versicherung":
+                    tk = conn.execute("SELECT tk_kh, tk_vk, tk_tk FROM vehicle_spec WHERE model_id=?",
+                                      (mid,)).fetchone()
+                    if tk and tk["tk_kh"]:
+                        st.markdown(
+                            f"**Typklassen (GDV):** Haftpflicht **{tk['tk_kh']}** · Vollkasko "
+                            f"**{tk['tk_vk']}** · Teilkasko **{tk['tk_tk']}** — niedriger = günstiger. "
+                            "Die tatsächliche Prämie hängt zusätzlich von SF-Klasse, PLZ, Fahrer & Tarif "
+                            "ab; die angesetzte Zahl ist nur eine Größenordnung.")
+                    else:
+                        st.caption("Keine Typklasse hinterlegt – Prämie ist eine grobe Schätzung.")
+                    st.markdown("🔗 [Typklasse deiner exakten Motorvariante prüfen (typklasse.de)]"
+                                "(https://www.typklasse.de/)")
 
     elif cat == "price":
         st.markdown("#### 💰 Angebote in Portalen")
@@ -326,8 +339,8 @@ def render_category(model, cat: str) -> None:
 
         st.divider()
         rows = conn.execute(
-            "SELECT id,title,price,mileage_km,first_reg,location,plz,url,source,price_rating,power_kw "
-            "FROM listing WHERE model_id=? AND active=1 ORDER BY price", (mid,)).fetchall()
+            "SELECT id,title,price,mileage_km,first_reg,location,plz,url,source,price_rating,"
+            "power_kw,first_seen FROM listing WHERE model_id=? AND active=1 ORDER BY price", (mid,)).fetchall()
         if not rows:
             st.info("Keine echten Angebote gefunden (evtl. Variante/Baujahr aktuell nicht inseriert). "
                     "Button „Neu laden“ versuchen oder Portal-Link oben nutzen.")
@@ -353,7 +366,7 @@ def render_category(model, cat: str) -> None:
         st.divider()
         st.markdown("**Details & Kauf-Check je Angebot:**")
         from autobewertung import fairprice
-        from autobewertung.checks import scam_flags
+        from autobewertung.checks import listing_age_days, negotiation_hint, scam_flags
         fair_by_lid = fairprice.estimate_listings(conn)
         for r in rows:
             rating = PRICE_RATING.get(r["price_rating"], "")
@@ -373,6 +386,16 @@ def render_category(model, cat: str) -> None:
                              f"**{gap:+.0f} %** ({tag})".replace(",", "."))
                     for fl in scam_flags(r["price"], fe.fair_price, r["mileage_km"], r["first_reg"]):
                         {"danger": st.error, "warn": st.warning, "info": st.info}[fl["level"]]("🚨 " + fl["text"])
+                _days = listing_age_days(r["first_seen"])
+                if _days is not None:
+                    st.write(f"**Online seit:** {_days} Tagen"
+                             + (" 🕰️ Ladenhüter → Verhandlungshebel" if _days >= 45 else ""))
+                _neg = negotiation_hint(r["price"], fe.fair_price if fe else None, _days)
+                if _neg and _neg["room_eur"] >= 200:
+                    st.write(f"**💬 Verhandeln:** Zielpreis ~{_neg['target']:,.0f} € "
+                             f"(Spielraum ~{_neg['room_eur']:,.0f} €)".replace(",", "."))
+                    if _neg["args"]:
+                        st.caption("Argumente: " + " · ".join(_neg["args"]))
                 st.write(f"**Laufleistung:** {r['mileage_km'] or '?'} km")
                 st.write(f"**Erstzulassung:** {r['first_reg'] or '?'}")
                 st.write(f"**Ort:** {r['location'] or '-'} (PLZ {r['plz'] or '-'})"
@@ -637,8 +660,19 @@ def render_category(model, cat: str) -> None:
                 st.caption("nichts absehbar")
 
         vin = st.session_state.get("_vin_raw")
-        st.markdown(f"🔗 [VIN-Historie prüfen (carVertical – Unfälle/Tacho/km)]({carvertical_url(vin)}) "
-                    "· 🔗 [AutoDNA](https://www.autodna.de/)")
+        with st.expander("📜 Fahrzeughistorie prüfen (FIN/VIN) – was sie aufdeckt", expanded=bool(vin)):
+            st.markdown(
+                f"🔗 [carVertical]({carvertical_url(vin)}) · 🔗 [AutoDNA](https://www.autodna.de/) · "
+                "🔗 [Carfax EU](https://www.carfax.eu/)"
+                + (f"  \n*FIN vorbelegt: `{vin}`*" if vin else
+                   "  \n*Tipp: FIN im Tab „VIN-Decoder“ eingeben – dann wird der carVertical-Link vorbelegt.*"))
+            st.markdown(
+                "Eine kostenpflichtige Historie (~10–20 €) aggregiert über Ländergrenzen und deckt auf:\n"
+                "- **km-Verlauf** über die Jahre → entlarvt Tacho-Rückdreh\n"
+                "- **Unfall-/Schadensmeldungen**, Auktions-/Totalschaden-Historie\n"
+                "- **Vorbesitzer-Anzahl** und Nutzung (Miet-/Firmenwagen)\n"
+                "- **Diebstahl-/Ausland-Status**, offene Finanzierung\n"
+                "Bei > ~50 % unter Marktwert oder Auslandsbezug ist das fast Pflicht.")
 
         st.divider()
         st.markdown("### ✅ Profi-Prüf-Checkliste")

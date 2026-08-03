@@ -6,7 +6,8 @@ from datetime import datetime, timezone
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from autobewertung.checks import (
-    SCAM_PATTERNS, due_soon, mileage_plausibility, scam_flags, wear_status)
+    SCAM_PATTERNS, due_soon, listing_age_days, mileage_plausibility,
+    negotiation_hint, scam_flags, wear_status)
 from autobewertung.db import init_db
 from autobewertung.sources.seed import SeedSource
 from autobewertung.sources.wear_import import WearImportSource
@@ -93,6 +94,32 @@ def test_scam_flags_low_km_rollback_warn():
 def test_scam_patterns_content_present():
     assert len(SCAM_PATTERNS) >= 8
     assert all(len(p) == 3 for p in SCAM_PATTERNS)   # (titel, signal, schutz)
+
+
+def test_listing_age_days():
+    seen = datetime(2025, 12, 2, tzinfo=timezone.utc).isoformat()
+    assert listing_age_days(seen, ref=REF) == 30       # 2.12. -> 1.1. = 30 Tage
+    assert listing_age_days(None) is None
+
+
+def test_negotiation_target_anchors_on_fair():
+    # Angebot 12.000 über fair 10.000 -> Ziel ~fair, Spielraum ~2.000
+    h = negotiation_hint(12000, fair_price=10000, days_online=5)
+    assert h["target"] <= 10000 and 1500 <= h["room_eur"] <= 2000
+    assert any("über fairem" in a for a in h["args"])
+
+
+def test_negotiation_standzeit_bonus():
+    # gleicher Fall, aber 70 Tage online -> mehr Spielraum als bei 5 Tagen
+    short = negotiation_hint(12000, fair_price=10000, days_online=5)
+    long = negotiation_hint(12000, fair_price=10000, days_online=70)
+    assert long["room_eur"] > short["room_eur"]
+    assert any("Ladenhüter" in a for a in long["args"])
+
+
+def test_negotiation_without_fair_uses_rule_of_thumb():
+    h = negotiation_hint(10000, fair_price=None, days_online=None)
+    assert h["target"] < 10000 and h["room_eur"] > 0
 
 
 if __name__ == "__main__":

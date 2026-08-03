@@ -19,7 +19,7 @@ from .base import CollectResult, Source
 SPECS_CSV = Path(__file__).resolve().parent.parent.parent / "data" / "specs_real.csv"
 
 TEXT_FIELDS = {"vehicle_class"}
-INT_FIELDS = {"length_mm", "width_mm"}
+INT_FIELDS = {"length_mm", "width_mm", "tk_kh", "tk_vk", "tk_tk"}
 FLOAT_FIELDS = {"cons_l_100km", "cons_kwh_100km", "battery_kwh", "range_km",
                 "dc_charge_kw", "km_per_30min", "insurance_eur", "tax_eur",
                 "depr_pct_year", "turning_m"}

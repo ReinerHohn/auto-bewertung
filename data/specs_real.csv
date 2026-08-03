@@ -2,7 +2,7 @@
 # Nur nicht-leere Felder werden gesetzt (partielles Update von vehicle_spec).
 # Klasse ist das wichtigste Feld: steuert den harten Klassenfilter (>= kompakt).
 # Verbrauch/Masse/Versicherung/Steuer/Wertverlust sind fundierte Groessenordnungen.
-make,model,vehicle_class,cons_l_100km,cons_kwh_100km,battery_kwh,range_km,dc_charge_kw,km_per_30min,insurance_eur,tax_eur,depr_pct_year,length_mm,width_mm,turning_m,note
+make,model,vehicle_class,cons_l_100km,cons_kwh_100km,battery_kwh,range_km,dc_charge_kw,km_per_30min,insurance_eur,tax_eur,depr_pct_year,length_mm,width_mm,turning_m,note,tk_kh,tk_vk,tk_tk
 # --- Profil-relevant (>= kompakt): SUVs / Kompakt / Mittelklasse / Van / EV-SUV ---
 Cupra,Formentor,suv,6.5,,,,,,560,150,0.14,4450,1839,11.0,1.5 TSI Kompakt-SUV
 Cupra,Ateca,suv,7.5,,,,,,620,180,0.14,4386,1841,11.1,2.0 TSI 4Drive
@@ -46,3 +46,27 @@ Suzuki,Swift,kleinwagen,5.0,,,,,,400,100,0.13,3840,1735,10.2,
 Honda,Jazz,kleinwagen,5.2,,,,,,440,110,0.12,4044,1694,10.4,
 MG,MG3,kleinwagen,4.5,,,,,,460,40,0.16,4113,1797,10.6,Vollhybrid
 Dacia,Spring,kleinstwagen,,14.0,25,220,30,60,420,0,0.16,3734,1622,9.6,Elektro-Kleinstwagen (langsam ladend)
+# --- Versicherungs-Typklassen (GDV 2025/26, gaengige Variante) fuer Kernmodelle ---
+VW,Golf,,,,,,,,,,,,,,,14,17,19
+Skoda,Octavia,,,,,,,,,,,,,,,17,17,17
+Ford,Focus,,,,,,,,,,,,,,,14,19,23
+Opel,Astra,,,,,,,,,,,,,,,18,19,20
+Seat,Leon,,,,,,,,,,,,,,,14,17,21
+Audi,A3,,,,,,,,,,,,,,,16,16,21
+Hyundai,i30,,,,,,,,,,,,,,,17,19,21
+Kia,Ceed,,,,,,,,,,,,,,,15,18,20
+Peugeot,308,,,,,,,,,,,,,,,17,19,20
+Renault,Megane,,,,,,,,,,,,,,,20,19,23
+Mazda,3,,,,,,,,,,,,,,,16,22,23
+Toyota,Auris,,,,,,,,,,,,,,,21,21,24
+Toyota,Corolla,,,,,,,,,,,,,,,17,23,24
+BMW,3er,,,,,,,,,,,,,,,22,23,24
+Honda,Civic,,,,,,,,,,,,,,,17,21,23
+VW,Passat,,,,,,,,,,,,,,,14,19,23
+Skoda,Superb,,,,,,,,,,,,,,,15,21,24
+Tesla,Model 3,,,,,,,,,,,,,,,19,23,21
+VW,ID.3 Pro,,,,,,,,,,,,,,,15,19,20
+VW,ID.3 Pro S,,,,,,,,,,,,,,,15,19,20
+Hyundai,Kona Elektro,,,,,,,,,,,,,,,16,22,24
+Renault,Zoe,,,,,,,,,,,,,,,17,16,16
+MG,MG4,,,,,,,,,,,,,,,20,19,20

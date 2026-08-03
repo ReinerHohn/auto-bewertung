@@ -131,6 +131,53 @@ def scam_flags(price: float | None, fair_price: float | None = None,
     return out
 
 
+def listing_age_days(first_seen: str | None, ref=None) -> int | None:
+    """Tage, die ein Inserat schon online ist (aus first_seen ISO-Timestamp)."""
+    if not first_seen:
+        return None
+    ref = ref or datetime.now(timezone.utc)
+    try:
+        seen = datetime.fromisoformat(first_seen)
+        if seen.tzinfo is None:
+            seen = seen.replace(tzinfo=timezone.utc)
+    except ValueError:
+        return None
+    return max(0, (ref - seen).days)
+
+
+def negotiation_hint(offer_price: float | None, fair_price: float | None = None,
+                     days_online: int | None = None) -> dict | None:
+    """Verhandlungs-Zielpreis + Spielraum aus Fair-Preis und Inserats-Standzeit.
+
+    Der faire Marktwert ist der Anker; lange Standzeit ('Ladenhüter') gibt
+    zusaetzlichen Hebel. Gibt {target, room_eur, room_pct, args} oder None.
+    """
+    if not offer_price or offer_price <= 0:
+        return None
+    args: list[str] = []
+    if fair_price and fair_price > 0:
+        gap = (offer_price - fair_price) / fair_price
+        anchor = min(offer_price, fair_price)
+        if gap > 0.02:
+            args.append(f"{gap*100:.0f} % über fairem Marktwert (~{fair_price:,.0f} €)".replace(",", "."))
+        elif gap < -0.05:
+            args.append("bereits unter Marktwert – wenig Spielraum, aber Zustand drücken kann helfen")
+    else:
+        anchor = offer_price * 0.93           # ohne Fair-Preis: ~7 % Daumenregel
+    extra = 0.0                                # Standzeit-Bonus (Käufermarkt)
+    if days_online is not None:
+        if days_online >= 60:
+            extra = 0.05
+            args.append(f"seit {days_online} Tagen online – langer Ladenhüter, starker Hebel")
+        elif days_online >= 30:
+            extra = 0.03
+            args.append(f"seit {days_online} Tagen online")
+    target = min(round(anchor * (1 - extra)), int(offer_price))
+    room = offer_price - target
+    return {"target": target, "room_eur": room,
+            "room_pct": (room / offer_price * 100) if offer_price else 0.0, "args": args}
+
+
 def mileage_plausibility(mileage: int | None, first_reg: str | None, ref=None) -> dict | None:
     """km/Jahr + Verdikt aus Laufleistung und Erstzulassung ('YYYY-MM')."""
     if not mileage or not first_reg:

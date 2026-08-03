@@ -146,7 +146,10 @@ CREATE TABLE IF NOT EXISTS vehicle_spec (
     alu_body       INTEGER DEFAULT 0,    -- 1 = Alu-/CFK-Karosserie -> Dellen teuer in Reparatur
     length_mm      INTEGER,              -- Fahrzeuglaenge in mm
     width_mm       INTEGER,              -- Breite (ohne Spiegel) in mm; Spiegel ~+40cm gesamt
-    turning_m      REAL                  -- Wendekreis in m (enges Rangieren)
+    turning_m      REAL,                 -- Wendekreis in m (enges Rangieren)
+    tk_kh          INTEGER,              -- Versicherung: KH-Typklasse (Haftpflicht, 10-25)
+    tk_vk          INTEGER,              -- Versicherung: Vollkasko-Typklasse (10-34)
+    tk_tk          INTEGER               -- Versicherung: Teilkasko-Typklasse (10-33)
 );
 
 CREATE TABLE IF NOT EXISTS wear_item (
@@ -210,10 +213,26 @@ def connect(db_path: Path | str = DEFAULT_DB) -> sqlite3.Connection:
     return conn
 
 
+#: Spalten, die spaeter zum Schema kamen -> in bestehenden DBs nachziehen.
+_MIGRATIONS = {
+    "vehicle_spec": {"tk_kh": "INTEGER", "tk_vk": "INTEGER", "tk_tk": "INTEGER"},
+}
+
+
+def _migrate(conn: sqlite3.Connection) -> None:
+    """Fuegt neue Spalten in bestehende Tabellen ein (SQLite kennt kein IF NOT EXISTS)."""
+    for table, cols in _MIGRATIONS.items():
+        have = {r["name"] for r in conn.execute(f"PRAGMA table_info({table})")}
+        for col, decl in cols.items():
+            if col not in have:
+                conn.execute(f"ALTER TABLE {table} ADD COLUMN {col} {decl}")
+
+
 def init_db(db_path: Path | str = DEFAULT_DB) -> sqlite3.Connection:
     """Erstellt das komplette Schema (idempotent)."""
     conn = connect(db_path)
     conn.executescript(SCHEMA)
+    _migrate(conn)
     conn.commit()
     return conn
 

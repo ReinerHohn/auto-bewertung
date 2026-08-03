@@ -28,8 +28,8 @@ Klasse ab Kompakt, E-Auto ≥300 km/30 min **oder** ≥400 km Reichweite & ≥18
 
 ### Kernfunktionen (Dashboard)
 - **Sortierbare Tabelle** – Modell anklicken → Detail; nach Score / **Gesamtkosten 5 J / 10 J** / Kaufpreis / Wertstabilität sortieren. Spalten: Baujahr, Preis (echt), L×B, Gesamt 5/10 J, Wertverlust/J, 🚨 Rückrufe. Marker: ⚡🔋⛽ Antrieb, 📉 hoher Wertverlust, 📏 zu breit für deinen Platz.
-- **💰 Angebote** – echte AutoScout24-Angebote (Auto-Load je Modell), jedes als **Klick-Button direkt zum Inserat**, mit AS24-Preisbewertung (🟢 Sehr gut … 🔴 Hoch), Version, kW; + pkw.de-Preistrend eingebettet, Preisverlauf.
-- **💶 TCO** – volle Kostenaufschlüsselung/Jahr inkl. Lade-Mix (Firma/Solar/Heim/Schnelllader).
+- **💰 Angebote** – echte AutoScout24-Angebote (Auto-Load je Modell), jedes als **Klick-Button direkt zum Inserat**, mit AS24-Preisbewertung (🟢 Sehr gut … 🔴 Hoch), **Fair-Preis-Abstand** (% über/unter Marktwert), **Standzeit** („seit X Tagen online") und **Verhandlungs-Zielpreis** (fairer Wert + Ladenhüter-Hebel), Version, kW; + pkw.de-Preistrend, Preisverlauf.
+- **💶 TCO** – volle Kostenaufschlüsselung/Jahr inkl. Lade-Mix (Firma/Solar/Heim/Schnelllader) + **echte Versicherungs-Typklassen** (KH/VK/TK, GDV) statt Pauschale.
 - **🔩 Verschleiß** – welches Teil bei wie viel km + Kosten, **je Untermodell/Motor** (Zahnriemen vs Kette, Tesla-Querlenker …), Kostenkurve über die Laufleistung, einstellbares km-Fenster.
 - **🕵️ Kauf-Check** – **Betrugs-Check** (automatische Warnung bei Preis weit unter fairem Marktwert + Liste typischer Maschen mit Erkennen/Schutz), km-Plausibilität (Rückdreh-Warnung), fällige/anstehende Teile, **Nähe-Warnung** („in ~X km Reparatur Y"), Rückrufe, Tacho-Betrug-/Unfall-Checkliste, carVertical/AutoDNA-Links.
 - **📉 Wertstabilität** – Wertverlust %/Jahr + pkw.de-Restwerte.
