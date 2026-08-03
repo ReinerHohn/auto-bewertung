@@ -157,11 +157,13 @@ def negotiation_hint(offer_price: float | None, fair_price: float | None = None,
     args: list[str] = []
     if fair_price and fair_price > 0:
         gap = (offer_price - fair_price) / fair_price
-        anchor = min(offer_price, fair_price)
         if gap > 0.02:
+            anchor = fair_price               # überteuert -> Ziel ist der faire Marktwert
             args.append(f"{gap*100:.0f} % über fairem Marktwert (~{fair_price:,.0f} €)".replace(",", "."))
-        elif gap < -0.05:
-            args.append("bereits unter Marktwert – wenig Spielraum, aber Zustand drücken kann helfen")
+        else:
+            anchor = offer_price * 0.96        # schon markt-/untergerecht -> moderater Handelsabschlag
+            if gap < -0.05:
+                args.append("bereits unter Marktwert – Spielraum v. a. über Zustand & Standzeit")
     else:
         anchor = offer_price * 0.93           # ohne Fair-Preis: ~7 % Daumenregel
     extra = 0.0                                # Standzeit-Bonus (Käufermarkt)

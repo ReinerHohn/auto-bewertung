@@ -130,14 +130,21 @@ def cmd_deals(args) -> None:
     band.sort(key=lambda e: e.resid_pct)
     print(f"Fair-Preis-Modell: {model.n} Angebote, {len(model.model_ids)} Modelle, "
           f"R2={model.r2:.2f}. Plausibel unter fairem Preis (Top {args.top}):\n")
+    from .checks import listing_age_days, negotiation_hint
     for e in band[: args.top]:
         r = conn.execute(
-            "SELECT l.mileage_km, l.first_reg, l.url, cm.make||' '||cm.model AS model "
+            "SELECT l.mileage_km, l.first_reg, l.url, l.first_seen, cm.make||' '||cm.model AS model "
             "FROM listing l JOIN car_model cm ON cm.id=l.model_id WHERE l.id=?",
             (e.listing_id,)).fetchone()
-        print(f"  {r['model'][:24]:24} {_eur(e.price):>9}  fair {_eur(e.fair_price):>9}  "
+        days = listing_age_days(r["first_seen"])
+        stand = f"{days}T online" + ("🕰️" if days is not None and days >= 45 else "") if days is not None else "?"
+        print(f"  {r['model'][:22]:22} {_eur(e.price):>9}  fair {_eur(e.fair_price):>9}  "
               f"{e.resid_eur:>+7.0f}€ ({e.resid_pct*100:>+3.0f}%)  "
-              f"{r['mileage_km'] or '?'}km EZ{r['first_reg'] or '?'}")
+              f"{(str(r['mileage_km'] or '?')+'km'):>9} EZ{r['first_reg'] or '?':7} {stand:>10}")
+        neg = negotiation_hint(e.price, e.fair_price, days)
+        if neg and neg["room_eur"] >= 200:
+            print(f"      💬 Zielpreis ~{_eur(neg['target'])} (Spielraum ~{_eur(neg['room_eur'])})"
+                  + (f" · {' · '.join(neg['args'])}" if neg["args"] else ""))
         if e.resid_pct <= -0.15 and r["url"]:
             print(f"      {r['url']}")
     if not band:
