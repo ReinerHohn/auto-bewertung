@@ -19,6 +19,7 @@ from .inserate import _record_listing
 
 BROWSER_UA = "Mozilla/5.0 (X11; Linux x86_64; rv:120.0) Gecko/20100101 Firefox/120.0"
 CAT = "k0c216"      # Kategorie "Autos"
+MAX_PAGES = 5       # robots.txt sperrt seite:6+ -> nie darueber hinaus paginieren
 
 # Slug-Overrides, wo make-model nicht direkt zur KA-Suche passt.
 KA_SLUG = {
@@ -88,8 +89,14 @@ class KleinanzeigenSource(Source):
     name = "kleinanzeigen"
     live = True
 
-    def __init__(self, fetch=None):
+    def __init__(self, fetch=None, pages: int = 3):
         self._fetch = fetch
+        self.pages = max(1, min(pages, MAX_PAGES))   # nie ueber die robots-Grenze
+
+    def _page_url(self, slug: str, page: int) -> str:
+        # Seite 1: /s-autos/{slug}/k0c216 ; Seite N: /s-autos/seite:N/{slug}/k0c216
+        base = "https://www.kleinanzeigen.de/s-autos"
+        return f"{base}/{slug}/{CAT}" if page <= 1 else f"{base}/seite:{page}/{slug}/{CAT}"
 
     def _get(self, url: str) -> str | None:
         if self._fetch:
@@ -102,12 +109,21 @@ class KleinanzeigenSource(Source):
         return r.text if r.status_code == 200 else None
 
     def fetch_model(self, conn, model_id: int, make: str, model: str):
-        """Holt Angebote fuer EIN Modell (Baujahr-gefiltert). Gibt (anzahl, hinweis)."""
-        url = f"https://www.kleinanzeigen.de/s-autos/{_slug(make, model)}/{CAT}"
-        html = self._get(url)
-        if not html:
+        """Holt Angebote fuer EIN Modell ueber Seite 1..pages (Baujahr-gefiltert)."""
+        slug = _slug(make, model)
+        by_ref: dict[str, dict] = {}
+        for page in range(1, self.pages + 1):
+            html = self._get(self._page_url(slug, page))
+            if not html:
+                break                              # kein Zugriff / keine weitere Seite
+            page_items = parse_kleinanzeigen(html)
+            if not page_items:
+                break                              # leere Seite -> Ende
+            for it in page_items:
+                by_ref.setdefault(it["source_ref"], it)
+        if not by_ref:
             return 0, "kein Zugriff (blockiert/robots) oder kein Treffer"
-        items = parse_kleinanzeigen(html)
+        items = list(by_ref.values())
         row = conn.execute("SELECT year_from, year_to FROM car_model WHERE id=?",
                            (model_id,)).fetchone()
         yf, yt = (row["year_from"], row["year_to"]) if row else (None, None)
