@@ -58,3 +58,18 @@ VW,T-Roc,ADAC,pannen_pro_1000,2.6,2025,4,https://assets.adac.de/image/upload/v17
 Kia,Sportage,ADAC,pannen_pro_1000,9.7,2025,6,https://assets.adac.de/image/upload/v1744788916/ADAC-eV/KOR/Text/PDF/Pannenstatistik_2025_final_nrmvls.pdf,EZ2018 (QL) - aeltere Jahrgaenge deutlich hoeher (EZ2016=21.8)
 Hyundai,Tucson,ADAC,pannen_pro_1000,11.1,2025,7,https://assets.adac.de/image/upload/v1744788916/ADAC-eV/KOR/Text/PDF/Pannenstatistik_2025_final_nrmvls.pdf,EZ2017 (TL) - EZ2015=18.2 EZ2019=5.3
 Toyota,C-HR,ADAC,pannen_pro_1000,46.8,2025,5,https://assets.adac.de/image/upload/v1744788916/ADAC-eV/KOR/Text/PDF/Pannenstatistik_2025_final_nrmvls.pdf,EZ2019 (Gen I Hybrid) - Schlusslicht sehr hoch (EZ2020=63.1)
+# --- Auto-entdeckte Modelle vertieft (ADAC-Pannenstatistik 2025 / TUEV 2026) ---
+Cupra,Formentor,ADAC,pannen_pro_1000,2.0,2025,2,https://assets.adac.de/image/upload/v1744788916/ADAC-eV/KOR/Text/PDF/Pannenstatistik_2025_final_nrmvls.pdf,EZ2022 sehr zuverlaessig (junges Modell)
+Cupra,Formentor,TUEV,maengelquote_pct,9.7,2026,2,https://www.autobild.de/artikel/cupra-formentor-gebraucht-tuev-report-2026-28077311.html,TUEV-Report 2026 Altersklasse 2-3 Jahre - Schwachpunkt Oelverlust
+Cupra,Leon,ADAC,pannen_pro_1000,1.2,2025,2,https://assets.adac.de/image/upload/v1744788916/ADAC-eV/KOR/Text/PDF/Pannenstatistik_2025_final_nrmvls.pdf,EZ2022 sehr zuverlaessig (nur eine Kohorte gelistet)
+Seat,Arona,ADAC,pannen_pro_1000,2.5,2025,2,https://assets.adac.de/image/upload/v1744788916/ADAC-eV/KOR/Text/PDF/Pannenstatistik_2025_final_nrmvls.pdf,EZ2022 (aeltere EZ2018=4.4)
+Skoda,Scala,ADAC,pannen_pro_1000,1.9,2025,2,https://assets.adac.de/image/upload/v1744788916/ADAC-eV/KOR/Text/PDF/Pannenstatistik_2025_final_nrmvls.pdf,EZ2022 sehr zuverlaessig (aeltere EZ2019=6.1)
+Skoda,Yeti,ADAC,pannen_pro_1000,5.4,2025,7,https://assets.adac.de/image/upload/v1744788916/ADAC-eV/KOR/Text/PDF/Pannenstatistik_2025_final_nrmvls.pdf,EZ2017 juengste Kohorte (aeltere EZ2015=14.0)
+Skoda,Yeti,TUEV,maengelquote_pct,17.8,2026,8,https://www.autobild.de/artikel/skoda-karoq-yeti-gebraucht-tuev-report-2026-28220097.html,TUEV-Report 2026 Altersklasse 8-9 Jahre - Oelverlust und Bremsscheiben
+Peugeot,2008,ADAC,pannen_pro_1000,8.6,2025,6,https://assets.adac.de/image/upload/v1744788916/ADAC-eV/KOR/Text/PDF/Pannenstatistik_2025_final_nrmvls.pdf,EZ2018 (Reihe EZ2015=13.4 bis EZ2022=3.5)
+Peugeot,2008,TUEV,maengelquote_pct,17.1,2026,6,https://www.t-online.de/mobilitaet/autos/id_101069796/gebrauchte-suvs-beim-tuev-die-schlechtesten-modelle-aller-altersklassen.html,Altersklasse 6-7 Jahre (8-9J=21.7%)
+Suzuki,Vitara,ADAC,pannen_pro_1000,4.6,2025,6,https://assets.adac.de/image/upload/v1744788916/ADAC-eV/KOR/Text/PDF/Pannenstatistik_2025_final_nrmvls.pdf,EZ2018 - ADAC lobt Vitara als sehr zuverlaessig
+Suzuki,Vitara,TUEV,maengelquote_pct,8.7,2026,6,https://www.autobild.de/artikel/tuev-report-suv-mit-wenig-maengeln-28740621.html,Altersklasse 6-7 Jahre (wenig Maengel)
+Volvo,XC40,ADAC,pannen_pro_1000,3.0,2025,5,https://assets.adac.de/image/upload/v1744788916/ADAC-eV/KOR/Text/PDF/Pannenstatistik_2025_final_nrmvls.pdf,EZ2020 - untere Mittelklasse sehr zuverlaessig
+Audi,A6,ADAC,pannen_pro_1000,9.8,2025,7,https://assets.adac.de/image/upload/v1744788916/ADAC-eV/KOR/Text/PDF/Pannenstatistik_2025_final_nrmvls.pdf,C7-Generation EZ2018 (EZ2020=3.7)
+Opel,Zafira Life,ADAC,pannen_pro_1000,15.4,2025,5,https://assets.adac.de/image/upload/v1744788916/ADAC-eV/KOR/Text/PDF/Pannenstatistik_2025_final_nrmvls.pdf,Sammelzeile Expert/Traveller/Vivaro/Zafira Life/Scudo EZ2020 - negativ auffaellig
