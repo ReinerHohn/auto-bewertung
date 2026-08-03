@@ -138,11 +138,11 @@ def cmd_deals(args) -> None:
     if model is None:
         print("Fair-Preis-Modell nicht verfuegbar (zu wenig Daten oder numpy fehlt).")
         return
-    band = fairprice.bargains(conn, model)
+    band = fairprice.top_per_model(fairprice.bargains(conn, model), per_model=2, limit=args.top)
     print(f"Fair-Preis-Modell: {model.n} Angebote, {len(model.model_ids)} Modelle, "
-          f"R2={model.r2:.2f}. Plausible Schnaeppchen (Top {args.top}):\n")
+          f"R2={model.r2:.2f}. Plausible Schnaeppchen (max. 2 je Modell, Top {args.top}):\n")
     from .checks import listing_age_days, negotiation_hint
-    for e in band[: args.top]:
+    for e in band:
         r = conn.execute(
             "SELECT l.mileage_km, l.first_reg, l.url, l.first_seen, cm.make||' '||cm.model AS model "
             "FROM listing l JOIN car_model cm ON cm.id=l.model_id WHERE l.id=?",

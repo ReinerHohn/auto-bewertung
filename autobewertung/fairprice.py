@@ -227,3 +227,18 @@ def bargains(conn: sqlite3.Connection,
         out.append(e)
     out.sort(key=lambda e: e.resid_pct)
     return out
+
+
+def top_per_model(estimates, per_model: int = 2, limit: int | None = None) -> list:
+    """Vielfalt: hoechstens `per_model` Angebote je Modell (Reihenfolge bleibt),
+    damit ein starkes Modell nicht die ganze Liste blockiert."""
+    seen: dict[int, int] = {}
+    out = []
+    for e in estimates:
+        if seen.get(e.model_id, 0) >= per_model:
+            continue
+        seen[e.model_id] = seen.get(e.model_id, 0) + 1
+        out.append(e)
+        if limit and len(out) >= limit:
+            break
+    return out

@@ -838,8 +838,9 @@ if _deals:
     if _good:
         with st.expander(f"🔥 **Beste Angebote – günstig UND gutes Auto ({len(_good)})**", expanded=True):
             st.caption("Schnäppchen (unter fairem Preis) auf Modellen, die deine Kriterien erfüllen – "
-                       "sortiert nach Modell-Score + Preisvorteil. ⚠️ Sehr weit unter fair → 🕵️ Kauf-Check.")
-            for e in _good[:15]:
+                       "sortiert nach Modell-Score + Preisvorteil, max. 2 je Modell. "
+                       "⚠️ Sehr weit unter fair → 🕵️ Kauf-Check.")
+            for e in _fp.top_per_model(_good, per_model=2, limit=15):
                 _render_deal(e, _by_model[e.model_id])
     if _rest:
         with st.expander(f"💸 Weitere Schnäppchen außerhalb deiner Kriterien ({len(_rest)}) "
