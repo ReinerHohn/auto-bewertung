@@ -199,6 +199,30 @@ def emission_note(drivetrain: str | None, year: int | None) -> tuple[str, str] |
             "relevant für Umweltzonen und Wiederverkauf.")
 
 
+def zahnriemen_time_status(conn: sqlite3.Connection, model_id: int, variant: str | None,
+                           first_reg: str | None, ref=None, years_interval: int = 6) -> dict | None:
+    """Zeitbasierter Zahnriemen-Check. Der km-Verschleiss deckt nur die Laufleistung
+    ab – ein ALTER Wagen mit wenig km kann den Zahnriemen nach ZEIT ueberfaellig
+    haben (reisst -> Motorschaden). Nur fuer Modelle MIT Zahnriemen (nicht Kette).
+    Gibt {due, age_years, years_interval, cost, component} oder None."""
+    items = load_items(conn, model_id)
+    if variant and variant != "alle":
+        items = [i for i in items if i["variant"] in (variant, "alle")]
+    zr = [i for i in items if "zahnriemen" in (i["component"] or "").lower()]
+    if not zr or not first_reg:
+        return None
+    ref = ref or datetime.now(timezone.utc)
+    try:
+        y = int(str(first_reg)[:4])
+        mo = int(str(first_reg)[5:7]) if len(str(first_reg)) >= 7 else 1
+    except (ValueError, TypeError):
+        return None
+    age_years = (ref.year - y) + (ref.month - mo) / 12.0
+    return {"due": age_years >= years_interval, "age_years": age_years,
+            "years_interval": years_interval,
+            "cost": max(i["cost_eur"] for i in zr), "component": zr[0]["component"]}
+
+
 def listing_age_days(first_seen: str | None, ref=None) -> int | None:
     """Tage, die ein Inserat schon online ist (aus first_seen ISO-Timestamp)."""
     if not first_seen:

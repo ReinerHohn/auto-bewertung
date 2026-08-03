@@ -7,7 +7,8 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from autobewertung.checks import (
     CHECKLIST, SCAM_PATTERNS, due_soon, emission_note, listing_age_days,
-    mileage_plausibility, negotiation_hint, next_hu, scam_flags, warranty_note, wear_status)
+    mileage_plausibility, negotiation_hint, next_hu, scam_flags, warranty_note,
+    wear_status, zahnriemen_time_status)
 from autobewertung.db import init_db
 from autobewertung.sources.seed import SeedSource
 from autobewertung.sources.wear_import import WearImportSource
@@ -127,6 +128,18 @@ def test_emission_note_old_diesel_warns():
 def test_checklist_has_recht_section():
     titles = [s for s, _ in CHECKLIST]
     assert any("Recht" in t or "Papiere" in t for t in titles)
+
+
+def test_zahnriemen_time_status():
+    conn = init_db(":memory:"); SeedSource().collect(conn); WearImportSource().collect(conn)
+    golf = conn.execute("SELECT id FROM car_model WHERE model='Golf'").fetchone()["id"]
+    old = zahnriemen_time_status(conn, golf, None, "2015-01", ref=REF)     # ~11 Jahre alt
+    assert old and old["due"] and old["cost"] > 0
+    young = zahnriemen_time_status(conn, golf, None, "2024-01", ref=REF)   # 2 Jahre
+    assert young and not young["due"]
+    # BMW 3er hat Steuerkette (kein Zahnriemen) -> None
+    bmw = conn.execute("SELECT id FROM car_model WHERE model='3er'").fetchone()["id"]
+    assert zahnriemen_time_status(conn, bmw, None, "2015-01", ref=REF) is None
 
 
 def test_listing_age_days():

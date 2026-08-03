@@ -563,7 +563,8 @@ def render_category(model, cat: str) -> None:
         from autobewertung import fairprice
         from autobewertung.checks import (CHECKLIST, SCAM_PATTERNS, carvertical_url,
                                           due_soon, emission_note, mileage_plausibility,
-                                          next_hu, scam_flags, warranty_note, wear_status)
+                                          next_hu, scam_flags, warranty_note, wear_status,
+                                          zahnriemen_time_status)
         from autobewertung.wear import load_items
         st.markdown("#### 🕵️ Kauf-Check – Betrug, Tacho & Plausibilität")
 
@@ -655,6 +656,15 @@ def render_category(model, cat: str) -> None:
         if pl:
             msg = f"**{pl['km_per_year']:.0f} km/Jahr** ({pl['age_years']:.1f} J) → {pl['verdict']}"
             {"warn": st.error, "info": st.info, "ok": st.success}[pl["level"]](msg)
+
+        # Zeitbasierter Zahnriemen: alter Wagen mit wenig km -> nach ZEIT faellig
+        _zr = zahnriemen_time_status(conn, mid, variant, reg)
+        if _zr and _zr["age_years"] >= _zr["years_interval"] - 1:
+            _msg = (f"🔩 **Zahnriemen** ({_zr['component']}): Wagen ist {_zr['age_years']:.0f} Jahre alt – "
+                    f"der Riemen ist auch ZEITabhängig fällig (~alle {_zr['years_interval']} J, "
+                    f"herstellerabhängig), unabhängig von der Laufleistung. **Wechselbeleg verlangen!** "
+                    f"Reißt er → Motorschaden. ~{_zr['cost']:,.0f} €".replace(",", "."))
+            (st.warning if _zr["due"] else st.info)(_msg)
 
         # 🚨 Offizielle Rückrufe (sicherheitskritisch – prüfen ob erledigt!)
         rc = conn.execute("SELECT kba_code, date, description, url FROM recall "
