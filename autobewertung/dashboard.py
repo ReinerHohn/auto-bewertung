@@ -828,9 +828,13 @@ if _deals:
 
     def _render_deal(e, ms):
         r = conn.execute(
-            "SELECT l.mileage_km, l.first_reg, l.url, l.first_seen, l.plz, "
+            "SELECT l.mileage_km, l.first_reg, l.url, l.first_seen, l.plz, l.source, l.price_rating, "
             "cm.make||' '||cm.model AS model FROM listing l "
             "JOIN car_model cm ON cm.id=l.model_id WHERE l.id=?", (e.listing_id,)).fetchone()
+        # 2. Meinung: AS24s eigene, neutrale Preisbewertung als Gegen-Check
+        rt = r["price_rating"] if r["source"] == "autoscout24" else None
+        second = (" · ✓ **AS24: günstig**" if rt in (1, 2)
+                  else " · ⚠️ AS24: eher teuer – prüfen" if rt in (4, 5) else "")
         days = _lad(r["first_seen"])
         stand = (f" · 🕰️ {days} T online" if days is not None and days >= 45
                  else (f" · {days} T online" if days is not None else ""))
@@ -848,7 +852,7 @@ if _deals:
                     if net is not None else f" · 📍 {dist:.0f} km")
         else:
             near = ""
-        lbl = (f"{r['model']} – **{e.price:,.0f} €** · {e.resid_pct*100:+.0f} % vs. fair{tief} · "
+        lbl = (f"{r['model']} – **{e.price:,.0f} €** · {e.resid_pct*100:+.0f} % vs. fair{tief}{second} · "
                f"{qual}{r['mileage_km'] or '?'} km · EZ {r['first_reg'] or '?'}{near}{stand}{room}").replace(",", ".")
         st.markdown(f"- [{lbl}]({r['url']})" if r["url"] else f"- {lbl}")
 

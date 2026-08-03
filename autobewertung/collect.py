@@ -154,15 +154,17 @@ def cmd_deals(args) -> None:
     from .checks import listing_age_days, negotiation_hint
     for e in band:
         r = conn.execute(
-            "SELECT l.mileage_km, l.first_reg, l.url, l.first_seen, l.plz, "
+            "SELECT l.mileage_km, l.first_reg, l.url, l.first_seen, l.plz, l.source, l.price_rating, "
             "cm.make||' '||cm.model AS model "
             "FROM listing l JOIN car_model cm ON cm.id=l.model_id WHERE l.id=?",
             (e.listing_id,)).fetchone()
         days = listing_age_days(r["first_seen"])
         stand = f"{days}T online" + ("🕰️" if days is not None and days >= 45 else "") if days is not None else "?"
+        rt = r["price_rating"] if r["source"] == "autoscout24" else None
+        second = "  ✓AS24:günstig" if rt in (1, 2) else ("  ⚠️AS24:teuer" if rt in (4, 5) else "")
         print(f"  {r['model'][:22]:22} {_eur(e.price):>9}  fair {_eur(e.fair_price):>9}  "
               f"{e.resid_eur:>+7.0f}€ ({e.resid_pct*100:>+3.0f}%)  "
-              f"{(str(r['mileage_km'] or '?')+'km'):>9} EZ{r['first_reg'] or '?':7} {stand:>10}")
+              f"{(str(r['mileage_km'] or '?')+'km'):>9} EZ{r['first_reg'] or '?':7} {stand:>10}{second}")
         dist = geo.distance_km(home, r["plz"]) if home else None
         if dist is not None:
             net = geo.net_saving_eur(e.resid_eur, r["plz"], home)
