@@ -62,3 +62,34 @@ Renault,Zoe,mit Waermepumpe,Waermepumpe/Heizung,25000,0,1500,https://carwiki.de/
 Renault,Zoe,alle,Antriebseinheit Lagerdefekt,100000,0,1500,https://www.elektroauto.community/blogs/entry/302-renault-zoe-motorschaden/,Lagerreparatur frei
 Cupra,Born,alle,Klimaanlage Kuehlleistung,40000,0,500,https://carwiki.de/cupra-born-probleme/,grob; junges Modell
 Polestar,2,alle,Klimakompressor,80000,0,650,https://carwiki.de/polestar-2-klimaanlage-defekt/,Kompressor/Kondensator
+VW,Polo,1.2/1.4 TSI (EA111),Steuerkette,120000,120000,700,https://gebrauchtwagenberater.de/probleme-beim-tsi/,Sichtpruefung ab 120-150.000 km
+VW,Polo,1.4/1.6 TDI (EA189),Zahnriemen,180000,180000,840,https://www.repareo.de/zahnriemenwechsel-vw-polo/,Wechsel ab ~840 EUR
+VW,Polo,1.4 TDI (aeltere 6N),Zahnriemen,90000,90000,630,https://www.fairgarage.com/de-de/zahnriemenwechsel-vw-polo,60-90.000 km je Bj.
+VW,Polo,DSG DQ200,Kupplung,120000,120000,2000,https://carwiki.de/vw-polo-probleme,Trockenkupplung
+Mini,Cooper,1.6 (N14 Turbo),Steuerkette,120000,150000,1090,https://motorschmiede.com/mini-steuerkette-wechseln-service-kosten-und-preise-fuer-alle-modelle/,Schaeden ab ~120.000 km
+Mini,Cooper,1.6 (N18 Turbo),Steuerkette,120000,150000,1090,https://motorschmiede.com/mini-steuerkette-wechseln-service-kosten-und-preise-fuer-alle-modelle/,Facelift-Motor
+Mini,Cooper,1.6 (N12 Sauger),Steuerkette,120000,150000,1090,https://motorschmiede.com/mini-steuerkette-wechseln-service-kosten-und-preise-fuer-alle-modelle/,
+Mini,Cooper,2.0 Diesel (N47),Steuerkette,120000,150000,1790,https://gebrauchtwagenberater.de/mini-r56-r57-probleme/,besser ab Ende 2013
+Fiat,500,1.2 8V FIRE,Steuerkette,100000,150000,815,https://kfz-dietrich.com/blog/fiat-500-typische-probleme-stellantis-diagnose/,Rasseln ab 100.000 km
+Fiat,500,0.9 TwinAir,Steuerkette,100000,150000,815,https://www.autodoc.de/s/fiat-500-zahnriemen-oder-steuerkette,Rasseln = Warnsignal
+Fiat,500,0.9 TwinAir,MultiAir-Oelservice,15000,15000,400,https://kfz-dietrich.com/blog/fiat-500-typische-probleme-stellantis-diagnose/,"nur Selenia, max. 15.000 km"
+Audi,A6,3.0 TDI,Zahnriemen HD-Pumpe,120000,120000,1200,https://www.repareo.de/zahnriemenwechsel-audi-a6/,separater Riemen HD-Pumpe
+Audi,A6,2.0 TDI,Zahnriemen,210000,210000,1200,https://www.repareo.de/zahnriemenwechsel-audi-a6/,inkl. Wasserpumpe
+Audi,A6,2.0 TFSI,Steuerkette,150000,150000,2500,https://www.fairgarage.com/de-de/audi-steuerkette-wechseln-kosten,"kein festes Intervall, bei Rasseln"
+Audi,A6,3.0 TFSI,Steuerkette,150000,150000,2500,https://www.fairgarage.com/de-de/audi-steuerkette-wechseln-kosten,
+Ford,Fiesta,1.0 EcoBoost,Zahnriemen (Nassriemen),100000,100000,900,https://www.isteshaltbar.de/frage-und-antwort/wann-zahnriemenwechsel-ford-fiesta-1-0-ecoboost,"Ford-Spec 240.000 km, Experten deutlich frueher (~100.000)"
+Ford,Fiesta,1.25/1.4/1.6 Ti-VCT,Zahnriemen,160000,160000,700,https://carwiki.de/zahnriemenwechsel-ford-fiesta,160.000 km/8 J
+Ford,Fiesta,1.5/1.6 TDCi,Zahnriemen,160000,160000,750,https://carwiki.de/zahnriemenwechsel-ford-fiesta,
+Ford,Fiesta,Powershift DPS6,Kupplung,120000,120000,1800,https://carwiki.de/ford-getriebe-probleme,thermische Ueberlastung
+Hyundai,i20,1.0 T-GDI,Steuerkette,50000,150000,900,https://www.hyundaiboard.de/thread/29520-typ-gb-1-0-t-gdi-steuerkette-rasselt/,Spanner-Verschleiss oft ab 40-60 Tkm
+Hyundai,i20,1.2/1.4 Benziner,Steuerkette,120000,180000,850,https://carwiki.de/hyundai-i20-probleme,Rasseln 60-120 Tkm
+Nissan,Micra,1.2 CR12,Steuerkette,150000,150000,1300,https://gebrauchtwagenberater.de/nissan-micra-probleme/,K12 vor Facelift 2005 Laengung
+Nissan,Micra,1.5 dCi K9K,Zahnriemen,120000,120000,650,https://www.repareo.de/zahnriemenwechsel-nissan-micra/,inkl. Wasserpumpe
+Seat,Arona,1.6 TDI,Zahnriemen,210000,210000,600,https://www.repareo.de/inspektion-seat-arona/,210.000 km
+Seat,Ibiza,1.2 TSI,Steuerkette,120000,120000,1500,https://www.autodoc.de/s/seat-ibiza-1-2-steuerkette-wechseln-kosten,800-2500 EUR
+Seat,Ibiza,1.0 TSI,Zahnriemen,90000,90000,700,https://www.repareo.de/zahnriemenwechsel-seat-ibiza/,EA211 evo Zahnriemen
+Seat,Ibiza,1.6 TDI,Zahnriemen,210000,210000,700,https://www.repareo.de/zahnriemenwechsel-seat-ibiza/,
+Seat,Ibiza,1.4 TDI,Zahnriemen,210000,210000,700,https://www.repareo.de/zahnriemenwechsel-seat-ibiza/,
+Seat,Ibiza,1.4 TSI,Steuerkette,120000,120000,1400,https://carwiki.de/seat-ibiza-probleme,EA111
+Suzuki,Swift,1.3 DDiS Diesel,Zahnriemen,90000,90000,420,https://www.repareo.de/zahnriemenwechsel-suzuki-swift/,90.000 km/5 J
+Suzuki,Swift,Benziner 1.2/1.6,Steuerkette,150000,150000,900,https://carwiki.de/suzuki-swift-zahnriemen-oder-steuerkette,"wartungsfrei, bei Laengung"

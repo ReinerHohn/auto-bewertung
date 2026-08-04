@@ -73,3 +73,16 @@ Suzuki,Vitara,TUEV,maengelquote_pct,8.7,2026,6,https://www.autobild.de/artikel/t
 Volvo,XC40,ADAC,pannen_pro_1000,3.0,2025,5,https://assets.adac.de/image/upload/v1744788916/ADAC-eV/KOR/Text/PDF/Pannenstatistik_2025_final_nrmvls.pdf,EZ2020 - untere Mittelklasse sehr zuverlaessig
 Audi,A6,ADAC,pannen_pro_1000,9.8,2025,7,https://assets.adac.de/image/upload/v1744788916/ADAC-eV/KOR/Text/PDF/Pannenstatistik_2025_final_nrmvls.pdf,C7-Generation EZ2018 (EZ2020=3.7)
 Opel,Zafira Life,ADAC,pannen_pro_1000,15.4,2025,5,https://assets.adac.de/image/upload/v1744788916/ADAC-eV/KOR/Text/PDF/Pannenstatistik_2025_final_nrmvls.pdf,Sammelzeile Expert/Traveller/Vivaro/Zafira Life/Scudo EZ2020 - negativ auffaellig
+VW,Polo,TUEV,maengelquote_pct,10.7,2026,6,https://www.autobild.de/artikel/vw-polo-im-tuev-check-2026--28310671.html,"erhebliche Maengel HU, 6-7 J (Schnitt 13,6%)"
+Mini,Cooper,TUEV,maengelquote_pct,4.4,2025,2,https://www.autohaus.de/nachrichten/schadenbusiness/tuev-report-2025-erstmals-10-e-autos-in-der-hu-auswertung-3596192,"Cooper SE (E), 2-3 J"
+Fiat,500,TUEV,maengelquote_pct,10.6,2026,4,https://www.autobild.de/artikel/fiat-500-schwachstellen-maengel-staerken-28224929.html,"4-5 J (Schnitt 10,0%)"
+Audi,A6,TUEV,maengelquote_pct,6.5,2026,4,https://www.autobild.de/artikel/audi-a6-a7-im-tuev-check-2026--28174231.html,"4-5 J (Schnitt 10,0%)"
+Hyundai,i20,TUEV,maengelquote_pct,8.5,2026,4,https://www.autobild.de/artikel/hyundai-i20-im-tuev-check-2026--28350573.html,"4-5 J (Schnitt 10,0%)"
+Nissan,Micra,TUEV,maengelquote_pct,12.4,2026,4,https://www.autobild.de/artikel/nissan-micra-tuev-report-2026-28365155.html,4-5 J
+Seat,Arona,TUEV,maengelquote_pct,9.6,2026,4,https://www.autobild.de/artikel/seat-arona-gebraucht-tuev-report-2026-28199257.html,"4-5 J (Schnitt 10,0%)"
+Seat,Ibiza,TUEV,maengelquote_pct,10.4,2026,4,https://www.autobild.de/artikel/seat-ibiza-gebraucht-tuev-report-2026-28137621.html,4-5 J
+Suzuki,Swift,TUEV,maengelquote_pct,7.8,2026,4,https://www.autobild.de/artikel/suzuki-swift-gebraucht-tuev-report-2026-28278343.html,4-5 J
+Fiat,500,ADAC,pannen_pro_1000,9.7,2024,,https://www.adac.de/rund-ums-fahrzeug/autokatalog/marken-modelle/fiat/500/,EZ 2019 (ADAC Autokatalog)
+Ford,Fiesta,ADAC,pannen_pro_1000,14.0,2021,,https://www.kfzticker.de/technik/adac-pannenstatistik-2013-zwoelf-modelle-fallen-durch/,EZ 2015
+Hyundai,i20,ADAC,pannen_pro_1000,9.4,2025,,https://assets.adac.de/image/upload/v1744788916/ADAC-eV/KOR/Text/PDF/Pannenstatistik_2025_final_nrmvls.pdf,EZ 2020 (ADAC Pannenstatistik 2025)
+Suzuki,Swift,ADAC,pannen_pro_1000,0.8,2024,,https://www.basicthinking.de/blog/2025/04/18/besten-autos-adac-2025/2/,EZ 2021 (ADAC 2024/25)

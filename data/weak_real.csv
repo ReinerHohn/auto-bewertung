@@ -1,0 +1,50 @@
+# Recherchierte, quellenbelegte MODELLSPEZIFISCHE Schwachstellen (Achtungsliste /
+# Verhandlungs-Munition) -> weak_point-Tabelle. Ergaenzt v.a. auto-entdeckte Modelle.
+# severity: 1=kosmetisch/klein .. 2=teuer .. 3=teuer & sicherheits-/motorkritisch.
+# cost_eur = grobe Reparatur-Groessenordnung (leer = variabel). Nur belegte Punkte.
+make,model,component,description,severity,cost_eur,source_url,note
+VW,Polo,Steuerkette,"Steuerkettenlaengung 1.2 TSI EA111 (CBZA/CBZB): Rasseln bei Kaltstart, Kette kann ueberspringen -> Motorschaden; v.a. Bj. 2009-2012",3,700,https://www.autodoc.de/info/vw-polo-probleme-mangelliste-fahrzeugkrankheiten-und-schwachstellen,Kette+Spanner+Schienen 500-800 EUR
+VW,Polo,Steuerkette,"Steuerkettenlaengung 1.4 TSI Twincharger EA111 (CAVE): defekter Kettenspanner, hoher Oelverbrauch",3,800,https://gebrauchtwagenberater.de/probleme-beim-tsi/,nach 2010 verbessert
+VW,Polo,DSG,"DQ200 7-Gang-Trockenkupplung: Ruckeln kalt, Kupplungsverschleiss",2,2000,https://carwiki.de/vw-polo-probleme,"Handschalter vorziehen, Oelwechsel einhalten"
+VW,Polo,Wasserpumpe,Wasserpumpe undicht (1.2 TSI/Cross); mehrfach ueberarbeitet,2,600,https://carwiki.de/vw-polo-probleme,Kuehlmittelverlust
+VW,Polo,Lenkgelenke,"Lenkgelenke Polo VI (ab 2017): poroese Manschetten, Fehlerquote ~20x ueber Schnitt bei 6-7 J",2,,https://www.autobild.de/artikel/vw-polo-im-tuev-check-2026--28310671.html,TUEV-Report 2026 Auffaelligkeit Nr. 1
+Mini,Cooper,Steuerkette,"Gelaengte/uebersprungene Steuerkette Prince-Benziner N12/N14/N18 (1.4/1.6), defekte Kettenspanner; Rasseln Kaltstart, Motorschadengefahr ab ~120.000 km",3,1090,https://motorschmiede.com/mini-steuerkette-wechseln-service-kosten-und-preise-fuer-alle-modelle/,Folgeschaden Zylinderkopf 3.000-4.000 EUR
+Mini,Cooper,Turbolader,"Turbolader-Ausfall Cooper S (N14, v.a. vor 2009): Oelleitungen verkoken, Lager fest",3,,https://www.autoteileprofi.de/ratgeber/probleme-mit-dem-mini-cooper-7079,N14 vor 2009 betroffen
+Mini,Cooper,Thermostatgehaeuse,"Kunststoff-Thermostatgehaeuse/Wasserpumpe undicht (R56 Prince), Kuehlmittelverlust",2,300,https://www.autodoc.de/s/mini-cooper-thermostatgehause-wechseln-kosten,180-450 EUR
+Mini,Cooper,Einlassventile,"Kohleablagerungen an Einlassventilen (Direkteinspritzer N14/N18): Leistungsverlust, unrunder Lauf",2,,https://gebrauchtwagenberater.de/mini-r56-r57-probleme/,Reinigung empfohlen
+Fiat,500,Dualogic,"Robotisiertes Getriebe: ruckelnde Gangwechsel, bleibt im Gang; Schwaeche Hydraulik/Nehmerzylinder, Anlernung nach Eingriff noetig",3,720,https://kfz-dietrich.com/blog/fiat-500-typische-probleme-stellantis-diagnose/,"Nehmerzylinder 480-720 EUR, Hydraulikpumpe 980-1450 EUR"
+Fiat,500,MultiAir,"TwinAir MultiAir-Einheit empfindlich gegen Oelalterung; Verkokung Magnetventile -> unruhiger Lauf, Notlauf; nur Selenia-Oel, max. 15.000 km",3,1000,https://kfz-dietrich.com/blog/fiat-500-typische-probleme-stellantis-diagnose/,MultiAir-Tausch >1000 EUR
+Fiat,500,Oelverbrauch,"1.2 8V oft hoher Oelverbrauch, Motorschaden-Risiko bei niedrigem Oelstand; defekte Thermostate",2,,https://schnelleautohilfe.de/probleme-mit-dem-fiat-500-typ-312-2007-bis-2024/,Oelstand regelmaessig pruefen
+Fiat,500,Elektrik,"Kabelbruch Heckklappe (Bremsleuchte, Heckscheibenheizung); Zentralverriegelung/Fensterheber unzuverlaessig",2,220,https://schnelleautohilfe.de/probleme-mit-dem-fiat-500-typ-312-2007-bis-2024/,Fensterheber 140-220 EUR
+Fiat,500,Rost,"Rost an Abgasanlage, Radlaeufen und Achsaufhaengung, verstaerkt bei Streusalz",2,,https://schnelleautohilfe.de/probleme-mit-dem-fiat-500-typ-312-2007-bis-2024/,
+Audi,A6,Oelkuehler/AGR (3.0 TDI),Oel-Wasser-Waermetauscher zwischen Zylinderbaenken wird undicht; oft mit AGR-Kuehler,3,3000,https://kfz-dietrich.com/blog/audi-a6-c7-typische-probleme-diagnose-odis/,2.000-4.000 EUR; C7
+Audi,A6,Oelverbrauch (2.0 TFSI),EA888 bis 2012 hoher Oelverbrauch (Kolben/Kolbenringe); TPI Kolben-/Ringtausch,3,,https://gebrauchtwagenberater.de/audi-a6-c7-probleme/,bis 1 L/300-1000 km
+Audi,A6,Steuerkette (2.0 TFSI),"Kettenspanner verschleisst, Kette rasselt kalt, Steuerzeiten-Verstellung",3,2500,https://www.fairgarage.com/de-de/audi-steuerkette-wechseln-kosten,Kettensatz 300-800 EUR + Arbeit
+Audi,A6,Multitronic,"Variator-Kette/Elektronik: Ruckeln, Drehzahlschwankungen, frueher Verschleiss; groesste C7-Schwaeche",3,4200,https://gebrauchtwagenberater.de/typische-probleme-und-haltbarkeit-der-multitronic/,bis Facelift 2014
+Audi,A6,Luftfederung,"Undichte Luftfederbaelge, defekter Kompressor (Allroad/adaptive air)",2,1100,https://www.repareo.de/magazin/testberichte/luftfederung-audi-a6-allroad-reparatur/,"Feder ~400 EUR, Kompressor ~1.100 EUR"
+Ford,Fiesta,Zahnriemen (Nassriemen 1.0 EcoBoost),"Zahnriemen laeuft im Oel; zersetzt sich bei falschem Oel/langem Intervall, Reste verstopfen Oelsieb -> Oeldruckverlust, Motorschaden",3,4000,https://carwiki.de/ford-fiesta-probleme,Ford-Kulanz ~1.300 Fzg DE bis Anfang 2018
+Ford,Fiesta,Kuehlsystem (1.0 EcoBoost),Kuehlmittelverlust Thermostatgehaeuse/Pumpe; Ueberhitzung -> Zylinderkopfriss,3,1500,https://www.autobild.de/artikel/ford-fiesta-gebraucht-tuev-report-28257417.html,
+Ford,Fiesta,Powershift DPS6,Trocken-Doppelkupplung ruckelt/zoegert; Kupplung/Mechatronik verschleisst,3,1800,https://carwiki.de/ford-getriebe-probleme,US-Sammelklage Vargas v. Ford
+Ford,Fiesta,Zuendspulen (1.0 EcoBoost),"Defekte Zuendspulen -> Zuendaussetzer/Ruckeln, ~33% Leistungsverlust",2,200,https://autoankauf-stern.com/ford-3-zylinder-probleme-7-bekannte-schwachstellen-und-was-sie-wirklich-kosten/,
+Ford,Fiesta,Fahrwerk/Lenkung,"Ausgeschlagene Spurstangenkoepfe/Achsgelenke, Federbrueche nach ~5 J",2,400,https://www.autobild.de/artikel/ford-fiesta-gebraucht-tuev-report-28257417.html,haeufige HU-Maengel Gen 7
+Hyundai,i20,Steuerkette,"1.0 T-GDI: vorzeitiger Verschleiss Kettenspanner/Gleitschienen, gelaengte Kette, Rasseln oft ab 40-60.000 km; unbehandelt Motorschaden",3,900,https://www.hyundaiboard.de/thread/29520-typ-gb-1-0-t-gdi-steuerkette-rasselt/,GB 1.0 T-GDI
+Hyundai,i20,Steuerkette,1.2/1.4 Benziner: Kettenspanner-Verschleiss (Rasseln/Klackern) ~60-120.000 km,2,850,https://carwiki.de/hyundai-i20-probleme,PB/GB Sauger
+Hyundai,i20,Kupplung,"Erhoehter Kupplungsverschleiss (Schalter), DCT hoher Verschleiss bei Stop-and-Go",2,1100,https://carwiki.de/hyundai-i20-probleme,800-1400 EUR
+Hyundai,i20,Bremsleitungen,"Aeltere PB: korrodierende Bremsleitungen (HU-relevant), hintere Bremsen setzen fest",2,,https://www.autobild.de/artikel/hyundai-i20-im-tuev-check-2026--28350573.html,"TUEV-Report 2026, v.a. 10+ J"
+Nissan,Micra,Steuerkette,"K12 CR-Benziner vor Facelift 2005: Steuerkette laengt sich, Motorschaden moeglich; Klappern kalt",3,1300,https://gebrauchtwagenberater.de/nissan-micra-probleme/,bis 2005
+Nissan,Micra,Servolenkung,"K12: elektrische Servolenkung (TRW) Steuerplatine/Kohlen brennen durch, ~80-150.000 km",2,1000,https://www.pkwfokus.de/maengelliste/defekte-servolenkung-beim-nissan-micra-k12/,Aufarbeitung ab ~300 EUR
+Nissan,Micra,Rost,"K12: Rost an Radlaeufen/Schwellern von innen, Strukturkorrosion bei 15+ J",2,600,https://gebrauchtwagenberater.de/nissan-micra-probleme/,Schwellernaht pruefen
+Nissan,Micra,CVT-Getriebe,"K13 Xtronic CVT: Gliederband verschleisst bei niedrigem Hydraulikdruck -> Beschleunigungsverlust, CVT-Warnung",3,2000,https://www.rueckrufe.net/tag/micra-k13/,Software-Rueckruf vorhanden
+Seat,Arona,1.5 TSI EVO (ACT),"Ruckeln/Vibration durch Zylinderabschaltung, v.a. Kaltstart; Software-Update noetig",2,150,https://www.autobild.de/artikel/seat-arona-gebraucht-tuev-report-2026-28199257.html,v.a. 2018-2020
+Seat,Arona,DSG DQ200,"Trockenkupplungs-DSG: Mechatronik-/Kupplungsschaeden, Ruckeln kalt",3,1600,https://carwiki.de/vw-dsg-probleme/,"Mechatronik ~1600 EUR, Getriebe >2000 EUR"
+Seat,Arona,Einspritzung (1.0 TSI),Defekte Einspritzduesen (2018-2020) -> Kraftstoffeintrag/Oelverduennung im Stand,2,600,https://gebrauchtwagenberater.de/seat-arona-typische-probleme-maengel-rueckrufe/,1.0 TSI 2018-2020
+Seat,Arona,Lenkgelenke,Lenkgelenke bei 6-7 J zehnfach ueber Schnitt (kaputte Staubmanschetten),2,250,https://www.autobild.de/artikel/seat-arona-gebraucht-tuev-report-2026-28199257.html,TUEV-Report 2026
+Seat,Ibiza,Steuerkette,"1.2/1.4 TSI EA111 (bis ~2015): Steuerkettenlaengung, Kette kann ueberspringen -> Motorschaden; VW-Kulanz teils erweitert",3,1500,https://carwiki.de/seat-ibiza-probleme,6J/6P; 800-2500 EUR
+Seat,Ibiza,Oelverbrauch,TSI mit Alter erhoehter Oelverbrauch/-verlust (Kolbenringe/Ventilfuehrungen),2,600,https://www.autobild.de/artikel/seat-ibiza-gebraucht-tuev-report-2026-28137621.html,auch 1.0/1.5 TSI EA211 evo
+Seat,Ibiza,DSG DQ200,"7-Gang-DSG Trockenkupplung: Mechatronik-Defekt, Ruckeln/Notlauf ~60-130.000 km",3,1700,https://carwiki.de/vw-dsg-probleme/,Mechatronik 1400-1900 EUR
+Seat,Ibiza,1.5 TSI EVO (ACT),"Ruckeln/Vibration beim Umschalten Zylinderabschaltung, Fehlzuendungen Teillast",2,,https://carwiki.de/vw-ea211-evo-1-5-tsi-motor,meist Software-Update
+Seat,Ibiza,Fahrwerk,Ibiza V (6F): Lenkgelenke/Manschetten bei 3. HU stark ueber Schnitt; Daempfer frueh verschlissen,2,400,https://www.autobild.de/artikel/seat-ibiza-gebraucht-tuev-report-2026-28137621.html,
+Suzuki,Swift,Bremsleitungen,Fruehe Jahrgaenge: Bremsleitungen korrodieren ueber HU-Schnitt; Bremsfunktion auffaellig,2,150,https://www.autobild.de/artikel/suzuki-swift-gebraucht-tuev-report-2026-28278343.html,"FZ/NZ, Unterboden pruefen"
+Suzuki,Swift,Lenkung,"Spurstangenkoepfe/Lenkgelenke, Lenkgetriebe verschleissen ueber Schnitt; polternde Vorderachse",2,400,https://gebrauchtwagenberater.de/suzuki-swift-nz-probleme/,FZ/NZ
+Suzuki,Swift,Rost,"Swift III (MZ/EZ): Rost Unterboden, Schweller, Tuerunterkanten, Heckklappe",2,300,https://carwiki.de/suzuki-swift-probleme,v.a. aeltere Generation
+Suzuki,Swift,Beleuchtung,Rueckleuchten (FZ) doppelt so oft defekt wie Schnitt; haeufigster HU-Mangel,1,60,https://www.autobild.de/artikel/suzuki-swift-gebraucht-tuev-report-2026-28278343.html,

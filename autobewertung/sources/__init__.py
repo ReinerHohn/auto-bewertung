@@ -14,14 +14,16 @@ from .reliability_import import ReliabilityImportSource
 from .seed import SeedSource
 from .spec_import import SpecImportSource
 from .watchlist import WatchlistSource
+from .weak_import import WeakPointImportSource
 from .wear_import import WearImportSource
 
 
 def default_sources() -> list[Source]:
-    # Import-Quellen NACH Seed: echte Specs, TUEV/ADAC-, Verschleiss-, Rueckruf-Daten.
+    # Import-Quellen NACH Seed: echte Specs, TUEV/ADAC-, Verschleiss-, Schwachstellen-, Rueckruf-Daten.
     # NhtsaRecallSource (Netz, US-Markt) nicht im Default -> via --only nhtsa_recalls.
     return [SeedSource(), SpecImportSource(), ReliabilityImportSource(),
-            WearImportSource(), RecallImportSource(), WatchlistSource(), InserateSource()]
+            WearImportSource(), WeakPointImportSource(), RecallImportSource(),
+            WatchlistSource(), InserateSource()]
 
 
 def all_sources() -> list[Source]:
@@ -31,7 +33,7 @@ def all_sources() -> list[Source]:
 
 __all__ = [
     "Source", "CollectResult", "SeedSource", "ReliabilityImportSource",
-    "WearImportSource", "RecallImportSource", "NhtsaRecallSource",
+    "WearImportSource", "WeakPointImportSource", "RecallImportSource", "NhtsaRecallSource",
     "WatchlistSource", "InserateSource", "DiscoverSource", "SpecImportSource",
     "KleinanzeigenSource", "default_sources", "all_sources",
 ]
