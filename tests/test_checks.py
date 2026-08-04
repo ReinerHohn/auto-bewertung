@@ -8,8 +8,8 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from autobewertung.checks import (
     CHECKLIST, DIAGNOSE_INTERPRETATION, GOLDEN_RULES, OBD_CHECKS, PRO_INSPECTION, SCAM_PATTERNS,
     age_service_checks, due_soon, emission_note, listing_age_days,
-    mileage_plausibility, negotiation_hint, next_hu, scam_flags, warranty_note,
-    wear_status, zahnriemen_time_status)
+    mileage_plausibility, negotiation_hint, next_hu, owner_cost_forecast,
+    scam_flags, warranty_note, wear_status, zahnriemen_time_status)
 from autobewertung.db import init_db
 from autobewertung.sources.seed import SeedSource
 from autobewertung.sources.wear_import import WearImportSource
@@ -204,6 +204,34 @@ def test_negotiation_standzeit_bonus():
 def test_negotiation_without_fair_uses_rule_of_thumb():
     h = negotiation_hint(10000, fair_price=None, days_online=None)
     assert h["target"] < 10000 and h["room_eur"] > 0
+
+
+def test_owner_cost_forecast_old_car_lists_age_items_and_recalls():
+    conn = init_db(":memory:"); SeedSource().collect(conn)
+    mid = conn.execute("SELECT id FROM car_model WHERE model='Golf'").fetchone()["id"]
+    conn.execute("INSERT INTO recall(model_id,kba_code,description) VALUES (?, 'X1', 'Test')", (mid,))
+    fc = owner_cost_forecast(conn, mid, "2016-01", 90000, "benzin", ref=REF)  # ~10 J alt
+    labels = " ".join(i["label"] for i in fc["items"])
+    assert "Bremsflüssigkeit" in labels and "12V" in labels
+    assert fc["total_eur"] >= 240          # 80 + 160
+    assert fc["recalls"] == 1
+
+
+def test_owner_cost_forecast_young_car_minimal_and_ev_skips_12v():
+    conn = init_db(":memory:"); SeedSource().collect(conn)
+    mid = conn.execute("SELECT id FROM car_model WHERE model='Golf'").fetchone()["id"]
+    young = owner_cost_forecast(conn, mid, "2025-06", 5000, "benzin", ref=REF)  # <2 J
+    assert young["total_eur"] == 0 and young["items"] == []
+    ev = owner_cost_forecast(conn, mid, "2016-01", 90000, "elektro", ref=REF)   # alt, aber E-Auto
+    assert not any("12V" in i["label"] for i in ev["items"])   # kein 12V-Posten beim E-Auto
+
+
+def test_owner_cost_forecast_hu_due_soon_counts():
+    conn = init_db(":memory:"); SeedSource().collect(conn)
+    mid = conn.execute("SELECT id FROM car_model WHERE model='Golf'").fetchone()["id"]
+    fc = owner_cost_forecast(conn, mid, "2024-02", 20000, "benzin", ref=REF)  # erste HU ~2027-02? -> nicht bald
+    fc2 = owner_cost_forecast(conn, mid, "2023-01", 20000, "benzin", ref=REF)  # HU 2026-01 faellig -> bald
+    assert any("HU/TÜV" in i["label"] for i in fc2["items"])
 
 
 if __name__ == "__main__":

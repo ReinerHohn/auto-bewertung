@@ -447,6 +447,44 @@ def listing_age_days(first_seen: str | None, ref=None) -> int | None:
     return max(0, (ref - seen).days)
 
 
+def owner_cost_forecast(conn: sqlite3.Connection, model_id: int, first_reg: str | None,
+                        mileage: int | None = None, drivetrain: str | None = None,
+                        ref=None) -> dict:
+    """Grobe 'was kommt nach dem Kauf bald auf mich zu'-Vorschau JE ANGEBOT.
+
+    Bewusst nur Posten, die NICHT von der (in der Angebotsliste unbekannten)
+    Motorvariante abhaengen: alters-/HU-getriebene Wartung + offene Rueckrufe.
+    Der variantengenaue km-Verschleiss (Zahnriemen/Kette) bleibt dem Kauf-Check
+    vorbehalten. So kann man Angebote schon in der Liste vergleichen.
+
+    Gibt {items:[{label,eur,level}], total_eur, hu, recalls}. Alle EUR = grobe
+    Schaetzung/Groessenordnung (nur Posten mit eur zaehlen in total_eur)."""
+    ref = ref or datetime.now(timezone.utc)
+    items: list[dict] = []
+    age = None
+    if first_reg:
+        try:
+            y = int(str(first_reg)[:4])
+            mo = int(str(first_reg)[5:7]) if len(str(first_reg)) >= 7 else 1
+            age = (ref.year - y) + (ref.month - mo) / 12.0
+        except (ValueError, TypeError):
+            age = None
+    if age is not None:
+        if age >= 2:
+            items.append({"label": "Bremsflüssigkeit (alle ~2 J, ohne Beleg)", "eur": 80, "level": "info"})
+        if age >= 5 and (drivetrain or "").lower() != "elektro":
+            items.append({"label": "12V-Starterbatterie (~5–6 J Lebensdauer)", "eur": 160, "level": "warn"})
+        if age >= 6:
+            items.append({"label": "Reifenalter prüfen (DOT), ggf. neuer Satz", "eur": None, "level": "info"})
+    hu = next_hu(first_reg, ref)
+    if hu and hu["months_until"] <= 4:
+        items.append({"label": f"HU/TÜV fällig ({hu['due']})", "eur": 120, "level": "warn"})
+    recalls = conn.execute(
+        "SELECT COUNT(*) c FROM recall WHERE model_id=?", (model_id,)).fetchone()["c"]
+    total = sum(i["eur"] for i in items if i["eur"])
+    return {"items": items, "total_eur": total, "hu": hu, "recalls": recalls}
+
+
 def negotiation_hint(offer_price: float | None, fair_price: float | None = None,
                      days_online: int | None = None) -> dict | None:
     """Verhandlungs-Zielpreis + Spielraum aus Fair-Preis und Inserats-Standzeit.

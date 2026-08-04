@@ -376,14 +376,23 @@ def render_category(model, cat: str) -> None:
         st.divider()
         st.markdown("**Details & Kauf-Check je Angebot:**")
         from autobewertung import fairprice
-        from autobewertung.checks import listing_age_days, negotiation_hint, scam_flags
+        from autobewertung.checks import (listing_age_days, negotiation_hint,
+                                           owner_cost_forecast, scam_flags)
         fair_by_lid = fairprice.estimate_listings(conn)
         for r in rows:
             rating = PRICE_RATING.get(r["price_rating"], "")
             title = (f"{r['price']:,.0f} € · {r['mileage_km'] or '?'} km · "
                      f"EZ {r['first_reg'] or '?'}").replace(",", ".")
             kw = f" · {r['power_kw']} kW" if r["power_kw"] else ""
-            with st.expander(f"{rating + ' · ' if rating else ''}{title} · {r['location'] or ''}"):
+            _fc = owner_cost_forecast(conn, mid, r["first_reg"], r["mileage_km"], model.drivetrain)
+            _mk = ""
+            if _fc["recalls"]:
+                _mk += f" · 🚨{_fc['recalls']}"
+            if _fc["hu"] and _fc["hu"]["months_until"] <= 4:
+                _mk += " · 🛠️TÜV"
+            if _fc["total_eur"] >= 150:
+                _mk += f" · 💶~{_fc['total_eur']:,.0f}€".replace(",", ".")
+            with st.expander(f"{rating + ' · ' if rating else ''}{title}{_mk} · {r['location'] or ''}"):
                 if r["source"] == "autoscout24" and r["title"]:
                     st.write(f"**Version:** {r['title']}{kw}")
                 st.write(f"**Preis:** {r['price']:,.0f} €".replace(",", ".")
@@ -406,6 +415,17 @@ def render_category(model, cat: str) -> None:
                              f"(Spielraum ~{_neg['room_eur']:,.0f} €)".replace(",", "."))
                     if _neg["args"]:
                         st.caption("Argumente: " + " · ".join(_neg["args"]))
+                if _fc["items"] or _fc["recalls"]:
+                    head = "**🔧 Nach dem Kauf bald fällig"
+                    head += f" (~{_fc['total_eur']:,.0f} €)".replace(",", ".") if _fc["total_eur"] else ""
+                    st.write(head + ":**")
+                    for it in _fc["items"]:
+                        eur = f" — ~{it['eur']:,.0f} €".replace(",", ".") if it["eur"] else ""
+                        st.write(("⚠️ " if it["level"] == "warn" else "• ") + it["label"] + eur)
+                    if _fc["recalls"]:
+                        st.write(f"🚨 {_fc['recalls']} offizielle(r) Rückruf(e) – erledigt nachweisen lassen")
+                    st.caption("Grobe, variantenunabhängige Schätzung. Motorbezogener km-Verschleiß "
+                               "(Zahnriemen/Kette) → 🕵️ Kauf-Check.")
                 st.write(f"**Laufleistung:** {r['mileage_km'] or '?'} km")
                 st.write(f"**Erstzulassung:** {r['first_reg'] or '?'}")
                 st.write(f"**Ort:** {r['location'] or '-'} (PLZ {r['plz'] or '-'})"
