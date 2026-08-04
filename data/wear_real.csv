@@ -93,3 +93,57 @@ Seat,Ibiza,1.4 TDI,Zahnriemen,210000,210000,700,https://www.repareo.de/zahnrieme
 Seat,Ibiza,1.4 TSI,Steuerkette,120000,120000,1400,https://carwiki.de/seat-ibiza-probleme,EA111
 Suzuki,Swift,1.3 DDiS Diesel,Zahnriemen,90000,90000,420,https://www.repareo.de/zahnriemenwechsel-suzuki-swift/,90.000 km/5 J
 Suzuki,Swift,Benziner 1.2/1.6,Steuerkette,150000,150000,900,https://carwiki.de/suzuki-swift-zahnriemen-oder-steuerkette,"wartungsfrei, bei Laengung"
+Mini,One,R50 W10 1.6,Steuerkette,150000,150000,1800,https://motorschmiede.com/steuerketten-wechseln-beim-mini-r50-r53-r56-f55-f56/,Dehnung ab ~100.000 km
+Mini,One,R56 N12/N16 1.6,Steuerkette,150000,150000,1800,https://www.repareo.de/mini-one-zahnriemen-oder-steuerkette/,Rasseln als Warnsignal
+Mini,One,R56 Cooper D 1.6 (PSA),Zahnriemen,200000,200000,600,https://carwiki.de/mini-one-zahnriemen-oder-steuerkette/,einzige Mini-Variante mit Zahnriemen
+Mini,One,alle,Wasserpumpe,150000,150000,525,https://carwiki.de/mini-one-wasserpumpe-wechseln/,120.000-175.000 km
+Skoda,Yeti,1.2/1.4 TSI (EA111 bis ~2015),Steuerkette,80000,120000,1500,https://www.autobild.de/artikel/skoda-karoq-yeti-schwachstellen-maengel-staerken-28220097.html,bei Rasseln vorzeitig; 800-2500 EUR
+Skoda,Yeti,1.4 TSI (EA211 ab 6/2015),Zahnriemen,105000,210000,650,https://carwiki.de/zahnriemenwechsel-skoda-yeti/,210.000 km inkl. Wasserpumpe
+Skoda,Yeti,1.6/2.0 TDI,Zahnriemen,105000,210000,650,https://carwiki.de/zahnriemenwechsel-skoda-yeti/,210.000 km inkl. Wasserpumpe
+Peugeot,2008,1.2 PureTech,Nassriemen (Zahnriemen im Oel),80000,100000,600,https://kfz-dietrich.com/blog/psa-1-2-puretech-riemen-im-oel-werkstatt/,verkuerzt 6 J/80-100.000 km
+Peugeot,2008,1.2 PureTech (82 PS),Zahnriemensatz,80000,100000,485,https://www.repareo.de/zahnriemenwechsel-peugeot-208/,~485-800 EUR inkl. Wasserpumpe
+Peugeot,2008,1.5/1.6 BlueHDi,Zahnriemen,165000,180000,650,https://carwiki.de/zahnriemenwechsel-peugeot-2008,165.000-180.000 km
+Nissan,Juke,1.2 DIG-T Benziner,Steuerkette,150000,150000,2000,https://gebrauchtwagenberater.de/nissan-juke-f15-probleme/,Kette+Spanner 1500-2500 EUR
+Nissan,Juke,1.6 Benziner,Steuerkette,180000,180000,1500,https://www.autosmotor.de/nissan-juke-zahnriemen-oder-steuerkette-27785,robuster
+Nissan,Juke,1.5 dCi Diesel,Zahnriemen,150000,150000,650,https://www.repareo.de/zahnriemenwechsel-nissan-juke/,K9K; 150.000 km/6 J
+Skoda,Fabia,1.2 TSI EA111,Steuerkette,35000,60000,1200,https://gebrauchtwagenberater.de/probleme-beim-tsi/,Ausfall teils 30.000-40.000 km; aeltere
+Skoda,Fabia,1.0 TSI EA211,Zahnriemen,120000,120000,650,https://kfz-dietrich.com/blog/vw-1-0-tsi-steuerkette-probleme-diagnose/,mit Wasserpumpe
+Skoda,Fabia,1.5 TSI EA211,Zahnriemen,120000,120000,650,https://kfz-dietrich.com/blog/vw-1-0-tsi-steuerkette-probleme-diagnose/,Intervall per Motorcode pruefen
+Dacia,Sandero,0.9/1.0 TCe,Steuerkette,80000,80000,1650,https://kfz-dietrich.com/blog/dacia-sandero-typische-probleme-renault/,Verschleissteil; Kit 1400-1900 EUR
+Dacia,Sandero,1.5 dCi (Gen2 K9K),Zahnriemen,120000,120000,675,https://carwiki.de/zahnriemenwechsel-dacia-sandero,120.000 km/6 J inkl. Wasserpumpe
+Dacia,Sandero,1.5 dCi (Gen3 K9K 854),Zahnriemen,70000,70000,675,https://www.autodoc.de/autoteile/zahnriemen-10504/dacia/sandero/sandero-iii/148160-1-5-dci-102,Gen3: kuerzeres Intervall 70.000 km
+Dacia,Sandero,0.9/1.0 TCe,Zuendkerzen,60000,60000,150,https://kfz-dietrich.com/blog/dacia-sandero-typische-probleme-renault/,alle 60.000 km
+Kia,Picanto,1.0 (TA),Steuerkette,150000,150000,700,https://www.autodoc.de/autoteile/steuerkette-10511/kia/picanto/picanto-ta/7067-1-0,wartungsarme Kette; Richtwert
+Kia,Picanto,1.0 (JA),Steuerkette,150000,150000,700,https://www.autodoc.de/autoteile/steuerkette-10511/kia/picanto/picanto-ja/128573-1-0,kein Zahnriemen; Richtwert
+Cupra,Ateca,2.0 TSI 4Drive,Steuerkette EA888,100000,120000,1500,https://www.motor-talk.de/forum/kosten-steuerkettenwechseln-bei-ea888-gen3-t8246567.html,1000-1500+ EUR
+Cupra,Ateca,2.0 TSI 4Drive,Haldex-Oel,50000,50000,478,https://www.autodoc.de/autoteile/haldex-ol-12098/cupra/ateca/ateca-kh7-2018/133290-2-0-tsi-4drive,alle 50.000 km bzw. 2 Jahre
+Volvo,XC40,1.5 T2/T3 (3-Zyl),Steuerkette,150000,180000,443,https://www.autobild.de/artikel/volvo-xc40-gebrauchtwagen-test-22921421.html,lebensdauerausgelegt; Teilepreis 443 EUR
+Volvo,XC40,2.0 T4/T5 (4-Zyl),Steuerkette,150000,180000,443,https://www.autobild.de/artikel/volvo-xc40-gebrauchtwagen-test-22921421.html,Kontrolle im Serviceintervall
+Peugeot,208,1.2 PureTech (Nassriemen),Zahnriemen im Oel,100000,100000,800,https://www.motor-talk.de/forum/1-2-puretech-zahnriemen-marke-haltbarkeit-intervall-t7193457.html,verkuerzt auf 6 J/100.000 km
+Peugeot,208,1.2 PureTech,Zahnriemen (ADAC-Richtwert),200000,200000,900,https://assets.adac.de/Autodatenbank/GWInfo/gw0519-peugeot-208-seit-2019-bericht.pdf,"nominal 200.000 km, praktisch verkuerzt"
+Peugeot,208,1.5 BlueHDi 100,Zahnriemen,180000,180000,640,https://assets.adac.de/Autodatenbank/GWInfo/gw0519-peugeot-208-seit-2019-bericht.pdf,180.000 km/120 Monate
+Toyota,Yaris,Benziner/Hybrid,Steuerkette Sichtpruefung,90000,90000,150,https://www.repareo.de/zahnriemenwechsel-toyota-yaris/,Kette; Sichtpruefung ab ~90.000 km
+Toyota,Yaris,Benziner/Hybrid,Steuerkette Wechsel,150000,150000,900,https://www.repareo.de/zahnriemenwechsel-toyota-yaris/,nur bei Verschleiss; 800-1000 EUR
+Toyota,Aygo,1.0 1KR-FE,Steuerkette,150000,150000,850,https://www.autodoc.de/autoteile/steuerkette-10511/toyota/aygo/aygo-wnb1-kgb1/18813-1-0-kgb10,wartungsarm; Probleme jenseits 150.000 km
+Citroen,C3,1.2 PureTech (Nassriemen),Zahnriemen im Oelbad,100000,100000,900,https://www.autodoc.de/autoteile/zahnriemen-10504/citroen/c3/c3-aircross-ii/128136-1-2-puretech-110-2rhnzb-2rhnzw-2rhnpx-2rhnpj,auf 100.000 km/6 J reduziert; frei 800-1000 EUR
+Citroen,C3,1.5 BlueHDi (Steuerkette),Oelservice (Kettenschutz),30000,30000,250,https://welchesoel.de/welches-ol-fur-1-5-bluehdi/,5W-30 zwingend; Oelservice max. 30.000 km
+Cupra,Leon,1.5 TSI EVO,Zahnriemen,240000,240000,850,https://www.adac.de/rund-ums-fahrzeug/ausstattung-technik-zubehoer/zahnriemenwechsel/,Intervall 240.000 km; 500-1200 EUR
+Honda,CR-V,2.0/2.4 i-VTEC Benziner,Ventilspiel-Kontrolle,120000,120000,150,https://gebrauchtwagenberater.de/honda-crv-re-probleme/,Steuerkette wartungsfrei; Ventilspiel ~120.000 km
+Honda,CR-V,2.2 i-DTEC Diesel,Ventilspiel-Kontrolle,100000,100000,150,https://www.autosmotor.de/honda-cr-v-re5-3-generation-2006-2012-zahnriemen-oder-steuerkette-69757,Steuerkette; Ventilspiel-Service
+Honda,CR-V,1.6 i-DTEC Diesel,Ventilspiel-Kontrolle,100000,100000,150,https://www.autosmotor.de/honda-cr-v-re6-4-generation-2012-2018-zahnriemen-oder-steuerkette-69759,Steuerkette; Ventilspiel-Service
+Audi,Q5,2.0 TFSI,Steuerkette,180000,200000,2500,https://www.deinmotorschaden.de/audi-a5-steuerkette-wechseln-kosten-und-intervall/,kein festes Intervall; praeventiv/bei Rasseln
+Audi,Q5,2.0 TDI (bis MJ 2012),Zahnriemen,180000,180000,1100,https://www.repareo.de/zahnriemenwechsel-audi-q5/,inkl. Wasserpumpe 840-1380 EUR
+Audi,Q5,2.0 TDI (ab MJ 2013),Zahnriemen,210000,210000,1100,https://www.repareo.de/zahnriemenwechsel-audi-q5/,210.000 km inkl. Wasserpumpe
+Audi,Q5,3.0 TDI,Zahnriemen,180000,210000,1300,https://carwiki.de/audi-q5-zahnriemen-oder-steuerkette/,Zahnriemen (keine Kette)
+Renault,Clio,1.5 dCi,Zahnriemen,150000,150000,600,https://www.repareo.de/zahnriemenwechsel-renault-clio/,150.000 km/6 J inkl. Wasserpumpe
+Citroen,C4,1.2 PureTech,Nassriemen (Zahnriemen im Oel),70000,70000,700,https://www.autodoc.de/autoteile/zahnriemen-10504/citroen/c4/c4-iii-b/142176-1-2-puretech-130-bahnsa-bahnsb,verkuerzt auf 70.000 km; 450-950 EUR
+Citroen,C4,1.5 BlueHDi,"Oelservice (Kette im Oel, 5W-30)",20000,20000,180,https://www.auto-motor-und-sport.de/tech-zukunft/rueckruf-bei-stellantis-darum-ist-die-steuerkette-so-anfaellig/,korrektes 5W-30 reduziert Kettenverschleiss
+Suzuki,Vitara,1.6 DDiS Diesel (D16AA),Zahnriemen,140000,140000,1050,https://www.repareo.de/zahnriemenwechsel-suzuki-vitara/,140.000 km/5 J; 710-1390 EUR inkl. Wasserpumpe
+Honda,HR-V,1.5 Benzin / e:HEV (ab 2015),Steuerkette,200000,200000,700,https://www.autodoc.de/s/honda-hr-v-zahnriemen-oder-steuerkette,wartungsarm; nur bei Defekt/Laengung
+Hyundai,BAYON,1.0 T-GDI 48V,Steuerkette,150000,150000,900,https://www.autodoc.de/autoteile/steuerkette-10511/hyundai/bayon/bayon-bc3/145131-1-0-t-gdi-48v-hybrid,wartungsfrei bei regelm. Oelwechsel; Richtwert
+Nissan,X-Trail,1.6 DIG-T Benzin (MR16DDT),Steuerkette,150000,150000,1050,https://www.autodoc.de/autoteile/steuerkette-10511/nissan/x-trail/x-trail-t32/116533-1-6-dig-t-t32,Laengung ab ~150.000 km; 900-1200 EUR
+Nissan,X-Trail,1.6 dCi Diesel (R9M),Steuerkette,145000,250000,1050,https://www.autodoc.de/autoteile/steuerkette-10511/nissan/x-trail/x-trail-t32/106464-1-6-dci-t32,laengt oft schon 140.000-150.000 km - frueh kontrollieren
+Skoda,Scala,1.0 TSI (EA211 evo),Zahnriemen,240000,240000,700,https://kfz-dietrich.com/blog/zahnriemenwechsel-intervall-kosten-marken-uebersicht/,Kontrolle ab 240.000 km; 500-900 EUR
+Skoda,Scala,1.5 TSI (EA211 evo),Zahnriemen,240000,240000,800,https://kfz-dietrich.com/blog/zahnriemenwechsel-intervall-kosten-marken-uebersicht/,240.000 km; 500-900 EUR
+Skoda,Scala,1.6 TDI (EA288),Zahnriemen,210000,210000,700,https://carwiki.de/zahnriemenwechsel-skoda-scala/,~210.000 km inkl. Wasserpumpe
+Honda,Jazz,1.3 i-VTEC (L13B),Steuerkette,200000,200000,800,https://carwiki.de/honda-jazz-zahnriemen-oder-steuerkette/,wartungsfrei; nur bei Rasseln; Richtwert

@@ -86,3 +86,31 @@ Fiat,500,ADAC,pannen_pro_1000,9.7,2024,,https://www.adac.de/rund-ums-fahrzeug/au
 Ford,Fiesta,ADAC,pannen_pro_1000,14.0,2021,,https://www.kfzticker.de/technik/adac-pannenstatistik-2013-zwoelf-modelle-fallen-durch/,EZ 2015
 Hyundai,i20,ADAC,pannen_pro_1000,9.4,2025,,https://assets.adac.de/image/upload/v1744788916/ADAC-eV/KOR/Text/PDF/Pannenstatistik_2025_final_nrmvls.pdf,EZ 2020 (ADAC Pannenstatistik 2025)
 Suzuki,Swift,ADAC,pannen_pro_1000,0.8,2024,,https://www.basicthinking.de/blog/2025/04/18/besten-autos-adac-2025/2/,EZ 2021 (ADAC 2024/25)
+Mini,One,TUEV,maengelquote_pct,19.8,2026,4,https://www.autobild.de/artikel/mini-gebraucht-tuev-report-2026-28291985.html,"erhebliche Maengel HU 4-5 J (Schnitt 10,0%); Marke Mini"
+Mini,One,ADAC,pannen_pro_1000,0.8,2026,,https://www.adac.de/rund-ums-fahrzeug/unfall-schaden-panne/adac-pannenstatistik-2026/,Marke Mini Benziner 3-jaehrig; Naeherung
+Skoda,Yeti,TUEV,maengelquote_pct,17.8,2026,8,https://www.autobild.de/artikel/skoda-karoq-yeti-schwachstellen-maengel-staerken-28220097.html,"juengste verfuegbare Klasse 8-9 J (Yeti bis 2017); Schnitt 18,3%"
+Skoda,Yeti,ADAC,pannen_pro_1000,10.2,2018,,https://assets.adac.de/image/upload/Autodatenbank/GWInfo/gw0299-skoda-yeti-2009-2017-diesel-bericht.pdf,"Pannenstatistik 2018, Baujahr 2013"
+Cupra,Formentor,TUEV,maengelquote_pct,9.7,2026,3,https://www.autobild.de/artikel/cupra-formentor-gebraucht-tuev-report-2026-28077311.html,"2-3 J: 90,3% maengelfrei"
+Peugeot,2008,TUEV,maengelquote_pct,5.4,2026,4,https://www.autobild.de/artikel/peugeot-2008-gebrauchtwagen-check-tuev-schwachstellen-maengel-staerken-28135959.html,"4-5 J: 90,4% maengelfrei"
+Dacia,Spring,ADAC,pannen_pro_1000,3.1,2026,,https://blog.dacia.de/dacia-spring-ueberzeugt-in-der-adac-pannenstatistik-2026-guenstig-und-zuverlaessig/,EZ 2022; Platz 2 der Klasse
+Skoda,Fabia,TUEV,maengelquote_pct,9.1,2026,4,https://www.autobild.de/artikel/skoda-fabia-gebraucht-tuev-report-2026-28245289.html,"erhebliche Maengel 4-5 J unter Schnitt (10,0%)"
+Dacia,Sandero,TUEV,maengelquote_pct,7.8,2026,4,https://www.autobild.de/artikel/dacia-sandero-tuev-report-2026-28115371.html,erhebliche Maengel; Schwaechen Achse/Beleuchtung/Bremsen aeltere Gen
+Dacia,Sandero,ADAC,pannen_pro_1000,4.3,2021,,https://blog.dacia.de/adac-pannenstatistik-dacia-sandero-und-duster-sind-beeindruckend-zuverlaessig/,"Pannenstatistik 2021, EZ 2017 (2018: 2,6)"
+Kia,Picanto,TUEV,maengelquote_pct,8.1,2026,4,https://www.autobild.de/artikel/kia-picanto-schwachstellen-maengel-staerken-28308189.html,"JA; ~8,1% Maengel mit 4-5 J; Klassensieger"
+Cupra,Ateca,TUEV,maengelquote_pct,9.5,2026,5,https://www.autobild.de/artikel/seat-ateca-tuev-report---schwachstellen-maengel-28215031.html,baugleicher Seat Ateca 4-5 J (Cupra ohne eigene Wertung); Hauptschwaeche Bremsscheiben
+Peugeot,208,TUEV,maengelquote_pct,7.7,2026,4,https://www.autobild.de/artikel/peugeot-207-208-im-tuev-check-2026--28327317.html,erhebliche Maengel 4-5 J; Hauptmaengel Bremsscheiben/Auspuff/Oelverlust
+Peugeot,208,ADAC,pannen_pro_1000,1.2,2024,,https://assets.adac.de/Autodatenbank/GWInfo/gw0519-peugeot-208-seit-2019-bericht.pdf,"Pannenstatistik 2024, EZ 2021 (2020: 1,8; 2019: 3,0)"
+Toyota,Yaris,TUEV,maengelquote_pct,16.8,2026,4,https://www.autobild.de/artikel/toyota-yaris-tuev-report-2026-28270261.html,"4-5 J: 83,2% ohne Maengel (8,6% gering + 8,2% erheblich)"
+Toyota,Aygo,TUEV,maengelquote_pct,10.6,2026,4,https://www.autobild.de/artikel/toyota-aygo-schwachstellen-maengel-staerken-28318367.html,"erhebliche Maengel 4-5 J (2. HU); 82,0% maengelfrei"
+Toyota,Aygo,ADAC,pannen_pro_1000,9.0,2020,,https://autogazette.de/adac/pannenstatistik/gebrauchtwagen/toyota-aygo-zuverlaessigster-kleinstwagen-989401248.html,~9/1000 selbst bei 10 J; zuverlaessigster Kleinstwagen
+Citroen,C3,TUEV,maengelquote_pct,18.6,2026,4,https://www.autobild.de/artikel/citroen-c3-im-tuev-check-2026--28357859.html,"Gen3; 4-5 J: 81,4% ohne Maengel (davon 11,2% erheblich)"
+Citroen,C3,ADAC,pannen_pro_1000,10.4,2025,,https://assets.adac.de/image/upload/v1744788916/ADAC-eV/KOR/Text/PDF/Pannenstatistik_2025_final_nrmvls.pdf,"C3/DS3 EZ 2020 (2022: 5,5; 2018: 18,2)"
+Cupra,Leon,TUEV,maengelquote_pct,14.0,2026,3,https://www.autobild.de/artikel/seat-cupra-leon-gebraucht-tuev-report-2026-28090849.html,"Leon IV 2-3 J: 86,0% maengelfrei; aggregiert Seat+Cupra Leon"
+Honda,CR-V,TUEV,maengelquote_pct,20.0,2015,7,https://autogazette.de/honda/cr-v/gebrauchtwagen/honda-cr-v-als-gebrauchter-mit-wenig-problemen-989396838.html,TUEV-Report 2015: 80% der 6-7 J bestehen HU anstandslos (=20% mit Maengeln); besser als Klassenschnitt
+Audi,Q5,TUEV,maengelquote_pct,35.6,2026,12,https://www.autobild.de/artikel/audi-q5-im-tuev-check-2026--28232879.html,"12-13 J (Ø 179.000 km): 64,4% maengelfrei; Hauptmangel Achsaufhaengung"
+Renault,Clio,TUEV,maengelquote_pct,8.5,2019,4,https://www.tuev-verband.de/pressemitteilungen/korrektur-tuev-report-2019-renault-clio-iv-schneidet-besser-ab,"Clio IV 4-5 J, korrigierte Quote; Fahrwerksfedern/Bremsen"
+Suzuki,Vitara,TUEV,maengelquote_pct,13.8,2026,4,https://www.autobild.de/artikel/suzuki-vitara-grand-vitara-tuev-report-2026-28325339.html,"4-5 J: 86,2% maengelfrei (davon 6,4% erheblich)"
+Suzuki,Vitara,ADAC,pannen_pro_1000,10.4,2026,,https://www.adac.de/rund-ums-fahrzeug/autokatalog/marken-modelle/suzuki/vitara/2generation/250208/,"EZ 2020/2021 je 10,4; aeltere besser (2016: 7,2)"
+Nissan,X-Trail,TUEV,maengelquote_pct,11.09,2021,4,https://www.autozeitung.de/gebrauchte-suv-viele-maengel-109199.html,"4-5 J; Quelle GTUE-Gebraucht-Report 2021; TUEV 2-3 J ~7,2%"
+Skoda,Scala,TUEV,maengelquote_pct,18.4,2026,4,https://www.autobild.de/artikel/skoda-scala-rapid-gebraucht-tuev-report-2026-28357747.html,"4-5 J: 81,6% maengelfrei; Hauptmaengel Bremsscheiben/Beleuchtung"
+Honda,Jazz,TUEV,maengelquote_pct,2.4,2025,4,https://autogazette.de/gebrauchtwagen/tuev-report-honda-jazz-besonders-zuverlaessig-989426150.html,"Gesamtsieger TUEV-Report 2025; 2,4% erhebliche Maengel 1. HU (2-3 J)"
