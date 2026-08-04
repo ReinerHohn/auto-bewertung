@@ -616,6 +616,32 @@ def render_category(model, cat: str) -> None:
         else:
             st.success("✅ Preis & km unauffällig. Trotzdem: Maschen unten kennen und Checkliste abarbeiten.")
 
+        # 🏁 Profi-Urteil (Capstone): rollt Zuverlässigkeit, Schwachstellen, Rückrufe,
+        # fällige Kosten, Preisfairness & Betrugssignale zu einer Ampel zusammen.
+        from autobewertung.advice import buy_verdict as _buy_verdict
+        _rp = (price - _fair) / _fair if (_fair and price) else None
+        _v = _buy_verdict(conn, mid, price, km, reg, _fair, _rp, model.drivetrain)
+        _emoji, _box = {"gruen": ("🟢", st.success), "gelb": ("🟡", st.warning),
+                        "rot": ("🔴", st.error)}[_v["ampel"]]
+        _box(f"### {_emoji} Profi-Urteil: {_v['headline']}")
+        _c1, _c2 = st.columns(2)
+        with _c1:
+            if _v["pros"]:
+                st.markdown("**Dafür:**")
+                for _p in _v["pros"]:
+                    st.markdown(f"- ✅ {_p}")
+        with _c2:
+            if _v["cons"]:
+                st.markdown("**Zu klären / dagegen:**")
+                for _co in _v["cons"]:
+                    st.markdown(f"- ⚠️ {_co}")
+        st.progress(_v["coverage"] / 100,
+                    text=f"📚 Wissenstiefe des Tools zu genau diesem Modell: {_v['coverage']} %")
+        if _v["coverage"] < 70:
+            _miss = [k for k, ok in _v["coverage_dims"].items() if not ok]
+            st.caption("Hier weiß das Tool weniger (" + ", ".join(_miss)
+                       + ") → die manuellen Checks unten sind bei diesem Auto besonders wichtig.")
+
         # 📋 Pflicht-Checks: HU-Fälligkeit · Gewährleistung · Umweltzone
         _hu = next_hu(reg)
         if _hu:

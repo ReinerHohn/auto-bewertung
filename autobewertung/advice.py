@@ -9,7 +9,7 @@ from __future__ import annotations
 import sqlite3
 
 from .checks import (age_service_checks, due_soon, emission_note, mileage_plausibility,
-                     next_hu, warranty_note, zahnriemen_time_status)
+                     next_hu, scam_flags, warranty_note, zahnriemen_time_status)
 from .wear import load_items
 
 
@@ -162,6 +162,89 @@ def negotiation_ammo(conn: sqlite3.Connection, model_id: int, variant: str | Non
     reduction = sum(a["eur"] or 0 for a in args)
     target = round(price - reduction) if price else None
     return {"args": args, "context": context, "reduction": reduction, "target": target}
+
+
+def knowledge_coverage(conn: sqlite3.Connection, model_id: int) -> dict:
+    """Wie viel weiss das Tool ueber GENAU dieses Modell? (Wissenstiefe 0..100).
+    Ehrlicher Indikator, wie nah wir am 'Profi weiss alles'-Anspruch sind."""
+    def has(sql):
+        return bool(conn.execute(sql + " LIMIT 1", (model_id,)).fetchone())
+    spec = conn.execute(
+        "SELECT vehicle_class, cons_l_100km, cons_kwh_100km, length_mm, tk_kh "
+        "FROM vehicle_spec WHERE model_id=?", (model_id,)).fetchone()
+    dims = {
+        "Echte Zuverlässigkeit": has("SELECT 1 FROM reliability_stat WHERE model_id=? AND is_estimate=0"),
+        "Schwachstellen": has("SELECT 1 FROM weak_point WHERE model_id=?"),
+        "Verschleiß (modellspez.)": has("SELECT 1 FROM wear_item WHERE model_id=? AND variant!='alle'"),
+        "Rückrufe erfasst": has("SELECT 1 FROM recall WHERE model_id=?"),
+        "Vollständige Specs": bool(spec and spec["vehicle_class"]
+                                   and (spec["cons_l_100km"] or spec["cons_kwh_100km"]) and spec["length_mm"]),
+        "Versicherungs-Typklasse": bool(spec and spec["tk_kh"]),
+        "Live-Angebote": has("SELECT 1 FROM listing WHERE model_id=? AND active=1 AND source!='seed'"),
+    }
+    score = round(100 * sum(dims.values()) / len(dims))
+    return {"score": score, "dims": dims}
+
+
+def buy_verdict(conn: sqlite3.Connection, model_id: int, price: float | None,
+                mileage: int | None, first_reg: str | None, fair_price: float | None,
+                resid_pct: float | None, drivetrain: str | None,
+                variant: str | None = None, ref=None) -> dict:
+    """Profi-Urteil zu EINEM Auto: rollt Zuverlaessigkeit, Schwachstellen/Rueckrufe,
+    faellige Kosten, Preisfairness und Betrugssignale zu einer Ampel + Gruenden zusammen.
+    Gibt {ampel 'gruen'|'gelb'|'rot', headline, pros, cons, coverage}."""
+    pros: list[str] = []
+    cons: list[str] = []
+    risk = 0
+
+    rel = conn.execute(
+        "SELECT AVG(CASE WHEN metric='pannen_pro_1000' THEN value END) pannen, "
+        "AVG(CASE WHEN metric='maengelquote_pct' THEN value END) maengel "
+        "FROM reliability_stat WHERE model_id=?", (model_id,)).fetchone()
+    if rel and rel["pannen"] is not None:
+        if rel["pannen"] <= 5 or (rel["maengel"] or 99) <= 8:
+            pros.append("zuverlässiges Modell (ADAC/TÜV)")
+        elif rel["pannen"] >= 15 or (rel["maengel"] or 0) >= 18:
+            cons.append("überdurchschnittlich pannen-/mängelanfällig"); risk += 2
+
+    sev = conn.execute("SELECT COALESCE(SUM(severity),0) s, COUNT(*) n FROM weak_point WHERE model_id=?",
+                       (model_id,)).fetchone()
+    if sev["s"] >= 6:
+        cons.append("mehrere bekannte Schwachstellen (Achtungsliste beachten)"); risk += 1
+    n_recalls = conn.execute("SELECT COUNT(*) c FROM recall WHERE model_id=?", (model_id,)).fetchone()["c"]
+    if n_recalls:
+        cons.append(f"{n_recalls} Rückruf(e) – als erledigt nachweisen lassen"); risk += 1
+
+    if mileage is not None:
+        due = due_soon(conn, model_id, variant, mileage, horizon_km=20000)
+        due_sum = sum(d["cost_eur"] for d in due)
+        if due_sum >= 800:
+            cons.append(f"~{_eur(due_sum)} Reparaturen stehen bald an"); risk += 1
+    zr = zahnriemen_time_status(conn, model_id, variant, first_reg, ref)
+    if zr and zr["due"]:
+        cons.append("Zahnriemen zeitlich fällig – Wechselbeleg?"); risk += 1
+
+    if resid_pct is not None:
+        if resid_pct <= -0.35:
+            cons.append("extrem unter Marktwert → Mangel/Unfall/Betrug-Verdacht"); risk += 2
+        elif resid_pct <= -0.10:
+            pros.append(f"{-resid_pct*100:.0f} % unter fairem Marktwert")
+        elif resid_pct >= 0.10:
+            cons.append(f"{resid_pct*100:.0f} % über fairem Marktwert"); risk += 1
+    for fl in scam_flags(price, fair_price, mileage, first_reg):
+        if fl["level"] == "danger":
+            cons.append("Betrugs-Warnung (Preis/km) – Kauf-Check!"); risk += 2
+            break
+
+    cov = knowledge_coverage(conn, model_id)
+    # rot nur bei echten Ausschluss-Signalen (Betrug/extrem unter Wert/unzuverlaessig
+    # zaehlen je +2); Rueckrufe/Schwachstellen/Service (je +1) bleiben 'klaeren' = gelb.
+    ampel = "rot" if risk >= 4 else ("gelb" if risk >= 1 else "gruen")
+    headline = {"gruen": "Solide – kein Ausschlusskriterium erkannt",
+                "gelb": "Mit Vorsicht – ein paar Punkte klären",
+                "rot": "Kritisch – erst Risiken ausräumen"}[ampel]
+    return {"ampel": ampel, "headline": headline, "pros": pros[:3], "cons": cons[:4],
+            "coverage": cov["score"], "coverage_dims": cov["dims"]}
 
 
 def buy_dossier(conn: sqlite3.Connection, model_id: int, label: str, variant: str | None,

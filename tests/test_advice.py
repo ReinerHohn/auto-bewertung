@@ -4,8 +4,8 @@ import sys
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from autobewertung.advice import (ADAC_KAUFVERTRAG_URL, buy_dossier, kaufvertrag,
-                                  model_watchpoints, negotiation_ammo)
+from autobewertung.advice import (ADAC_KAUFVERTRAG_URL, buy_dossier, buy_verdict, kaufvertrag,
+                                  knowledge_coverage, model_watchpoints, negotiation_ammo)
 from autobewertung.db import init_db
 from autobewertung.sources.seed import SeedSource
 from autobewertung.sources.wear_import import WearImportSource
@@ -58,6 +58,29 @@ def test_dossier_has_sections():
     assert "## Worauf achten" in d and "## Verhandlung" in d
     assert "KEINE Gewährleistung" in d            # Privatverkauf-Hinweis
     assert "https://x" in d
+
+
+def test_knowledge_coverage():
+    conn = _conn(); golf = _golf(conn)
+    cov = knowledge_coverage(conn, golf)
+    assert 0 <= cov["score"] <= 100 and cov["dims"]
+    assert cov["dims"]["Schwachstellen"] is True          # Golf hat kuratierte Schwachstellen
+
+
+def test_buy_verdict_flags_extreme_underprice_red():
+    conn = _conn(); golf = _golf(conn)
+    v = buy_verdict(conn, golf, price=6000, mileage=120000, first_reg="2016-06",
+                    fair_price=12000, resid_pct=-0.50, drivetrain="benzin")
+    assert v["ampel"] == "rot"
+    assert any("Betrug" in c or "unter Marktwert" in c for c in v["cons"])
+    assert "coverage" in v
+
+
+def test_buy_verdict_solid_is_not_red():
+    conn = _conn(); golf = _golf(conn)
+    v = buy_verdict(conn, golf, price=12000, mileage=90000, first_reg="2019-06",
+                    fair_price=12500, resid_pct=-0.04, drivetrain="benzin")
+    assert v["ampel"] in ("gruen", "gelb")
 
 
 def test_kaufvertrag_prefilled():

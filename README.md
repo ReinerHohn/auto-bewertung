@@ -2,9 +2,24 @@
 
 Ein Profi-Tool zur Bewertung von **Gebrauchtwagen (DE)** nach *deinen* Kriterien:
 Total Cost of Ownership, Zuverlässigkeit, Wertstabilität, Ausstattung, echter
-Verschleiß je Untermodell, Rückrufe, echte Angebote von AutoScout24, Kauf-Check
-(Tacho-Betrug), VIN-Decoder – mit sortierbarem Dashboard und automatischem
-Preis-Tracking.
+Verschleiß je Untermodell, Rückrufe, echte Angebote (AutoScout24 + Kleinanzeigen),
+Kauf-Check (Tacho-Betrug), VIN-Decoder – mit sortierbarem Dashboard und
+automatischem Preis-Tracking.
+
+**Anspruch:** Du sollst zu einem Kandidaten-Auto so viel wissen wie ein **erfahrener
+Mechaniker *und* Autoverkäufer** – und **gegen Betrugsmaschen gefeit** sein. Dafür bündelt
+das Tool drei Säulen und ein Profi-Urteil je Auto:
+
+- **🔧 Wie ein Mechaniker** – Schwachstellen/Rückrufe je Modell, Verschleiß nach km **und Zeit**
+  (Zahnriemen, Bremsflüssigkeit, 12V, Reifenalter …), „worauf Mechaniker wirklich schauen"-Tells,
+  OBD-Diagnose-Anleitung + **Fehlercode-Deuter** (`dtc P0087` → Klartext/Kosten/Prüfschritte).
+- **💰 Wie ein Verkäufer** – eigenes **Fair-Preis-Modell** (Ausstattung aus dem Titel), Schnäppchen
+  „billig UND gut", Standzeit, Anfahrt-im-Preis, Preisboden, **Verhandlungs-Munition** + Zielpreis,
+  vorausgefüllter **Kaufvertrag**.
+- **🛡️ Betrugssicher** – Warnung bei Preis weit unter fair, Tacho-Plausibilität, Liste typischer
+  Maschen, Identitäts-/Papier-Checks, neutrale 2. Meinung (AS24-Bewertung).
+- **🏁 Profi-Urteil je Auto** – Ampel + „Dafür/Zu klären" + ehrliche **Wissenstiefe %** (wie viel das
+  Tool über genau dieses Modell weiß).
 
 ## Schnellstart
 
